@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">Nosedive</string>
+    <string name="string_press_me">TOUCHEZ MOI</string>
+    <string name="string_choose2word">SÉLECTIONNEZ DEUX MOTS</string>
+    <string name="buttonlabel_smart">intelligente</string>
+    <string name="buttonlabel_lovely">affectueuse</string>
+    <string name="buttonlabel_fun">drôle</string>
+    <string name="buttonlabel_sportive">sportive</string>
+    <string name="buttonlabel_natural">naturelle</string>
+    <string name="buttonlabel_sexy">sexy</string>
+    <string name="buttonlabel_surprising">spontanée</string>
+    <string name="buttonlabel_romantic">romantique</string>
+    <string name="buttonlabel_pretty">jolie</string>
+    <string name="buttonlabel_seductive">séduisante</string>
+    <string name="buttonlabel_hungry">gourmande</string>
+    <string name="buttonlabel_polite">polie</string>
+    <string name="buttonlabel_girly">féminine</string>
+    <string name="buttonlabel_tenderly">tendre</string>
+    <string name="buttonlabel_kind">gentille</string>
+    <string name="buttonlabel_strong">forte</string>
+    <string name="photoportrait_de_julia">photoportrait de julia</string>
+    <string name="dlinprogress">Téléchargement en cours</string>
+
+</resources>
