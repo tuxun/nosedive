@@ -3,23 +3,22 @@ apply plugin: 'com.android.application'
 android {
     signingConfigs {
         tflsh {
-            storeFile file('/home/tuxun/keystoreANDROID.jks')
+            storeFile file('/media/tuxun/data/android-studio/bin/keystore')
             keyAlias 'key0'
             keyPassword 'vachetteetgrisou'
             storePassword 'vachetteetgrisou'
         }
         lintOptions{checkReleaseBuilds false}
     }
-    compileSdkVersion 23
+    compileSdkVersion 30
     defaultConfig {
         applicationId "org.tflsh.nosedive"
         minSdkVersion 19
-        targetSdkVersion 28
+        targetSdkVersion 30
         versionCode 1
         versionName 'fonttest'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         versionNameSuffix 'beta'
-        signingConfig signingConfigs.tflsh
     }
     buildTypes {
         release {
