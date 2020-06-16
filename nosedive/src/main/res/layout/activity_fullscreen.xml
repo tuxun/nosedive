@@ -24,11 +24,13 @@
             >
 
 
-            <ProgressBar
-                android:id="@+id/progressbar"
-                style="@android:style/Widget.ProgressBar.Horizontal"
+            <SeekBar
+                android:id="@+id/seekbar_education_plan_investment_duration"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_margin="0dp"
+                android:thumb="@android:drawable/ic_dialog_info" />
+
             <ProgressBar
                 android:id="@+id/DLprogressbar"
                 style="@android:style/Widget.ProgressBar.Horizontal"
@@ -89,6 +91,11 @@ android:visibility="gone"
                     android:src="@drawable/icone_appli2"
                     android:contentDescription="@string/photoportrait_de_julia" />
 
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
 
             </LinearLayout>
 
@@ -129,9 +136,10 @@ android:visibility="gone"
             android:orientation="horizontal"
             android:visibility="gone"
             android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
 
-            android:layout_margin="5dp"
-
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
             >
         </LinearLayout>
         <TextView
@@ -139,7 +147,7 @@ android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center|bottom"
-            android:textSize="30sp"
+            android:textSize="22sp"
             android:text="@string/string_press_me"
 
             />

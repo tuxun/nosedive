@@ -1,11 +1,13 @@
 package org.tflsh.nosedive;
 
-import android.accounts.NetworkErrorException;
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -16,15 +18,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -63,7 +62,8 @@ public class FullscreenActivity extends AppCompatActivity {
     private final Handler mHideHandler = new Handler();
     private final Handler mDiapoHandler = new Handler();
     //REGLAGE DE LAPPLI
-    private final String mServerDirectoryURL =;
+    //private final String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/res/";
+    private final String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/"+"julia/";
     private final boolean debuglayoutmode = false;
     private final Runnable showpressmetextRunnable = new Runnable() {
         @Override
@@ -123,7 +123,7 @@ public class FullscreenActivity extends AppCompatActivity {
     int screenwidth;
     int screenheight;
     //temps unitaire (base de temps), sert a définir le delai entre deux images
-    int delayinterframes = 300;
+    int delayinterframes = 1000;
     //temps durant lequel onregarde une image proposé apres le menu (en multiple d'interframedelay)
     int delayquestionnement = 5 * delayinterframes;
     //temps durant lequel on peut choisir deux mots (en multiple d'interframedelay)
@@ -148,6 +148,29 @@ public class FullscreenActivity extends AppCompatActivity {
 
         }
     };
+
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Log.e("onConfigurationChanged", "onConfigurationChanged ?");
+
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+            setContentView(R.layout.activity_fullscreen_paysage);
+this.onResume();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+            setContentView(R.layout.activity_fullscreen);
+            this.onResume();
+
+        }
+    }
+
+
+
+
     ArrayList<String> missingfiles;
     TextView tvProgressLabel;
     private View mContentView;
@@ -240,8 +263,8 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     };
     //    private static final int AUTO_HIDE_DELAY_MILLIS = 300;
-    private ToggleButton prevButton;
-    private ToggleButton lastButton;
+    private Button prevButton;
+    private Button lastButton;
     private boolean mDLisCompleted = false;        //runnnable s'appelant lui meme a la fin du diapo qu'il lance
     ////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////RUNNABLES////////////////////////////////
@@ -321,8 +344,7 @@ public class FullscreenActivity extends AppCompatActivity {
         @Override
         public void run() {
             //mHideHandler.post(cleanbuttonRunnable);
-
-            if (mDLisCompleted) {
+                    if (mDLisCompleted) {
                 //reset progressBar
                 // ((TextView) findViewById(R.id.fullscreen_text)).setText("Mots");
                 mDiapoHandler.removeCallbacks(showNextRunnable);
@@ -368,6 +390,8 @@ public class FullscreenActivity extends AppCompatActivity {
     //https://www.journaldev.com/9357/android-actionbar-example-tutorial
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Log.e("MenuItem", "Selected");
+
         switch (item.getItemId()) {
             case R.id.add:
                 //add the function to perform here
@@ -376,7 +400,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 //add the function to perform here
             File filetodelete= new File(getExternalCacheDir() + "/filelist.json");
                 filetodelete.delete();
-
+                this.onResume();
             return (true);
             case R.id.about:
 
@@ -395,12 +419,106 @@ public class FullscreenActivity extends AppCompatActivity {
     protected
     void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+    }
+    private final Runnable cleanbuttonRunnable = new Runnable() {
+        @Override
+        public void run() {
+
+            int clickedbuttons=mToggleButtonsArrayList.size();
+            Log.d("cleanbuttonRunnable", clickedbuttons + "cleanboutons ok");
+            for (int i = clickedbuttons-1; i >= 0; i--) {
+
+                mToggleButtonsArrayList.get(i).setEnabled(true);
+                mToggleButtonsArrayList.get(i).setClickable(true);
+                mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(i));
+            }
+
+        }
+    };
+
+    private final Runnable makebuttonclickableRunnable = new Runnable() {
+        @Override
+        public void run() {
+
+            int clickedbuttons=mToggleButtonsArrayList.size();
+            Log.d("cleanbuttonRunnable", clickedbuttons + "cleanboutons ok");
+            for (int i = clickedbuttons-1; i >= 0; i--) {
+
+                mToggleButtonsArrayList.get(i).setEnabled(true);
+                //mToggleButtonsArrayList.get(i).setClickable(true);
+                //mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(i));
+            }
+
+        }
+    };
+    private final Runnable makebuttonNOTclickableRunnable = new Runnable() {
+        @Override
+        public void run() {
+
+            int clickedbuttons=mToggleButtonsArrayList.size();
+            Log.d("cleanbuttonRunnable", clickedbuttons + "cleanboutons ok");
+            for (int i = clickedbuttons-1; i >= 0; i--) {
+
+                mToggleButtonsArrayList.get(i).setEnabled(false);
+                //mToggleButtonsArrayList.get(i).setClickable(true);
+                //mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(i));
+            }
+
+        }
+    };
+
+
+    @Override protected   void onStop() {
+        super.onStop();
+        mDiapoHandler.post(stopdiapoRunnable);
+        Log.d("activity", "onstop");
+
+
+    }
+    @Override protected   void onResume() {
+        super.onResume();
+        Log.d("activity", "onResume");
         ActionBar actionBar = getSupportActionBar();
+
         if (actionBar != null) {
-         actionBar.hide();
+            actionBar.hide();
         }
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
+
+        //https://developer.android.com/training/monitoring-device-state/connectivity-status-type
+        ConnectivityManager cm =
+                (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+
+        boolean isMetered = cm.isActiveNetworkMetered();
+        if(isConnected)
+        {
+            Log.d("NetworkInfo", "internet ok");
+            if(isMetered)
+            {
+                Log.d("NetworkInfo", "mais connexion limité");
+
+            }
+            else
+            {
+                Log.d("NetworkInfo", "pas de limite de débit (youpi!)");
+
+            }
+
+        }else
+        {
+            Log.d("NetworkInfo", "pas internet");
+
+        }
+
+
+
      /*   SeekBar seekBar = findViewById(R.id.seekBar);
 
        // int progress = seekBar.getProgress();
@@ -430,13 +548,20 @@ public class FullscreenActivity extends AppCompatActivity {
 
         screenwidth = metrics.widthPixels;
         screenheight = metrics.heightPixels;
-        if (Build.VERSION.SDK_INT < 16) {
+  /*      if (Build.VERSION.SDK_INT < 16) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
+*/
+        if(screenheight>screenwidth  ) {
+            setContentView(R.layout.activity_fullscreen);
 
-        setContentView(R.layout.activity_fullscreen);
+        }
+        else
+        {
+            setContentView(R.layout.activity_fullscreen_paysage);
 
+        }
         mContentView = findViewById(R.id.fullscreen_content_controls);
         //mContentView = findViewById(R.id.fullscreen_content_controls);
 
@@ -490,6 +615,10 @@ public class FullscreenActivity extends AppCompatActivity {
                 public void onClick(View view) {
                     mDiapoHandler.removeCallbacks(showNextRunnable);
                     mDiapoHandler.removeCallbacks(startdiapoRunnable);
+
+                    ((ImageView) findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.whitebackground));
+
+
                     mdiapo_isrunning = false;
                     // SystemClock.sleep(100);
 
@@ -504,22 +633,33 @@ public class FullscreenActivity extends AppCompatActivity {
                         mDiapoHandler.postDelayed(startdiapoRunnable, delayquestionnement);
                         // mHideHandler.postDelayed(cleanbuttonRunnable, delayquestionnement+UI_ANIMATION_DELAY);
                         view.setPressed(true);
+                        view.setEnabled(false);
+                        lastButton = (Button) view;
+
                         mCheckedToggleButtonsArrayList.add(((Button) view));
-return;
+                        return;
 
                     } else if (mCheckedToggleButtonsArrayList.size() == 1) {
                         //if its the second time we click on a button
 //if it's the same button twice, uncheck it and return
 //                        lastButton = ((ToggleButton) view);
+                        lastButton.setEnabled(true);
+                        mCheckedToggleButtonsArrayList.add(((Button) view));
+
+                        if(mCheckedToggleButtonsArrayList.get(0)==mCheckedToggleButtonsArrayList.get(1))
+                        {
+                            Log.d("mCheckedToggleButtons", "same BUTTON AND FUCK");
+                        }
                         (findViewById(R.id.pressme_text)).setVisibility(View.GONE);
                         mHideHandler.post(hidemenuRunnable);
-mCheckedToggleButtonsArrayList.get(0).setPressed(false);
+//mCheckedToggleButtonsArrayList.get(0).setPressed(false);
 
                         Log.d("toggleclick", "toggle 2 boutons ok");
                         mDiapoHandler.postDelayed(startdiapoRunnable, delayquestionnement);
 
-                        mHideHandler.post(cleanbuttonRunnable);
-
+                        //mHideHandler.post(cleanbuttonRunnable);
+                        // mHideHandler.post(makebuttonclickableRunnable);
+                        mHideHandler.post(makebuttonNOTclickableRunnable);
                         new showImageFileTask((ImageView) findViewById(R.id.imageView)).execute(mDiapo.get(new Random().nextInt(mDiapo.size())));
                         ;
                         return;
@@ -546,7 +686,7 @@ mCheckedToggleButtonsArrayList.get(0).setPressed(false);
 
 
 
-          //avoid a glitch reloading button
+            //avoid a glitch reloading button
             temptg.setClickable(true);//                    setChecked(false);
 
             mToggleButtonsArrayList.add(temptg);
@@ -631,32 +771,9 @@ mCheckedToggleButtonsArrayList.get(0).setPressed(false);
 
 
 
-    }
-    private final Runnable cleanbuttonRunnable = new Runnable() {
-        @Override
-        public void run() {
-
-            int clickedbuttons=mToggleButtonsArrayList.size();
-            Log.d("cleanbuttonRunnable", clickedbuttons + "cleanboutons ok");
-            for (int i = clickedbuttons-1; i >= 0; i--) {
-
-                mToggleButtonsArrayList.get(i).setEnabled(true);
-                mToggleButtonsArrayList.get(i).setClickable(true);
-                mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(i));
-            }
-
-        }
-    };
-    @Override protected   void onStop() {
-        super.onStop();
-        mDiapoHandler.post(stopdiapoRunnable);
-        Log.d("activity", "onstop");
 
 
-    }
-    @Override protected   void onResume() {
-        super.onResume();
-        Log.d("activity", "onResume");
+
         this.mDiapo = new ArrayList<String>();
         this.mSums = new ArrayList<String>();
         this.missingfiles = new ArrayList<String>();
@@ -782,12 +899,12 @@ mCheckedToggleButtonsArrayList.get(0).setPressed(false);
 
         public showImageFileTask(ImageView bbmImage) {
             this.bmImage = bbmImage;
-            //   this.name=namee;§
+            //   this.name=namee;
         }
 
         protected Bitmap doInBackground(String... urls) {
             try {
-                return decodeSampledBitmapFromFilepath(getExternalCacheDir() + "/" + urls[0], screenwidth, screenheight/2);
+                return BitmapFactory.decodeFile(getExternalCacheDir() + "/" + urls[0]);
             }
             catch (Exception e)
             {
@@ -800,7 +917,7 @@ mCheckedToggleButtonsArrayList.get(0).setPressed(false);
         protected void onPostExecute(Bitmap result) {
 
             //((TextView) findViewById(R.id.pressme_text)).setText("Diapo " + (pwa + 1) + "/" + mDiapo.size() + "réussi");
-            Log.d("showimageTask","Diapo " + (pwa ) + "/" + mDiapo.size() + "réussi");
+            //!log bcp  Log.d("showimageTask","Diapo " + (pwa ) + "/" + mDiapo.size() + "réussi");
 
             //((TextView)findViewById(R.id.pressme_text)).setText(getResources().getString(R.string.string_press_me)
             mDiapoProgressBar.incrementProgressBy(1);
@@ -822,22 +939,22 @@ mCheckedToggleButtonsArrayList.get(0).setPressed(false);
         private static final String TAG = "grabImageTask";
 
         final String destifileImage;
+            String urldisplay;
 
         //TODO check the mess with the files
         public grabImageTask(String destname) {
 
             this.destifileImage = destname;
-        }
+            urldisplay = mServerDirectoryURL+destname;
+    }
 
-        protected File doInBackground(String... urls) {
+    protected File doInBackground(String... urls) {
             //  mDLprogressBar.incrementSecondaryProgressBy(1);
 
 //            mDLprogressBar.setSecondaryProgressTintMode(PorterDuff.Mode.DARKEN);
             // SystemClock.sleep(5);
 
             File file = new File(getExternalCacheDir() + "/" + destifileImage);
-            String urldisplay = urls[0];
-            //  String destistring;
             Bitmap mIcon11 = null;
             try {
                 // this.destifileImage.createNewFile();
@@ -927,17 +1044,162 @@ mCheckedToggleButtonsArrayList.get(0).setPressed(false);
         }
 
 
+
     }
 
     boolean mNoInternet=false;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //grab from URL and save on sdcard the file DESTNAME
+
+
+
+    private class grabImageThread implements Runnable {
+        private static final String TAG = "grabImageTask";
+    private String command;
+        final String destifileImage;
+        String urldisplay;
+
+        //TODO check the mess with the files
+        public grabImageThread(String destname) {
+
+            this.destifileImage = destname;
+            urldisplay = mServerDirectoryURL+destname;
+        }
+
+        protected boolean doInBackground() {
+            //  mDLprogressBar.incrementSecondaryProgressBy(1);
+
+//            mDLprogressBar.setSecondaryProgressTintMode(PorterDuff.Mode.DARKEN);
+            // SystemClock.sleep(5);
+
+            File file = new File(getExternalCacheDir() + "/" + destifileImage);
+            Bitmap mIcon11 = null;
+            try {
+                // this.destifileImage.createNewFile();
+                if (urldisplay.contains("json")) {
+                    Log.e("MEGAWWARN", "on decompresse le json comme une image :/");
+                }
+                else
+                {
+                    Log.e("grabImageThread", "on decompresse "+urldisplay);
+
+                }
+                //InputStream is = new java.net.URL(urldisplay).openStream();
+                BufferedInputStream bis = new BufferedInputStream(new java.net.URL(urldisplay).openStream());
+                //
+
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inSampleSize = calculateInSampleSize(options, screenwidth, screenheight);
+                options.outWidth=screenwidth;
+               options.outHeight=screenheight;//screenheight;
+
+                mIcon11 = BitmapFactory.decodeStream(bis,null,options);
+                bis.close();
+
+
+                if (mIcon11 != null) {
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+                    //result.copyPixelsToBuffer((Buffer)buf);//result=//get //compress(Bitmap.CompressFormat.JPEG, 0 /*ignored for PNG*/, bos);
+                    mIcon11.compress(Bitmap.CompressFormat.JPEG, 80 /*ignored for PNG*/, bos);
+                    byte[] bitmapdata = bos.toByteArray();
+                    bos.close();
+
+                    FileOutputStream fos = new FileOutputStream(file);
+
+                    fos.write(bitmapdata);
+                    fos.close();
+                    mIcon11.recycle();
+
+//result.recycle();
+
+
+                } else {
+                    Log.e("error", "skiping one empty file:" + destifileImage);
+                }
+
+            } catch (UnknownHostException e) {
+                Log.e(TAG, "pas internet pour recup le fichier " + destifileImage);
+                //popup : pas internet
+                //e.printStackTrace();
+
+                // e.printStackTrace();
+            } catch (IOException e) {
+                Log.e(TAG, "pb pour ouvrir le fichier json ou sauver limage" + e.getMessage());
+            } catch (Exception e) {
+                Log.e("Error", e.getMessage());
+                e.printStackTrace();
+            }
+            currentfile++;
+            if (currentfile == missingfiles.size()) {
+                mDLisCompleted = true;
+                mDiapoHandler.post(startdiapoRunnable);
+                Log.d("GRABtaskPOST", "lastfile, on lance le diapo");
+//!                mDLprogressText.setText("Téléchargement complet");
+                mHideHandler.postDelayed(hidedebugmenuRunnable, UI_ANIMATION_DELAY);
+
+            }
+            if (!file.exists()) {
+                Log.e("error", "FAILED ! writen file " + file.getAbsolutePath());
+                return false;
+            } else {
+                Log.d("GRABtaskPOST", "ok synchonizing " + currentfile + " of " + missingfiles.size()+" "+file.getAbsolutePath());
+                // pgb.incrementProgressBy((int)(result.getAbsoluteFile().length()/1024));}
+              return true;
+
+
+            }
+
+
+            // result.recycle();
+            // this.destifileImage.write(result);
+        }
+
+
+        @Override
+        public void run() {
+            Log.d(TAG, "run" );
+            if(this.doInBackground()) {
+
+runOnUiThread(new Runnable() {
+    @Override
+    public void run() {
+          mDLprogressBar.incrementSecondaryProgressBy(1);
+                mDLprogressText.setText("Téléchargement " + currentfile + "/" + missingfiles.size() + "réussi");
+        Toast.makeText(getApplicationContext(), "récup "+currentfile+", ok", Toast.LENGTH_SHORT).show();
+
+        mDLprogressBar.setProgress(currentfile);
+         mDLprogressBar.setSecondaryProgress(currentfile + 1);
+    }
+});
+
+            }
+            else {
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                    }
+                });
+
+
+
+
+            }
+        }
+    }
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
     private  class  ListImageTask extends AsyncTask<String, ArrayList<String>, ArrayList<String>> {
         private static final String TAG = "ListImageTask";
         ArrayList<String> name;
         ArrayList<String> sums;
-        ExecutorService executor = Executors.newFixedThreadPool(5);
+        ExecutorService executor = Executors.newFixedThreadPool(1);
 
         public ListImageTask(ArrayList<String> sumss, ArrayList<String> img) {
             this.sums = sumss;
@@ -974,7 +1236,7 @@ mCheckedToggleButtonsArrayList.get(0).setPressed(false);
                             Log.d(TAG, "downloading filelist.jsonn from loop");
                         }
                         Log.d(TAG, "downloading filelist.jsonn ok ");
-                       SystemClock.sleep(100);
+                       SystemClock.sleep(1000);
 
                         fos.flush();
                         fos.close();
@@ -984,7 +1246,7 @@ mCheckedToggleButtonsArrayList.get(0).setPressed(false);
                     }
                 }
 //TODO file can be empty if internet failed
-                Log.d(TAG, "opening" + localjsonfile.getAbsolutePath()+" of size "+localjsonfile.getUsableSpace());
+                Log.d(TAG, "opening" + localjsonfile.getAbsolutePath()+" of size "+localjsonfile.length());
 
                     InputStream i2s = new FileInputStream(localjsonfile.getAbsolutePath());
 
@@ -994,7 +1256,8 @@ mCheckedToggleButtonsArrayList.get(0).setPressed(false);
                     JsonReader reader = new JsonReader(new InputStreamReader(i2s));
 
                     //fis.close();
-
+if(localjsonfile.length()>0)
+{
                     reader.beginArray();
 
                     String description = "";
@@ -1018,20 +1281,18 @@ mCheckedToggleButtonsArrayList.get(0).setPressed(false);
                                     mDLisCompleted = false;
 
 
-                                    executor.execute((Runnable) new grabImageTask(mServerDirectoryURL+newIn));
-
+                                    executor.execute(new grabImageThread(newIn));
 
                                     //new grabImageTask(newIn).execute(mServerDirectoryURL + newIn).executeOnExecutor(THREAD_POOL_EXECUTOR,singlr);
 
 
 
                                     missingfiles.add(newIn);
-                                    Thread.sleep(50);
 
 
                                     // Log.e("error", "FAILED ! writen file " +testfile.getAbsolutePath() );
                                 } else {
-                                    Log.d("ListImageTask", "file " + newIn + " already found to " + getExternalCacheDir());
+                                    //!log bcp Log.d("ListImageTask", "file " + newIn + " already found to " + getExternalCacheDir());
                                     this.name.add(newIn);
                                     //  mDLisCompleted = true;
                                     //Log.e("found_file:", newIn);
@@ -1056,6 +1317,10 @@ mCheckedToggleButtonsArrayList.get(0).setPressed(false);
                     reader.endArray();
                     return this.name;
 
+} else {
+        return null;
+}
+
 
 
 
@@ -1077,13 +1342,21 @@ mCheckedToggleButtonsArrayList.get(0).setPressed(false);
                 Log.e("UnexpectedError", e.getMessage());
                 e.printStackTrace();
             }
+            executor.shutdown();
+            while (!executor.isTerminated()) {
+                try {
+                    Thread.sleep(30);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("Finished all threads");
+            }
             return this.name;
         }
         protected void onPostExecute(ArrayList<String> result) {
-            executor.shutdown();
-            while (!executor.isTerminated()) {
-            }
-            System.out.println("Finished all threads");  if (result.size() == 0) {
+if(result!=null)
+{
+            if (result.size() == 0) {
                 Toast.makeText(getApplicationContext(), "impossible de récup "+mServerDirectoryURL+"index.php, veuillez  activer le WIFI et relancer l'appli", Toast.LENGTH_LONG).show();
 mNoInternet=true;
 
@@ -1105,9 +1378,11 @@ mNoInternet=true;
                 //    totalfiles = result.size();
             }
 
-        }
-
+        }else { Log.e(TAG, "jsonfile VIDE!!!");
     }
+
+    }}
+
 
 }
 
