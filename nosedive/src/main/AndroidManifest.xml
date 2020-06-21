@@ -19,9 +19,19 @@
             android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="org.tflsh.nosedive.MESSAGE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
                 <category android:name="android.intent.category.LAUNCHER" />
              </intent-filter>
+        </activity>
+        <activity android:name=".asyncTaskManager" >
+            <!-- This activity handles "SEND" actions with text data -->
+            <intent-filter>
+                <action android:name="org.tflsh.nosedive.MESSAGE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
         </activity>
         <meta-data
             android:name="preloaded_fonts"

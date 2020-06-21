@@ -25,11 +25,13 @@
 
 
             <SeekBar
-                android:id="@+id/seekbar_education_plan_investment_duration"
+                android:id="@+id/seekbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="0dp"
-                android:thumb="@android:drawable/ic_dialog_info" />
+                android:thumb="@android:drawable/ic_dialog_info"
+                android:visibility="gone"
+                />
 
             <ProgressBar
                 android:id="@+id/DLprogressbar"
