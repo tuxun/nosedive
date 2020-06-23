@@ -1,11 +1,13 @@
 
 package org.tflsh.nosedive;
 
+
 import android.app.Instrumentation;
 import android.content.Context;
+import android.os.Looper;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.runner.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,15 +23,13 @@ import static org.junit.Assert.assertEquals;
  */
 @RunWith(AndroidJUnit4.class)
 public class ExampleInstrumentedTest extends Instrumentation {
-
-
     @Test
-    public void hmmm() {
-
+    public void useAppContext() {
         String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/" + "julia/";
         ArrayList<String> missingFilesNames = new ArrayList<>();
         ArrayList<String> mSlideshowFilesNames = new ArrayList<>();
         Context appContext = InstrumentationRegistry.getInstrumentation().getContext();
+        Looper.prepare();
         asyncTaskManager asm = new asyncTaskManager(this.getContext());
 
 

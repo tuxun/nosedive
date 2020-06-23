@@ -11,7 +11,6 @@ import android.os.SystemClock;
 import android.util.JsonReader;
 import android.util.Log;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -55,6 +54,7 @@ public class asyncTaskManager extends AppCompatActivity {
         }
         mContext = ctx;
 
+
     }
 
     public void sendMessage(String message) {
@@ -72,6 +72,8 @@ public class asyncTaskManager extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         Log.e("asyncTaskManager", "onCreate");
 
     }
@@ -187,30 +189,10 @@ public class asyncTaskManager extends AppCompatActivity {
             Log.d(TAG, "run" );
             if(this.doInBackground()) {
                 sendMessage("completed");
-/*
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mDLprogressBar.incrementSecondaryProgressBy(1);
-                        mDLprogressText.setText("Téléchargement " + currentfile + "/" + missingfiles.size() + "réussi");
-                        Toast.makeText(getApplicationContext(), "récup "+currentfile+", ok", Toast.LENGTH_SHORT).show();
 
-                        mDLprogressBar.setProgress(currentfile);
-                        mDLprogressBar.setSecondaryProgress(currentfile + 1);
-                    }
-                });
-*/
             } else {
                 sendMessage("waiting data from net");
 
-/*
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                    }
-                });
-*/
 
 
 
@@ -392,7 +374,7 @@ public class asyncTaskManager extends AppCompatActivity {
             if(result!=null)
             {
                 if (result.size() == 0) {
-                    Toast.makeText(mContext, "impossible de récup index.php, veuillez  activer le WIFI et relancer l'appli", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(mContext, "impossible de récup index.php, veuillez  activer le WIFI et relancer l'appli", Toast.LENGTH_LONG).show();
                     //mNoInternet=true;
 
                     Log.e(TAG, "aucun resultat (impossible de creer le fichier json ou d'aller sur internet)");
