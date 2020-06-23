@@ -1,15 +1,15 @@
 package org.tflsh.nosedive;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.JsonReader;
 import android.util.Log;
-import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -28,23 +28,19 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class asyncTaskManager  extends AppCompatActivity {
-    Context mContext;
-    private int currentfile;
-    private int missingfilessize;
-
-    public asyncTaskManager(Context ctx)
-    {
-        Log.d("asynctaskMNG","starting helper with context");
-        mContext=ctx;
-    int missingfilessize=0;
-
-    int currentfile=0;
-    }
-    ArrayList<String> missingfiles = new ArrayList<String>();
+public class asyncTaskManager extends AppCompatActivity {
+    /**
+     * Called when the user taps the Send button
+     */
+    public static final String EXTRA_MESSAGE = "org.tflsh.nosedive.SEND";
+    final Context mContext;
+    ArrayList<String> missingFilesNames = new ArrayList<>();
+    private int currentFile;
+    private int missingFilesNumber;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,61 +48,69 @@ public class asyncTaskManager  extends AppCompatActivity {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //constructor: save the context for alter uses
-        /** Called when the user taps the Send button */
-        public static final String EXTRA_MESSAGE = "org.tflsh.nosedive.MESSAGE";
-    public void sendMessage(String message) {
-        Intent intent = new Intent(mContext, FullscreenActivity.class);
-        intent.putExtra(EXTRA_MESSAGE, message);
-        mContext.sendBroadcast(intent);
-        Log.e("sendintent", "ok");
+    public asyncTaskManager(Context ctx) {
+        Log.d("asyncTaskManager", "starting helper with context");
+        if (ctx == null) {
+            Log.e("asynctaskmanager", "ctx null in constructor");
+        }
+        mContext = ctx;
 
     }
 
+    public void sendMessage(String message) {
+
+        Intent intent = new Intent("msg");    //action: "msg"
+        intent.setPackage(mContext.getPackageName());
 
 
-    //grab from URL and save on sdcard the file DESTNAME
+        // intent.putExtra("EXTRA_MESSAGE", message);
+        mContext.sendBroadcast(intent);
+        Log.e("sendMessage", "ok" + intent);
+
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Log.e("asyncTaskManager", "onCreate");
+
+    }
+
+    //grab from URL and save on sdcard the file destname
 //est devenu un runnable
     private class grabImageThread implements Runnable {
         //declarations
         private static final String TAG = "grabImageTask";
         private String command;
-        final String destifileImage;
-        String urldisplay;
-
-
-        //private final String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/res/";
-        private final String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/" + "julia/";
+        final String destiFileImageName;
+        final String urlToGrab;
 
 
         //TODO check the mess with the files
 
         public grabImageThread(String destname) {
-            missingfiles = new ArrayList<String>();
+            missingFilesNames = new ArrayList<>();
 
-            this.destifileImage = destname;
-            urldisplay = mServerDirectoryURL+destname;
+            this.destiFileImageName = destname;
+            //private final String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/res/";
+            String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/" + "julia/";
+            urlToGrab = mServerDirectoryURL + destname;
         }
 
         protected boolean doInBackground() {
-            //  mDLprogressBar.incrementSecondaryProgressBy(1);
 
-//            mDLprogressBar.setSecondaryProgressTintMode(PorterDuff.Mode.DARKEN);
-            // SystemClock.sleep(5);
 
-            File file = new File(mContext.getExternalCacheDir() + "/" + destifileImage);
-            Bitmap mIcon11 = null;
+            File file = new File(mContext.getExternalCacheDir() + "/" + destiFileImageName);
+            Bitmap mIcon11;
             try {
-                // this.destifileImage.createNewFile();
-                if (urldisplay.contains("json")) {
-                    Log.e("MEGAWWARN", "on decompresse le json comme une image :/");
-                }
-                else
-                {
-                    Log.e("grabImageThread", "on decompresse "+urldisplay);
+                if (urlToGrab.contains("json")) {
+                    Log.e("grabImageThread", "on décompresse le json comme une image :/");
+                } else {
+                    Log.e("grabImageThread", "on décompresse " + urlToGrab);
 
                 }
                 //InputStream is = new java.net.URL(urldisplay).openStream();
-                BufferedInputStream bis = new BufferedInputStream(new java.net.URL(urldisplay).openStream());
+                BufferedInputStream bis = new BufferedInputStream(new java.net.URL(urlToGrab).openStream());
                 //
 
                 BitmapFactory.Options options = new BitmapFactory.Options();
@@ -136,11 +140,11 @@ public class asyncTaskManager  extends AppCompatActivity {
 
 
                 } else {
-                    Log.e("error", "skiping one empty file:" + destifileImage);
+                    Log.e("error", "skiping one empty file:" + destiFileImageName);
                 }
 
             } catch (UnknownHostException e) {
-                Log.e(TAG, "pas internet pour recup le fichier " + destifileImage);
+                Log.e(TAG, "pas internet pour recup le fichier " + destiFileImageName);
                 //popup : pas internet
                 //e.printStackTrace();
 
@@ -148,13 +152,12 @@ public class asyncTaskManager  extends AppCompatActivity {
             } catch (IOException e) {
                 Log.e(TAG, "pb pour ouvrir le fichier json ou sauver limage" + e.getMessage());
             } catch (Exception e) {
-                Log.e("Error", e.getMessage());
+                Log.e("Error", Objects.requireNonNull(e.getMessage()));
                 e.printStackTrace();
             }
 
 
-
-            currentfile++;
+            currentFile++;
             /* !!!!if (currentfile == missingfiles.size()) {
                 mDLisCompleted = true;
                 mDiapoHandler.post(startdiapoRunnable);
@@ -167,7 +170,7 @@ public class asyncTaskManager  extends AppCompatActivity {
                 Log.e("error", "FAILED ! writen file " + file.getAbsolutePath());
                 return false;
             } else {
-                Log.d("GRABtaskPOST", "ok synchonizing " + currentfile + " of " + missingfilessize+" "+file.getAbsolutePath());
+                Log.d("GRABtaskPOST", "ok synchonizing " + currentFile + " of " + missingFilesNumber + " " + file.getAbsolutePath());
                 // pgb.incrementProgressBy((int)(result.getAbsoluteFile().length()/1024));}
                 return true;
 
@@ -197,8 +200,9 @@ public class asyncTaskManager  extends AppCompatActivity {
                     }
                 });
 */
-            }
-            else {
+            } else {
+                sendMessage("waiting data from net");
+
 /*
                 runOnUiThread(new Runnable() {
                     @Override
@@ -219,12 +223,12 @@ public class asyncTaskManager  extends AppCompatActivity {
 
     //l'ouvrir, le parser, returnez une liste de string corrrspondant aux noms des images présentes, une liste des images manquantes
 //et lancer le téléchargement des images manquantes.
-    public  class  ListImageTask extends AsyncTask<String, ArrayList<String>, ArrayList<String>> {
+    public class ListImageTask extends AsyncTask<String, ArrayList<String>, ArrayList<String>> {
         private static final String TAG = "ListImageTask";
-        ArrayList<String> name;
+        final ArrayList<String> name;
         ArrayList<String> sums;
-        ArrayList<String> missings;
-        ExecutorService executor = Executors.newFixedThreadPool(1);
+        final ArrayList<String> missings;
+        final ExecutorService executor = Executors.newFixedThreadPool(1);
 
         public ListImageTask(ArrayList<String> missinfil, ArrayList<String> img) {
             this.missings = missinfil;
@@ -247,7 +251,7 @@ public class asyncTaskManager  extends AppCompatActivity {
                         //  is.read(bitmapdata);
 
                         //  byte[] jsondata = new byte[0];
-                        int read = 0;
+                        int read;
 
                         Log.d(TAG, "downloading filelist.jsonn from " + urldisplay);
 
@@ -294,45 +298,50 @@ public class asyncTaskManager  extends AppCompatActivity {
                         while (reader.hasNext()) {
                             String key = reader.nextName();
                             // Log.e("key:", key);
-                            if (key.equals("name")) {
-                                String newIn = reader.nextString();
-                                //TODO: should check if we already downloaded the files
-                                //need context, really?
+                            switch (key) {
+                                case "name":
+                                    String newIn = reader.nextString();
+                                    //TODO: should check if we already downloaded the files
+                                    //need context, really?
 
-                                //File file;// = new File(getExternalFilesDir(null), newIn);
-                                File file = new File(mContext.getExternalCacheDir() + "/" + newIn);
-                                if (!file.exists()) {
-                                    //le fichier listé dans le json n'est pas trouvé, on ajoute son nom dans "missing[]"
-                                    Log.d("ListImageTask", "caching file " + newIn + " to " + mContext.getExternalCacheDir());
-                                    this.name.add(newIn);
-                                    //mDLisCompleted = false;
-
-
-                                    executor.execute(new asyncTaskManager.grabImageThread(newIn));
-
-                                    this.missings.add(newIn);
-                                    missingfilessize++;
-
-                                    // Log.e("error", "FAILED ! writen file " +testfile.getAbsolutePath() );
-                                } else {
-                                    //!log bcp Log.d("ListImageTask", "file " + newIn + " already found to " + getExternalCacheDir());
-                                    this.name.add(newIn);
-                                    //  mDLisCompleted = true;
-                                    //Log.e("found_file:", newIn);
-                                }
-                            } else if (key.equals("size")) {
-
-                                int filesize = reader.nextInt();
-                                //    missingfilessize += filesize;
-                                //  Log.d("ListImageTask", "added " + filesize + " Bytes to download for " + this.name.get(this.name.size() - 1));
-                                // reader.skipValue();
-
-                            } else if (key.equals("sum")) {
-                              reader.nextString();
-                            } else {
-                                reader.skipValue();
+                                    //File file;// = new File(getExternalFilesDir(null), newIn);
+                                    File file = new File(mContext.getExternalCacheDir() + "/" + newIn);
+                                    if (!file.exists()) {
+                                        //le fichier listé dans le json n'est pas trouvé, on ajoute son nom dans "missing[]"
+                                        Log.d("ListImageTask", "caching file " + newIn + " to " + mContext.getExternalCacheDir());
+                                        this.name.add(newIn);
+                                        //mDLisCompleted = false;
 
 
+                                        executor.execute(new grabImageThread(newIn));
+
+                                        this.missings.add(newIn);
+                                        missingFilesNumber++;
+
+                                        // Log.e("error", "FAILED ! writen file " +testfile.getAbsolutePath() );
+                                    } else {
+                                        //!log bcp Log.d("ListImageTask", "file " + newIn + " already found to " + getExternalCacheDir());
+                                        this.name.add(newIn);
+                                        //  mDLisCompleted = true;
+                                        //Log.e("found_file:", newIn);
+                                    }
+                                    break;
+                                case "size":
+
+                                    int filesize = reader.nextInt();
+                                    //    missingfilessize += filesize;
+                                    //  Log.d("ListImageTask", "added " + filesize + " Bytes to download for " + this.name.get(this.name.size() - 1));
+                                    // reader.skipValue();
+
+                                    break;
+                                case "sum":
+                                    reader.nextString();
+                                    break;
+                                default:
+                                    reader.skipValue();
+
+
+                                    break;
                             }
                         }
                         reader.endObject();
@@ -389,17 +398,17 @@ public class asyncTaskManager  extends AppCompatActivity {
                     Log.e(TAG, "aucun resultat (impossible de creer le fichier json ou d'aller sur internet)");
                 } else {
                     Log.d(TAG, "on a trouvé ce nombre d'image a afficher:" + result.size() + " " + missings.size());
-                    if (true /*currentfile == missingfiles.size()*/) {
-                        //   mDLisCompleted = true;
+                    // if (true /*currentfile == missingfiles.size()*/) {
+                    //   mDLisCompleted = true;
 
 //!!                    mDiapoHandler.postDelayed(startdiapoRunnable, UI_ANIMATION_DELAY);
 
 
-                        //!!!                mHideHandler.postDelayed(hidedebugmenuRunnable, UI_ANIMATION_DELAY);
+                    //!!!                mHideHandler.postDelayed(hidedebugmenuRunnable, UI_ANIMATION_DELAY);
 
-                    }
+                    /*}
                     else{//mDLisCompleted=false;
-                    }
+                    }*/
                     //       mDLprogressBar.setMax(missingfiles.size());
                     //     mNoInternet=true;
 
@@ -442,13 +451,9 @@ public class asyncTaskManager  extends AppCompatActivity {
             //((TextView)findViewById(R.id.pressme_text)).setText(getResources().getString(R.string.string_press_me)
 //            mDiapoProgressBar.incrementProgressBy(1);
             bmImage.setImageBitmap(result);
-            if (mTextBlink) {
-                mTextBlink = false;
-//                ((TextView) findViewById(R.id.pressme_text)).setTextColor(getResources().getColor(R.color.OurPink));
-            } else {
-                mTextBlink = true;
-                //     ((TextView) findViewById(R.id.pressme_text)).setTextColor(getResources().getColor(R.color.colorAccent));
-            }
+            //                ((TextView) findViewById(R.id.pressme_text)).setTextColor(getResources().getColor(R.color.OurPink));
+            //     ((TextView) findViewById(R.id.pressme_text)).setTextColor(getResources().getColor(R.color.colorAccent));
+            mTextBlink = !mTextBlink;
 
 
             //SystemClock.sleep(1000);
@@ -457,17 +462,18 @@ public class asyncTaskManager  extends AppCompatActivity {
     }
 
     //grab from URL and save on sdcard the file DESTNAME
+    @SuppressLint("StaticFieldLeak")
     private class grabImageTask extends AsyncTask<String, Void, File> {
         private static final String TAG = "grabImageTask";
-        private final String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/" + "julia/";
 
         final String destifileImage;
-        String urldisplay;
+        final String urldisplay;
 
         //TODO check the mess with the files
         public grabImageTask(String destname) {
 
             this.destifileImage = destname;
+            String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/" + "julia/";
             urldisplay = mServerDirectoryURL + destname;
         }
 
@@ -478,7 +484,7 @@ public class asyncTaskManager  extends AppCompatActivity {
             // SystemClock.sleep(5);
 
             File file = new File(mContext.getExternalCacheDir() + "/" + destifileImage);
-            Bitmap mIcon11 = null;
+            Bitmap mIcon11;
             try {
                 // this.destifileImage.createNewFile();
                 if (urldisplay.contains("json")) {
@@ -527,7 +533,7 @@ public class asyncTaskManager  extends AppCompatActivity {
             } catch (IOException e) {
                 Log.e(TAG, "pb pour ouvrir le fichier json ou sauver limage" + e.getMessage());
             } catch (Exception e) {
-                Log.e("Error", e.getMessage());
+                Log.e("Error", Objects.requireNonNull(e.getMessage()));
                 e.printStackTrace();
             }
             return file;
@@ -539,7 +545,7 @@ public class asyncTaskManager  extends AppCompatActivity {
             if (!result.exists()) {
                 Log.e("error", "FAILED ! writen file " + result.getAbsolutePath());
             } else {
-                Log.d("GRABtaskPOST", "ok synchonizing " + missingfiles.size() + " " + result.getAbsolutePath());
+                Log.d("GRABtaskPOST", "ok synchonizing " + missingFilesNames.size() + " " + result.getAbsolutePath());
                 // pgb.incrementProgressBy((int)(result.getAbsoluteFile().length()/1024));}
               /*  mDLprogressText.setText("Téléchargement " + currentfile + "/" + missingfiles.size() + "réussi");
 

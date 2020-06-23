@@ -1,24 +1,35 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
-    <solid android:color="#96E"/>
 
     <group android:checkableBehavior="single">
-        <item android:id="@+id/red"
-            android:title="@string/buttonlabel_kind" />
-        <item android:id="@+id/blue"
-            android:title="@string/buttonlabel_fun" />
+        <item android:title="@string/buttonLabel_kind" />
+        <item android:title="@string/buttonLabel_fun" />
     </group>
     <item
-        android:id="@+id/add"  android:icon="@android:drawable/ic_menu_agenda" app:showAsAction="withText"   android:title="add"/>
+        android:id="@+id/add"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="@string/create_icontext"
+        app:showAsAction="withText" />
 
     <item
-        android:id="@+id/reset" android:icon="@android:drawable/ic_menu_revert" app:showAsAction="withText" android:title="delete filelist.json"/>
+        android:id="@+id/reset"
+        android:icon="@android:drawable/ic_menu_revert"
+        android:title="@string/fixjson_icontext"
+        app:showAsAction="withText" />
     <item
-        android:id="@+id/about" android:icon="@android:drawable/ic_dialog_info" app:showAsAction="withText" android:title="about">
+        android:id="@+id/about"
+        android:icon="@android:drawable/ic_dialog_info"
+        android:title="@string/about_icontext"
+        app:showAsAction="withText">
+
     </item>
     <item
-        android:id="@+id/exit"  android:icon="@android:drawable/ic_notification_clear_all"  app:showAsAction="always" android:title="exit">
+        android:id="@+id/exit"
+        android:icon="@android:drawable/ic_notification_clear_all"
+        android:title="@string/exit_icontext"
+        app:showAsAction="ifRoom">
+
     </item>
 
     </menu>

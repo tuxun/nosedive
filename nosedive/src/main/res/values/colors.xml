@@ -2,28 +2,12 @@
 <resources>
 
 
-    <color name="primary_material_dark">#123abc</color>
 
-    <color name="colorPrimary">#123abc</color>
-    <color name="colorPrimaryDark">#123abc</color>
-    <color name="colorAccent">#D81B60</color>
-        <color name="OurBlue">#188abc</color>
         <color name="OurPink">#FF4081</color>
-        <color name="OurViolet">#e81268</color>
-        <color name="OurSecondaryViolet">#a01e5a</color>
+    <color name="OurSecondaryViolet">#a01e5a</color>
         <color name="OurGray">#EEE</color>
             <color name="OurDarkerGray">#A3EEEEEE</color>
 
         <color name="MyGray">#555555</color>
         <color name="OurWhite">#ffffff</color>
-    <!-- Green
-    #3756F2
-#631AE1
-#AF08A9
-#3A0A39-->
-<color name="green_temp">#23A96E</color>
-<color name="green_dark">#159204</color>
-<color name="bright_green">#02D8B0</color>
-<color name="button_green">#10a54a</color>
-    <color name="black_overlay">#66000000</color>
 </resources>

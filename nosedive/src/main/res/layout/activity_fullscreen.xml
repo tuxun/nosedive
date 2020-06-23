@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nosedive"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-   android:orientation="vertical"
-    tools:context=".FullscreenActivity"
-    >
+    android:orientation="vertical"
+    tools:context=".FullscreenActivity">
 
     <LinearLayout
-        android:id="@+id/windowLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/OurGray"
@@ -25,7 +23,6 @@
 
 
             <SeekBar
-                android:id="@+id/seekbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="0dp"
@@ -34,23 +31,20 @@
                 />
 
             <ProgressBar
-                android:id="@+id/DLprogressbar"
+                android:id="@+id/ui_dl_ProgressBar"
                 style="@android:style/Widget.ProgressBar.Horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:progressBackgroundTint="@color/OurBlue"
-                android:progressTint="@color/colorAccent"
-                android:secondaryProgressTint="@color/OurPink"
-                android:tintMode="src_over"
+
 
 
                 />
 
             <TextView
-                android:id="@+id/DLprogress_text"
+                android:id="@+id/ui_dl_progressTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/dlinprogress" />
+                android:text="@string/dl_progressText" />
 
 
         </LinearLayout>
@@ -60,23 +54,26 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
 
+            android:baselineAligned="false"
             android:orientation="horizontal">
 
             <LinearLayout
-                android:id="@+id/leftmenu"
+                android:id="@+id/leftMenuLinearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_margin="5dp"
-android:visibility="gone"
+                android:orientation="vertical"
                 android:layout_weight="1"
                 android:gravity="center"
 
 
-                android:orientation="vertical"></LinearLayout>
+                android:visibility="gone">
+
+            </LinearLayout>
 
 
             <LinearLayout
-                android:id="@+id/fullscreen_mumcontent_controls"
+                android:id="@+id/ui_centralLinearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
@@ -90,19 +87,16 @@ android:visibility="gone"
                     android:layout_height="match_parent"
                     android:scaleType="fitStart"
                     android:layout_gravity="center_horizontal"
-                    android:src="@drawable/icone_appli2"
-                    android:contentDescription="@string/photoportrait_de_julia" />
+                    android:contentDescription="@string/portrait_de_julia"
+                    android:src="@drawable/icon_app2" />
 
-                <Space
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
+
 
 
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/rightmenu"
+                android:id="@+id/rightMenuLinearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                                 android:layout_weight="1"
@@ -122,7 +116,6 @@ android:visibility="gone"
 
 
     <LinearLayout
-        android:id="@+id/bottom_content_controls"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -132,7 +125,7 @@ android:visibility="gone"
 
         >
         <LinearLayout
-            android:id="@+id/fakelayout"
+            android:id="@+id/fakeLinearLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -145,7 +138,7 @@ android:visibility="gone"
             >
         </LinearLayout>
         <TextView
-            android:id="@+id/pressme_text"
+            android:id="@+id/ui_press_meTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center|bottom"
@@ -156,4 +149,4 @@ android:visibility="gone"
 
     </LinearLayout>
 
-</FrameLayout>
+</merge>
