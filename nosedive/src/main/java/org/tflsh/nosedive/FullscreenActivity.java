@@ -2,6 +2,7 @@ package org.tflsh.nosedive;
 
 //import android.annotation.SuppressLint;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -130,52 +131,6 @@ public class FullscreenActivity extends AppCompatActivity {
     public int pwa;
     //runnnable s'appelant lui meme a la fin du diapo qu'il lance
     public MyIntentManager receiver;
-    TextView tvProgressLabel;
-    asyncTaskManager asm;
-    int screenWidth;
-    ////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////RUNNABLES////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////
-    int screenHeight;
-    ArrayList<String> missingFilesNames;
-    IntentFilter filter;
-    private ArrayList<String> mSums;
-    private ProgressBar mDiapoProgressBar;//
-    //REGLAGE DE LAPPLI
-    private int currentfile;
-    private LinearLayout lm;
-    private LinearLayout rm;
-    // private static final boolean AUTO_HIDE = true;
-    private boolean mFullscreen;
-    private final Runnable mfullscreenOffRunnable = new Runnable() {
-        @Override
-        public void run() {
-            // Delayed display of UI elements
-            android.app.ActionBar actionBar = getActionBar();
-            if (actionBar != null) {
-                actionBar.show();
-
-
-            }
-            //  mContentView.getLayoutParams().notifyAll();
-
-            View decorView = getWindow().getDecorView();
-            decorView.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-
-            //!!!   (findViewById(R.id.nosedive)).setFitsSystemWindows(true);
-
-
-            // mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-            Log.e("mShowPart2Runnable", "EXITFULLSCREEN");
-            mFullscreen = false;
-
-            findViewById(R.id.fullscreen_content_controls).setVisibility(View.VISIBLE);
-
-        }
-    };
     private final Runnable mfullscreenOnRunnable = new Runnable() {
         @Override
         public void run() {
@@ -232,8 +187,82 @@ public class FullscreenActivity extends AppCompatActivity {
                 findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.GONE);
             } else {
                 findViewById(R.id.ui_dl_progressTextView).setVisibility(View.VISIBLE);
-                findViewById(R.id.ui_dl_progressTextView).setVisibility(View.VISIBLE);
+                findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
                 findViewById(R.id.debug_content_controls).setVisibility(View.VISIBLE);
+            }
+        }
+    };
+    TextView tvProgressLabel;
+    asyncTaskManager asm;
+    int screenWidth;
+    ////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////RUNNABLES////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    int screenHeight;
+    ArrayList<String> missingFilesNames;
+    IntentFilter filter;
+    private ArrayList<String> mSums;
+    private ProgressBar mDiapoProgressBar;//
+    //REGLAGE DE LAPPLI
+    private int currentfile;
+    private LinearLayout lm;
+    private LinearLayout rm;
+    // private static final boolean AUTO_HIDE = true;
+    private boolean mFullscreen;
+    private final Runnable mfullscreenOffRunnable = new Runnable() {
+        @Override
+        public void run() {
+            // Delayed display of UI elements
+            android.app.ActionBar actionBar = getActionBar();
+            if (actionBar != null) {
+                actionBar.show();
+
+
+            }
+            //  mContentView.getLayoutParams().notifyAll();
+
+            View decorView = getWindow().getDecorView();
+            decorView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+
+            //!!!   (findViewById(R.id.nosedive)).setFitsSystemWindows(true);
+
+
+            // mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            Log.e("mShowPart2Runnable", "EXITFULLSCREEN");
+            mFullscreen = false;
+
+            findViewById(R.id.fullscreen_content_controls).setVisibility(View.VISIBLE);
+
+        }
+    };
+    public BroadcastReceiver intentreceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d("FullscreenActivity", "org.tflsh.nosedive.FullscreenActivity.onReceive");
+            switch (intent.getAction()) {
+                //dlstarted?
+                //dlreceived
+                //dlcomplete
+
+                case "dlstarted":
+                    Log.e("intentreceiver", "dlstarted action");
+                    ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementSecondaryProgressBy(1);
+                    break;
+                case "dlreceived":
+                    Log.e("intentreceiver", "dlreceived action");
+                    ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
+                    break;
+                case "dlcomplete":
+                    Log.e("intentreceiver", "dlcomplete action");
+                    ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
+                    break;
+                default:
+                    Log.e("intentreceiver", "unknow action");
+
+                    break;
             }
         }
     };
@@ -431,25 +460,26 @@ public class FullscreenActivity extends AppCompatActivity {
         setIntent(intent);
     }
 
-
     @Override
     protected void onStop() {
         super.onStop();
         mSlideshowHandler.post(stopdiapoRunnable);
         Log.d("activity", "onStop");
-        unregisterReceiver(receiver);
+        unregisterReceiver(intentreceiver);
 
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        filter = new IntentFilter("msg");
+        filter = new IntentFilter("dlreceived");
+        filter.addAction("dlstarted");
+        filter.addAction("dlcomplete");
 
 
-        receiver = new MyIntentManager();
+        //  receiver = new MyIntentManager();
 
-        registerReceiver(receiver, filter);
+        registerReceiver(intentreceiver, filter);
 
         asm = new asyncTaskManager(getApplicationContext());
 

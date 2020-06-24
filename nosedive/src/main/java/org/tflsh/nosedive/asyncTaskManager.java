@@ -59,7 +59,7 @@ public class asyncTaskManager extends AppCompatActivity {
 
     public void sendMessage(String message) {
 
-        Intent intent = new Intent("msg");    //action: "msg"
+        Intent intent = new Intent(message);    //action: "msg"
         intent.setPackage(mContext.getPackageName());
 
 
@@ -160,19 +160,19 @@ public class asyncTaskManager extends AppCompatActivity {
 
 
             currentFile++;
-            /* !!!!if (currentfile == missingfiles.size()) {
-                mDLisCompleted = true;
-                mDiapoHandler.post(startdiapoRunnable);
-                Log.d("GRABtaskPOST", "lastfile, on lance le diapo");
-//!                mDLprogressText.setText("Téléchargement complet");
-                mHideHandler.postDelayed(hidedebugmenuRunnable, UI_ANIMATION_DELAY);
 
-            }*/
             if (!file.exists()) {
                 Log.e("error", "FAILED ! writen file " + file.getAbsolutePath());
                 return false;
             } else {
+                sendMessage("dlreceived");
+
                 Log.d("GRABtaskPOST", "ok synchonizing " + currentFile + " of " + missingFilesNumber + " " + file.getAbsolutePath());
+                if (currentFile == missingFilesNumber) {
+
+                    Log.d("GRABtaskPOST", "lastfile, on lance le diapo");
+                    sendMessage("dlcomplete");
+                }
                 // pgb.incrementProgressBy((int)(result.getAbsoluteFile().length()/1024));}
                 return true;
 
@@ -188,10 +188,9 @@ public class asyncTaskManager extends AppCompatActivity {
         public void run() {
             Log.d(TAG, "run" );
             if(this.doInBackground()) {
-                sendMessage("completed");
 
             } else {
-                sendMessage("waiting data from net");
+                sendMessage("dlstarted");
 
 
 
@@ -235,7 +234,7 @@ public class asyncTaskManager extends AppCompatActivity {
                         //  byte[] jsondata = new byte[0];
                         int read;
 
-                        Log.d(TAG, "downloading filelist.jsonn from " + urldisplay);
+                        Log.d(TAG, "downloading " + localjsonfile.getPath() + "  from " + urldisplay);
 
 
                         OutputStream fos = new FileOutputStream(localjsonfile);

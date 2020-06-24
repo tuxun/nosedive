@@ -5,8 +5,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 public class MyIntentManager extends BroadcastReceiver {
+
+    public MyIntentManager(Context context, ProgressBar pgb, ImageView buffer, ImageView result) {
+
+
+        Log.d("MyBroadcastReceiver", "MyBroadcastReceiver");
+    }
 
     private static final String TAG = "MyIntentManager";
 
@@ -14,7 +22,8 @@ public class MyIntentManager extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         final PendingResult pendingResult = goAsync();
 
-        Log.d("MyBroadcastReceiver", "MyBroadcastReceiver");
+        Log.d("MyIntentManager", "org.tflsh.nosedive.MyIntentManager.onReceive");
+        Log.e("intentereceiverparent:", super.getClass().getSuperclass().toString());
 
         Task asyncTask = new Task(pendingResult, intent);
         asyncTask.execute();
@@ -24,7 +33,6 @@ public class MyIntentManager extends BroadcastReceiver {
 
         private final PendingResult pendingResult;
         private final Intent intent;
-
         private Task(PendingResult pendingResult, Intent intent) {
             this.pendingResult = pendingResult;
             this.intent = intent;
@@ -36,6 +44,16 @@ public class MyIntentManager extends BroadcastReceiver {
             log += ("Action: " + intent.getAction() + "\n");
             log += ("URI: " + intent.toUri(Intent.URI_INTENT_SCHEME));
             Log.d(TAG, log);
+
+            switch (intent.getAction()) {
+                case "msg":
+                    // Log.e("intentereceiverparent:",super.getClass().toString());
+                    break;
+                default:
+                    Log.e("intentereceiver", "unknow action");
+
+                    break;
+            }
             return log;
         }
 
