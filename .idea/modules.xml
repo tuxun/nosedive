@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Nosedive.iml" filepath="$PROJECT_DIR$/.idea/modules/Nosedive.iml" group="Nosedive" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/nosedive/Nosedive-nosedive.iml" filepath="$PROJECT_DIR$/.idea/modules/nosedive/Nosedive-nosedive.iml" group="Nosedive/nosedive" />
-    </modules>
-  </component>
-</project>
