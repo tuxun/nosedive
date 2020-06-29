@@ -1,0 +1,6 @@
+# Ignoring directories
+# Both the directory itself and its contents will be ignored.
+.gradle/
+build/
+.idea/
+/local.properties

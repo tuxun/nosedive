@@ -41,18 +41,22 @@ public class asyncTaskManager extends AppCompatActivity {
     private int currentFile;
     private int missingFilesNumber;
 
-
+    int screenWidth = 800;
+    int screenHeight = 600;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //constructor: save the context for alter uses
-    public asyncTaskManager(Context ctx) {
+    public asyncTaskManager(Context ctx, int width, int height) {
         Log.d("asyncTaskManager", "starting helper with context");
         if (ctx == null) {
             Log.e("asynctaskmanager", "ctx null in constructor");
         }
         mContext = ctx;
+
+        screenWidth = width;
+        screenHeight = height;
 
 
     }
@@ -64,6 +68,18 @@ public class asyncTaskManager extends AppCompatActivity {
 
 
         // intent.putExtra("EXTRA_MESSAGE", message);
+        mContext.sendBroadcast(intent);
+        Log.e("sendMessage", "ok" + intent);
+
+    }
+
+    public void sendMessageWithInt(String message, int params) {
+
+        Intent intent = new Intent(message);    //action: "msg"
+        intent.setPackage(mContext.getPackageName());
+
+
+        intent.putExtra("EXTRA_MESSAGE", params);
         mContext.sendBroadcast(intent);
         Log.e("sendMessage", "ok" + intent);
 
@@ -101,6 +117,7 @@ public class asyncTaskManager extends AppCompatActivity {
 
         protected boolean doInBackground() {
 
+            sendMessage("dlstarted");
 
             File file = new File(mContext.getExternalCacheDir() + "/" + destiFileImageName);
             Bitmap mIcon11;
@@ -116,10 +133,10 @@ public class asyncTaskManager extends AppCompatActivity {
                 //
 
                 BitmapFactory.Options options = new BitmapFactory.Options();
-                /*options.inSampleSize = calculateInSampleSize(options, screenwidth, screenheight);
-                options.outWidth=screenwidth;
+                options.inSampleSize = calculateInSampleSize(options, screenwidth, screenheight);
+                options.outWidth = screenwidth;
                 options.outHeight=screenheight;//screenheight;
-*/
+
                 mIcon11 = BitmapFactory.decodeStream(bis,null,options);
                 bis.close();
 
@@ -171,6 +188,7 @@ public class asyncTaskManager extends AppCompatActivity {
                 if (currentFile == missingFilesNumber) {
 
                     Log.d("GRABtaskPOST", "lastfile, on lance le diapo");
+
                     sendMessage("dlcomplete");
                 }
                 // pgb.incrementProgressBy((int)(result.getAbsoluteFile().length()/1024));}
@@ -190,7 +208,6 @@ public class asyncTaskManager extends AppCompatActivity {
             if(this.doInBackground()) {
 
             } else {
-                sendMessage("dlstarted");
 
 
 
@@ -240,13 +257,13 @@ public class asyncTaskManager extends AppCompatActivity {
                         OutputStream fos = new FileOutputStream(localjsonfile);
 
                         InputStream is = new java.net.URL(urldisplay).openStream();
+                        SystemClock.sleep(2000);
 
                         while ((read = is.read(bitmapdata)) != -1) {
                             fos.write(bitmapdata, 0, read);
                             Log.d(TAG, "downloading filelist.jsonn from loop");
                         }
                         Log.d(TAG, "downloading filelist.jsonn ok ");
-                        SystemClock.sleep(1000);
 
                         fos.flush();
                         fos.close();
@@ -331,6 +348,7 @@ public class asyncTaskManager extends AppCompatActivity {
                     return this.name;
 
                 } else {
+                    localjsonfile.delete();
                     return null;
                 }
 
@@ -347,6 +365,8 @@ public class asyncTaskManager extends AppCompatActivity {
                 e.printStackTrace();
             }  catch (IOException e) {
                 Log.e(TAG, "fichier json internet non trouvé ou malformé");
+                sendMessage("nojson");
+
                 //popup : pas internet
                 e.printStackTrace();
 
@@ -379,6 +399,8 @@ public class asyncTaskManager extends AppCompatActivity {
                     Log.e(TAG, "aucun resultat (impossible de creer le fichier json ou d'aller sur internet)");
                 } else {
                     Log.d(TAG, "on a trouvé ce nombre d'image a afficher:" + result.size() + " " + missings.size());
+                    sendMessageWithInt("filesfound", missings.size());
+                    //    sendMessageWithInt("filesmissing",missings.size());
                     // if (true /*currentfile == missingfiles.size()*/) {
                     //   mDLisCompleted = true;
 
@@ -432,6 +454,7 @@ public class asyncTaskManager extends AppCompatActivity {
             //((TextView)findViewById(R.id.pressme_text)).setText(getResources().getString(R.string.string_press_me)
 //            mDiapoProgressBar.incrementProgressBy(1);
             bmImage.setImageBitmap(result);
+            sendMessage("imgshown");
             //                ((TextView) findViewById(R.id.pressme_text)).setTextColor(getResources().getColor(R.color.OurPink));
             //     ((TextView) findViewById(R.id.pressme_text)).setTextColor(getResources().getColor(R.color.colorAccent));
             mTextBlink = !mTextBlink;
@@ -477,8 +500,8 @@ public class asyncTaskManager extends AppCompatActivity {
 
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inSampleSize = calculateInSampleSize(options, screenwidth, screenheight);
-                //options.outWidth = screenwidth;
-                //options.outHeight = screenheight;//screenheight;
+                options.outWidth = screenwidth;
+                options.outHeight = screenheight;//screenheight;
                 mIcon11 = BitmapFactory.decodeStream(bis, null, options);
 
                 bis.close();

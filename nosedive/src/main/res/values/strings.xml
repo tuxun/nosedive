@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name">Nosedive</string>
     <string name="string_press_me">TOUCHEZ MOI</string>
-    <string name="string_choose2word">SELECTIONNEZ DEUX MOTS</string>
+    <string name="string_wait4dl">Téléchargement en cours</string>
+
+    <string name="string_choose2word">touchez deux mots</string>
     <string name="buttonLabel_smart">intelligente</string>
     <string name="buttonLabel_lovely">affectueuse</string>
     <string name="buttonLabel_fun">drôle</string>
@@ -24,5 +26,6 @@
     <string name="about_icontext">about</string>
     <string name="fixjson_icontext">delete filelist.json</string>
     <string name="create_icontext">add</string>
+    <string name="activatewifiandrelauch">activez le wifi et relancez l\'appli</string>
 
 </resources>

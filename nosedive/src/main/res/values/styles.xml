@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here.
         <item name="colorPrimary">@color/OurSecondaryViolet</item>
         <item name="colorPrimaryDark">@color/OurPink</item>
@@ -15,15 +15,11 @@
         <item name="colorPrimaryDark">@color/OurGray</item>
         <item name="colorAccent">@color/MyGray</item>
         <item name="buttonStyle">?android:attr/buttonStyle</item>
-        <item name="actionBarTheme">@style/AppTheme.AppBarOverlay</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
-        <item name="android:background">@color/OurGray</item>
+        <item name="android:background">@color/OurWhite</item>
     </style>
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
-        <item name="android:textColorPrimary">@android:color/holo_red_dark</item>
-    </style>
-        </resources>
+</resources>
