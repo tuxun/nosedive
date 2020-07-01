@@ -5,12 +5,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.JsonReader;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -69,7 +73,7 @@ public class asyncTaskManager extends AppCompatActivity {
 
         // intent.putExtra("EXTRA_MESSAGE", message);
         mContext.sendBroadcast(intent);
-        Log.e("sendMessage", "ok" + intent);
+      //  Log.e("sendMessage", "ok" + intent);
 
     }
 
@@ -81,7 +85,7 @@ public class asyncTaskManager extends AppCompatActivity {
 
         intent.putExtra("EXTRA_MESSAGE", params);
         mContext.sendBroadcast(intent);
-        Log.e("sendMessage", "ok" + intent);
+      //  Log.e("sendMessage", "ok" + intent);
 
     }
 
@@ -419,6 +423,7 @@ public class asyncTaskManager extends AppCompatActivity {
                 }
 
             }else { Log.e(TAG, "jsonfile VIDE!!!");
+                    sendMessage("nojson");
             }
 
         }}
@@ -427,20 +432,29 @@ public class asyncTaskManager extends AppCompatActivity {
     ////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////ASYNCTASK////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////
-    public class showImageFileTask extends AsyncTask<String, Void, Bitmap> {
+
+     public class showImageFileWithTextTask extends AsyncTask<String, Void, Bitmap> {
         final ImageView bmImage;
         String name;
-
-        public showImageFileTask(ImageView bbmImage) {
+     TextView destview;
+            String title;
+        public showImageFileWithTextTask(ImageView bbmImage, TextView titleview,String ttle) {
             this.bmImage = bbmImage;
+            this.destview=titleview;
+            this.title=ttle;
             //   this.name=namee;
         }
 
         protected Bitmap doInBackground(String... urls) {
             try {
-                return BitmapFactory.decodeFile(mContext.getExternalCacheDir() + "/" + urls[0]);
+              // return BitmapFactory.decodeFile(mContext.getExternalCacheDir() + "/" + urls[0]);
+                // decodeSampledBitmapFromFilepath
+         return decodeSampledBitmapFromFilepath(mContext.getExternalCacheDir() + "/" + urls[0],screenWidth,screenHeight);
+
+
+
             } catch (Exception e) {
-                Log.e("fileeroor", "inshowimgtask");
+                Log.e("showImageFileTask", "Execption in decodeSampledBitmapFromFilepath");
                 return null;
 
             }
@@ -454,6 +468,78 @@ public class asyncTaskManager extends AppCompatActivity {
             //((TextView)findViewById(R.id.pressme_text)).setText(getResources().getString(R.string.string_press_me)
 //            mDiapoProgressBar.incrementProgressBy(1);
             bmImage.setImageBitmap(result);
+           // destview.setText(title);
+            sendMessage("imgshown");
+            //                ((TextView) findViewById(R.id.pressme_text)).setTextColor(getResources().getColor(R.color.OurPink));
+            //     ((TextView) findViewById(R.id.pressme_text)).setTextColor(getResources().getColor(R.color.colorAccent));
+            mTextBlink = !mTextBlink;
+
+
+            //SystemClock.sleep(1000);
+
+        }
+    }
+
+
+
+
+
+    public class showImageFileTask extends AsyncTask<String, Void, Bitmap> {
+        final ImageView bmImage;
+        String name;
+long starttime;
+        public showImageFileTask(ImageView bbmImage) {
+            this.bmImage = bbmImage;
+            //   this.name=namee;
+        }
+
+        protected Bitmap doInBackground(String... urls) {
+            try {
+                //
+                starttime= System.currentTimeMillis();
+
+              // return BitmapFactory.decodeFile(mContext.getExternalCacheDir() + "/" + urls[0]);
+                // decodeSampledBitmapFromFilepath
+         //return decodeSampledBitmapFromFilepath(mContext.getExternalCacheDir() + "/" + urls[0],screenWidth,screenHeight);
+         return decodeSampledBitmapFromFilepath(mContext.getExternalCacheDir() + "/" + urls[0],screenWidth,screenHeight);
+
+
+
+            } catch (Exception e) {
+                Log.e("showImageFileTask", "Execption in decodeSampledBitmapFromFilepath");
+                return null;
+
+            }
+        }
+
+        protected void onPostExecute(Bitmap result) {
+
+            //((TextView) findViewById(R.id.pressme_text)).setText("Diapo " + (pwa + 1) + "/" + mDiapo.size() + "réussi");
+            long timer=System.currentTimeMillis()-starttime;
+            long delay=750-timer;
+
+                if(delay>0) {
+                    //!log bcp
+                    long time1=delay+timer;
+                 //   Log.d("showimageTask","Diapo retardé :"+time1);
+                   //                     Log.d("showimageTask","Diapo wait en ms?"+delay);
+                                                            SystemClock.sleep(delay);
+
+                  /*  Drawable d = new BitmapDrawable(mContext.getResources(), result);
+                    bmImage.setImageDrawable(d);
+                    bmImage.setImageLevel(100);*/
+                  bmImage.setImageBitmap(result);
+                }
+                else
+                {
+
+                    bmImage.setImageBitmap(result);
+
+                }
+                Log.e("showimageTask","Diapo réussi en "+timer+"ms");
+//result.recycle();
+            //((TextView)findViewById(R.id.pressme_text)).setText(getResources().getString(R.string.string_press_me)
+//            mDiapoProgressBar.incrementProgressBy(1);
             sendMessage("imgshown");
             //                ((TextView) findViewById(R.id.pressme_text)).setTextColor(getResources().getColor(R.color.OurPink));
             //     ((TextView) findViewById(R.id.pressme_text)).setTextColor(getResources().getColor(R.color.colorAccent));
@@ -604,13 +690,17 @@ public class asyncTaskManager extends AppCompatActivity {
     public Bitmap decodeSampledBitmapFromFilepath(String res,
                                                   int reqWidth,
                                                   int reqHeight) throws IOException {
-        final BitmapFactory.Options options = new BitmapFactory.Options();
+
+         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
         options.outWidth = reqWidth;
         options.outHeight = reqHeight;
         FileInputStream fis = new FileInputStream(res);
-        BufferedInputStream bis = new BufferedInputStream(fis);
-        Bitmap result = BitmapFactory.decodeStream(bis, null, options);
+        //BufferedInputStream bis = new BufferedInputStream(fis);
+        //
+        //Bitmap result = BitmapFactory.decodeStream(bis, null, options);
+                        Bitmap result =BitmapFactory.decodeFileDescriptor(fis.getFD(), null, options);
+
         fis.close();
         return result;
 

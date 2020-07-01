@@ -133,7 +133,6 @@ android:visibility="gone"
             android:layout_height="wrap_content"
             android:gravity="center|bottom"
             android:textSize="30sp"
-            android:text="@string/string_press_me"
 
             />
 

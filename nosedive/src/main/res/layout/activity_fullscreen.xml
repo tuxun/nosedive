@@ -141,9 +141,8 @@ android:visibility="gone"
             android:id="@+id/ui_press_meTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center|bottom"
+            android:gravity="center"
             android:textSize="34sp"
-            android:text="@string/string_press_me"
 
             />
 
