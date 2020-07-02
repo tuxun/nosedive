@@ -729,7 +729,7 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
 //      mDiapoProgressBar.setProgress(0);
 //WXCB        mDiapoProgressBar.setIndeterminate(false);
         mDlProgressBar.setIndeterminate(false);
-        String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/" + "julia/";
+        String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/" +"rescatest/";//+ "julia/";
 
         View mContentView = findViewById(R.id.fullscreen_content_controls);
         //mContentView = findViewById(R.id.fullscreen_content_controls);
@@ -873,7 +873,7 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
 
 
                         if (mCheckedToggleButtonsArrayList.size() > 2) {
-                            Log.d("mCheckedToggleButtonsArrayList", "3 Button pressed");
+                            Log.d("mCheckedToggle", "3 Button pressed");
                             view.setPressed(true);
                             // mCheckedToggleButtonsArrayList.clear();
 
