@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -31,9 +33,14 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 //import java.io.InputStreamReader;
 
@@ -43,7 +50,7 @@ import java.util.Random;
  */
 public class FullscreenActivity extends AppCompatActivity {
 
-
+         ExecutorService executor;
     final ArrayList<Button> mCheckedToggleButtonsArrayList = new ArrayList<>();
     //temps unitaire (base de temps), sert a définir le delai entre deux images
     final int delayinterframes = 750;
@@ -52,7 +59,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     //temps durant lequel on peut choisir deux mots (en multiple d'interframedelay)
     final int delaychoixmots = 10000;
-
+private ImageView imageView;
     private final Handler mSlideshowHandler = new Handler();
     private final Runnable showpressmetextRunnable = new Runnable() {
         @Override
@@ -120,13 +127,13 @@ public class FullscreenActivity extends AppCompatActivity {
     public BroadcastReceiver intentreceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-        //    Log.d("FullscreenActivity", "org.tflsh.nosedive.FullscreenActivity.onReceive");
+            Log.d("FullscreenActivity", "org.tflsh.nosedive.FullscreenActivity.onReceive");
             switch (intent.getAction()) {
                 //dlstarted?
                 //dlreceived
                 //dlcomplete
 
-                case "dlstarted":
+                case "dlStarted":
                //     Log.e("intentreceiver", "dlstarted action");
                     //  ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementSecondaryProgressBy(1);
                     // findViewById(R.id.ui_dl_progressTextView).setVisibility(View.VISIBLE);
@@ -137,16 +144,16 @@ public class FullscreenActivity extends AppCompatActivity {
 
 
                     break;
-                case "dlreceived":
+                case "dlReceived":
                     Log.e("intentreceiver", "dlreceived action");
                     ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
                     ((TextView) (findViewById(R.id.ui_press_meTextView))).setText(R.string.string_wait4dl);
                     //  findViewById(R.id.ui_dl_progressTextView).setVisibility(View.VISIBLE);
 
                     break;
-                case "dlcomplete":
+                case "dlComplete":
                 //    Log.e("intentreceiver", "dlcomplete action");
-                    findViewById(R.id.imageView).setOnClickListener(new View.OnClickListener() {
+                    imageView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
 
@@ -163,14 +170,14 @@ public class FullscreenActivity extends AppCompatActivity {
                     mSlideshowHandler.post(startdiapoRunnable);
                     break;
 
-                case "nojson":
+                case "noJson":
                 //    Log.e("intentreceiver", "nojson action" + intent.getIntExtra("EXTRA_MESSAGE", 0));
                     mHaveInternet = false;
                     ((TextView) (findViewById(R.id.ui_press_meTextView))).setText(R.string.activatewifiandrelauch);
 
                     break;
 
-                case "filesfound":
+                case "filesFound":
                     //Log.e("intentreceiver", "filesfound action");
                     int max=intent.getIntExtra("EXTRA_MESSAGE", 0);
                     if(max>0) {
@@ -181,7 +188,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     else
                     {                        Log.e("intentreceiver", "filesfound set pgbbarr" + max);
                         Log.e("intentreceiver", "dlcomplete action");
-                        findViewById(R.id.imageView).setOnClickListener(new View.OnClickListener() {
+                        imageView.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
 
@@ -196,8 +203,14 @@ public class FullscreenActivity extends AppCompatActivity {
 
 }
                     break;
-                case "imgshown":
-               //     Log.e("intentreceiver", "imageshownaction action");
+                case "imgShown":
+                    String b =intent.getStringExtra("EXTRA_MESSAGE");
+                    Log.e("intentreceiver", "imageshownaction got "+b);
+                    try {
+                        imageView.setImageBitmap(decodeSampledBitmapFromFilepath(b,screenWidth,screenHeight));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
                     break;
 
@@ -261,19 +274,20 @@ public class FullscreenActivity extends AppCompatActivity {
             mSlideshowHandler.removeCallbacks(startdiapoRunnable);
             //Log.d("showNextRunnable", "next!");
             mHideHandler.post(showpressmetextRunnable);
+
 int nextimg=new Random().nextInt(mSlideshowFilesNames.size());
             if (mSlideshowIsRunning) {
                 if (pwa < mSlideshowFilesNames.size()) {
                     if ((pwa % 2) == 1) {
-                          asm.new showImageFileTask(
-                                  (ImageView) findViewById(R.id.imageView)
-                          ).execute(mSlideshowFilesNames.get(nextimg));
+                          executor.execute(asm.new showImageFileTask(
+                                  imageView
+                                  ,mSlideshowFilesNames.get(nextimg)));
                           ((TextView) findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurPink));
 
                     } else {
-                        asm.new showImageFileTask(
-                                (ImageView) findViewById(R.id.imageView)
-                        ).execute(mSlideshowFilesNames.get(nextimg));
+                        executor.execute(asm.new showImageFileTask(
+                        imageView
+                        ,mSlideshowFilesNames.get(nextimg)));
                         ((TextView) findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurWhite));
 
                     }
@@ -309,7 +323,7 @@ int nextimg=new Random().nextInt(mSlideshowFilesNames.size());
         @Override
         public void run() {
             Log.e("showMenuRunnable", "showmenuRunnable ?");
-            ((ImageView) findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.whitebackground));
+            imageView.setImageDrawable(getResources().getDrawable(R.drawable.whitebackground));
 
             mSlideshowHandler.post(cleanbuttonRunnable);
             mSlideshowHandler.removeCallbacks(showNextRunnable);
@@ -511,34 +525,20 @@ int nextimg=new Random().nextInt(mSlideshowFilesNames.size());
         super.onConfigurationChanged(newConfig);
         Log.e("onConfigurationChanged", "onConfigurationChanged ?");
 mSlideshowHandler.removeCallbacks(showNextRunnable);
-        // Checks the orientation of the screen
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            // Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
-            setContentView(R.layout.activity_fullscreen_paysage);
-            this.onResume();
-        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            // Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
-            setContentView(R.layout.activity_fullscreen);
+       setScreenMetrics();
             this.onResume();
 
         }
-    }
 
-    //vrac zone
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        Log.e("onNewIntent", "onNewIntent ?");
 
-        setIntent(intent);
-    }
+
 
     @Override
     protected void onStop() {
         super.onStop();
         mSlideshowHandler.post(stopdiapoRunnable);
         Log.d("activity", "onStop");
-      //  unregisterReceiver(intentreceiver);
+        unregisterReceiver(intentreceiver);
 
     }
 
@@ -550,11 +550,11 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
             mSlideshowHandler.postDelayed(cleanbuttonRunnable, UI_ANIMATION_DELAY);
             mSlideshowHandler.postDelayed(hidemenuRunnable, delayinterframes);
 
-            ((ImageView) findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.whitebackground));
+            imageView.setImageDrawable(getResources().getDrawable(R.drawable.whitebackground));
 
             //  rm.setVisibility(8);
             //lm.setVisibility(8);
-            asm.new showImageFileTask((ImageView) findViewById(R.id.imageView)).execute(mSlideshowFilesNames.get(new Random().nextInt(mSlideshowFilesNames.size())));
+executor.execute(asm.new showImageFileTask((ImageView) findViewById(R.id.imageView),mSlideshowFilesNames.get(new Random().nextInt(mSlideshowFilesNames.size()))));
             SystemClock.sleep(50);
 
             mSlideshowHandler.postDelayed(startdiapoRunnable, delayquestionnement);
@@ -565,22 +565,10 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        filter = new IntentFilter("dlreceived");
-        filter.addAction("dlstarted");
-        filter.addAction("dlcomplete");
-        filter.addAction("filesfound");
-        filter.addAction("filesmissing");
-        filter.addAction("nojson");
-        filter.addAction("imgshown");
+
+
 
         //  receiver = new MyIntentManager();
-
-        registerReceiver(intentreceiver, filter);
-        setScreenMetrics();
-
-        asm = new asyncTaskManager(getApplicationContext(), screenWidth, screenHeight);
-
-
 
 
 
@@ -635,8 +623,50 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
 //tools
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public /*static*/ int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
+    }
 
 
+    public Bitmap decodeSampledBitmapFromFilepath(String res,
+                                              int reqWidth,
+                                              int reqHeight) throws IOException {
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+        options.outWidth = reqWidth;
+        options.outHeight = reqHeight;
+        FileInputStream fis = new FileInputStream(res);
+        BufferedInputStream bis = new BufferedInputStream(fis);
+        //
+         Bitmap result = BitmapFactory.decodeStream(bis, null, options);
+        //Bitmap result = BitmapFactory.decodeFileDescriptor(fis.getFD(), null, options);
+        //byte bits[]=new byte[bis.available()];
+        //bis.read(bits);
+        fis.close();
+        return result;
+
+
+    }
     void setScreenMetrics() {
         DisplayMetrics metrics = new DisplayMetrics();
 
@@ -706,8 +736,21 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
     @Override
     protected void onResume() {
         super.onResume();
+        filter = new IntentFilter("dlReceived");
+        filter.addAction("dlStarted");
+        filter.addAction("dlComplete");
+        filter.addAction("filesFound");
+        filter.addAction("filesMissing");
+        filter.addAction("noJson");
+        filter.addAction("imgShown");
 
+        registerReceiver(intentreceiver, filter);
+        setScreenMetrics();
 
+        asm = new asyncTaskManager(getApplicationContext(), screenWidth, screenHeight);
+
+        this.executor = Executors.newFixedThreadPool(1);
+        this.imageView=(ImageView) findViewById(R.id.imageView);
         Log.d("activity", "onResume" + getIntent());
         android.app.ActionBar actionBar = getActionBar();
 
@@ -719,35 +762,21 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
         this.missingfilesnumber = 0;
         this.mHaveInternet = testinternet();
 
-        //   TextView destiv = findViewById(R.id.pressme_text);
         setScreenMetrics();
 
         this.mSlideshowFilesNames = new ArrayList<>();
         this.pwa = 0;
         ProgressBar mDlProgressBar = findViewById(R.id.ui_dl_ProgressBar);
         TextView mDLprogressText = findViewById(R.id.ui_dl_progressTextView);
-//      mDiapoProgressBar.setProgress(0);
-//WXCB        mDiapoProgressBar.setIndeterminate(false);
         mDlProgressBar.setIndeterminate(false);
         String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/" +"rescatest/";//+ "julia/";
 
         View mContentView = findViewById(R.id.fullscreen_content_controls);
-        //mContentView = findViewById(R.id.fullscreen_content_controls);
-
-        // LinearLayout des = findViewById(R.id.contentMUM);
         lm = findViewById(R.id.leftMenuLinearLayout);
         rm = findViewById(R.id.rightMenuLinearLayout);
 
         makeButtons();
-
-
-        // Set up the user interaction to manually show or hide the system UI.
-
-        //c  findViewById(R.id.dummy_button).setOnTouchListener(onclick);
-        // findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
-
-
-        asm.new ListImageTask(missingFilesNames, mSlideshowFilesNames).execute(mServerDirectoryURL);
+         executor.execute(asm.new listImageTask(getApplicationContext().getExternalCacheDir().getAbsolutePath(),mServerDirectoryURL,missingFilesNames, mSlideshowFilesNames));
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
@@ -757,23 +786,21 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
         Log.d("ListimageResult", "missing file= " + missingFilesNames.size());
 
 
-        ////////////////////////
-        findViewById(R.id.imageView).setOnLongClickListener(new View.OnLongClickListener() {
+        imageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
                 Log.e("onLongClick", "LONGPRESS");
 
-                togglefullscreen();
+                toggleFullscreen();
                 return true;
             }
         });
         if ((missingFilesNames.size() == 0) && (mSlideshowFilesNames.size() > 0)) {
-            //cache les mots, lance le diapo
             mHideHandler.postDelayed(mfullscreenOnRunnable, UI_ANIMATION_DELAY - 10);
             mHideHandler.postDelayed(startdiapoRunnable, UI_ANIMATION_DELAY + 10);
 
 
-            findViewById(R.id.imageView).setOnClickListener(new View.OnClickListener() {
+            imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     if (!mSlideshowIsRunning)
@@ -789,29 +816,24 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
 
 
         } else {
-         /*   if (mHaveInternet == true) {
-                ((TextView) (findViewById(R.id.ui_press_meTextView))).setText(R.string.string_wait4dl);
-            } else {
-                ((TextView) (findViewById(R.id.ui_press_meTextView))).setText(R.string.activatewifiandrelauch);
-            }*/
-//cache les mots
+
             mHideHandler.postDelayed(mfullscreenOnRunnable, UI_ANIMATION_DELAY);
         }
 
     }
 
-    //TOOOLS FUNCTIONS/.......
-    private void togglefullscreen() {
+    //TOOLS FUNCTIONS/.......
+    private void toggleFullscreen() {
 
 
         /////////
         if (!mFullscreen) {
-            Log.d("togglefullscreen", "mHidePart2Runnable!");
+            Log.d("toggleFullscreen", "mHidePart2Runnable!");
             mHideHandler.postDelayed(mfullscreenOnRunnable, UI_ANIMATION_DELAY);
 
 
         } else {
-            Log.d("togglefullscreen", "mShowPart2Runnable!");
+            Log.d("toggleFullscreen", "mShowPart2Runnable!");
 
             mHideHandler.postDelayed(mfullscreenOffRunnable, UI_ANIMATION_DELAY);
 
@@ -841,7 +863,6 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
         int[] _buttonprimalnumbers = {3, 5, 7, 11, 13, 17, 19, 23, 27, 29, 31, 37, 41, 43, 47, 53, 59};
 
         this.mToggleButtonsArrayList = new ArrayList<>();
-//how to get every button...
         //making ALL first
 
 
@@ -851,8 +872,7 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
             ViewGroup.LayoutParams layoutParams = findViewById(R.id.fakeLinearLayout).getLayoutParams();
             temptg.setBackground(this.getResources().getDrawable(R.drawable.ic_bouttonoff));
             temptg.setText(_buttonNames[j]);
-            //temptg.setTextOn(_buttonNames[j]);
-            //
+
             temptg.setAllCaps(true);
             temptg.setLayoutParams(layoutParams);
             temptg.setPadding(10, 10, 10, 10);
@@ -861,7 +881,7 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
               /*  android:layout_width="match_parent"
                     android:layout_height="wrap_content"*/
 
-            ////////////////////////////////////////////////////////////////////////////////////////////////
+            ////////////////////////////////CRITICAL//////////////////////////////////////
             temptg.setOnTouchListener(new OnTouchListener() {
                 @Override
                 public boolean onTouch(View view, MotionEvent event) {
@@ -875,14 +895,12 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
                         if (mCheckedToggleButtonsArrayList.size() > 2) {
                             Log.d("mCheckedToggle", "3 Button pressed");
                             view.setPressed(true);
-                            // mCheckedToggleButtonsArrayList.clear();
 
                             mSlideshowHandler.post(showimgandrestartdiapoafter2words);
 
 
                         }
                         Log.d("Pressed", "Button pressed");
-                        //  mHideHandler.post(makeButtonNotClickableRunnable);
 
                     } else if (event.getAction() == MotionEvent.ACTION_UP) {
                         Log.d("Pressed", "Button released");
@@ -900,10 +918,7 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
                             mCheckedToggleButtonsArrayList.add(((Button) view));
                             ((Button) view).setTextColor(Color.BLACK);
 
-//mCheckedToggleButtonsArrayList.get(0).setPressed(false);
                             Log.d("toggleclick", "toggle 2 boutons ok");
-
-                            // mSlideshowHandler.post(makeButtonNotClickableRunnable);
 
                             mSlideshowHandler.post(showimgandrestartdiapoafter2words);
 
@@ -920,14 +935,14 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
 
 
             //avoid a glitch reloading button
-            temptg.setClickable(true);//                    setChecked(false);
+            temptg.setClickable(true);
 
             mToggleButtonsArrayList.add(temptg);
 
         }
 
         int j;
-        //for the first 8 buttton, set in leftmenulayout
+        //for the first 8 button, set in the left menu layout
         for (j = 0; j < _buttonNames.length / 2; j++) {
             mToggleButtonsArrayList.get(j).setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
 
@@ -935,7 +950,7 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
         }
 
 
-        //for the first 8 buttton, set in the right menu layout
+        //for the first 8 buttons, set in the right menu layout
 
         for (; j < _buttonNames.length; j++) {
             mToggleButtonsArrayList.get(j).setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
@@ -956,10 +971,10 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
         boolean isMetered = cm.isActiveNetworkMetered();
         if (isConnected) {
             if (isMetered) {
-                Log.d("NetworkInfo", "connexion limité");
+                Log.d("NetworkInfo", "limited network connection");
                 return false;
             } else {
-                Log.d("NetworkInfo", "pas de limite de débit");
+                Log.d("NetworkInfo", "no speed limit");
                 return false;
             }
 
@@ -972,105 +987,3 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
 
 
 }
-
-
-
-
-
-/*
- @Override
-                public void onClick(View view) {
-                    mDiapoHandler.removeCallbacks(showNextRunnable);
-                    mDiapoHandler.removeCallbacks(startdiapoRunnable);
-                    mdiapo_isrunning = false;
-                   // SystemClock.sleep(100);
-
-                        ((ImageView) findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.whitebackground));
-
-
-                    mCheckedToggleButtonsArrayList.add(((Button) view));
-                    view.setClickable(false);
-
-                    //  ((ToggleButton)view.findViewWithTag("toggleButton")).setChecked(false);
-                    if (mCheckedToggleButtonsArrayList.size() == 1) {
-                        Log.d("toggleclick", "toggle 1 boutons ok" + view.getTag().toString());
-mHideHandler.removeCallbacks(cleanbuttonRunnable);
-                        mDiapoHandler.postDelayed(startdiapoRunnable, delayquestionnement);
-                        mHideHandler.postDelayed(cleanbuttonRunnable, delayquestionnement+UI_ANIMATION_DELAY);
-
-return;
-
-                    } else if (mCheckedToggleButtonsArrayList.size() == 2) {
-                        //if its the second time we click on a button
-//if it's the same button twice, uncheck it and return
-//                        lastButton = ((ToggleButton) view);
-                        if (mCheckedToggleButtonsArrayList.get(0) == mCheckedToggleButtonsArrayList.get(1)) {
-                            //mHideHandler.post(cleanbuttonRunnable);
-
-                            Log.d("toggleclick", "toggle twice SAME button");
-                         //   mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(1));
-                           // mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(0));
-
-                            //prevButton.setChecked(false);
-                            mDiapoHandler.postDelayed(startdiapoRunnable, delaychoixmots);
-
-                        } else {
-                            (findViewById(R.id.pressme_text)).setVisibility(View.GONE);
-                            mHideHandler.post(hidemenuRunnable);
-
-                            Log.d("toggleclick", "toggle 2 boutons ok");
-                            mDiapoHandler.postDelayed(startdiapoRunnable, delayquestionnement);
-
-                            new showImageFileTask((ImageView) findViewById(R.id.imageView)).execute(mDiapo.get(new Random().nextInt(mDiapo.size())));
-                            ;
-                        }
-                    }
-
-                    int clickedbuttons = mCheckedToggleButtonsArrayList.size();
-if(clickedbuttons>0) {
-    for (int i = clickedbuttons-1 ; i >=0; i--) {
-
-        mCheckedToggleButtonsArrayList.get(i).setEnabled(false);
-        mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(i));
-    }
-    //a chaque button cliqué, si on est perdu, on decheck les bouttons
-    //should only  happen when 2 DIFFERENT buttons are pressed
-    //  ((ToggleButton) view).setChecked(true);
-    mDiapoHandler.postDelayed(startdiapoRunnable, delaychoixmots);
-}
-                }
-            });
-
-
-
-          //avoid a glitch reloading button
-            temptg.setClickable(true);//                    setChecked(false);
-
-            mToggleButtonsArrayList.add(temptg);
-
-        }
-
-
-        //for the first 8 buttton, set in leftmenulayout
-        for (j = 0; j < _buttonNames.length / 2; j++) {
-            mToggleButtonsArrayList.get(j).setTypeface(ResourcesCompat.getFont(getApplicationContext(),R.font.alef));
-
-            lm.addView(mToggleButtonsArrayList.get(j));
-        }
-
-
-        //for the first 8 buttton, set in the right menu layout
-
-        for (; j < _buttonNames.length; j++) {
-            mToggleButtonsArrayList.get(j).setTypeface(ResourcesCompat.getFont(getApplicationContext(),R.font.alef));
-
-            rm.addView(mToggleButtonsArrayList.get(j));
-        }
-
-
-        // Set up the user interaction to manually show or hide the system UI.
-
-        //c  findViewById(R.id.dummy_button).setOnTouchListener(onclick);
-        // findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
-
- */

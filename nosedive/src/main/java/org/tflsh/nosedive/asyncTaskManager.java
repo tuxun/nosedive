@@ -1,22 +1,14 @@
 package org.tflsh.nosedive;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.JsonReader;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -35,57 +27,34 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 public class asyncTaskManager extends AppCompatActivity {
     /**
-     * Called when the user taps the Send button
+     * wrapper around the async classes we need in FullscreenActivity
      */
     public static final String EXTRA_MESSAGE = "org.tflsh.nosedive.SEND";
-    final Context mContext;
+    Context mContext;
     ArrayList<String> missingFilesNames = new ArrayList<>();
-    private int currentFile;
-    private int missingFilesNumber;
-
     int screenWidth = 800;
     int screenHeight = 600;
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    private int currentFile;
+    private int missingFilesNumber;
+    private boolean mTextBlink = false;
     //constructor: save the context for alter uses
     public asyncTaskManager(Context ctx, int width, int height) {
-        Log.d("asyncTaskManager", "starting helper with context");
         if (ctx == null) {
-            Log.e("asynctaskmanager", "ctx null in constructor");
+            Log.e("asyncTaskManager", "ctx null in constructor");
+        } else {
+            this.mContext = ctx;
+
+            Log.d("asyncTaskManager", "starting helper with context");
+
         }
-        mContext = ctx;
 
         screenWidth = width;
         screenHeight = height;
 
-
-    }
-
-    public void sendMessage(String message) {
-
-        Intent intent = new Intent(message);    //action: "msg"
-        intent.setPackage(mContext.getPackageName());
-
-
-        // intent.putExtra("EXTRA_MESSAGE", message);
-        mContext.sendBroadcast(intent);
-      //  Log.e("sendMessage", "ok" + intent);
-
-    }
-
-    public void sendMessageWithInt(String message, int params) {
-
-        Intent intent = new Intent(message);    //action: "msg"
-        intent.setPackage(mContext.getPackageName());
-
-
-        intent.putExtra("EXTRA_MESSAGE", params);
-        mContext.sendBroadcast(intent);
-      //  Log.e("sendMessage", "ok" + intent);
 
     }
 
@@ -98,572 +67,9 @@ public class asyncTaskManager extends AppCompatActivity {
 
     }
 
-    //grab from URL and save on sdcard the file destname
-//est devenu un runnable
-    private class grabImageThread implements Runnable {
-        //declarations
-        private static final String TAG = "grabImageTask";
-        private String command;
-        final String destiFileImageName;
-        final String urlToGrab;
-
-
-        //TODO check the mess with the files
-
-        public grabImageThread(String destname) {
-            missingFilesNames = new ArrayList<>();
-
-            this.destiFileImageName = destname;
-            //private final String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/res/";
-            String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/" + "julia/";
-            urlToGrab = mServerDirectoryURL + destname;
-        }
-
-        protected boolean doInBackground() {
-
-            sendMessage("dlstarted");
-
-            File file = new File(mContext.getExternalCacheDir() + "/" + destiFileImageName);
-            Bitmap mIcon11;
-            try {
-                if (urlToGrab.contains("json")) {
-                    Log.e("grabImageThread", "on décompresse le json comme une image :/");
-                } else {
-                    Log.e("grabImageThread", "on décompresse " + urlToGrab);
-
-                }
-                //InputStream is = new java.net.URL(urldisplay).openStream();
-                BufferedInputStream bis = new BufferedInputStream(new java.net.URL(urlToGrab).openStream());
-                //
-
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inSampleSize = calculateInSampleSize(options, screenwidth, screenheight);
-                options.outWidth = screenwidth;
-                options.outHeight=screenheight;//screenheight;
-
-                mIcon11 = BitmapFactory.decodeStream(bis,null,options);
-                bis.close();
-
-
-                if (mIcon11 != null) {
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-
-                    //result.copyPixelsToBuffer((Buffer)buf);//result=//get //compress(Bitmap.CompressFormat.JPEG, 0 /*ignored for PNG*/, bos);
-                    mIcon11.compress(Bitmap.CompressFormat.JPEG, 80 /*ignored for PNG*/, bos);
-                    byte[] bitmapdata = bos.toByteArray();
-                    bos.close();
-
-                    FileOutputStream fos = new FileOutputStream(file);
-
-                    fos.write(bitmapdata);
-                    fos.close();
-                    mIcon11.recycle();
-
-//result.recycle();
-
-
-                } else {
-                    Log.e("error", "skiping one empty file:" + destiFileImageName);
-                }
-
-            } catch (UnknownHostException e) {
-                Log.e(TAG, "pas internet pour recup le fichier " + destiFileImageName);
-                //popup : pas internet
-                //e.printStackTrace();
-
-                // e.printStackTrace();
-            } catch (IOException e) {
-                Log.e(TAG, "pb pour ouvrir le fichier json ou sauver limage" + e.getMessage());
-            } catch (Exception e) {
-                Log.e("Error", Objects.requireNonNull(e.getMessage()));
-                e.printStackTrace();
-            }
-
-
-            currentFile++;
-
-            if (!file.exists()) {
-                Log.e("error", "FAILED ! writen file " + file.getAbsolutePath());
-                return false;
-            } else {
-                sendMessage("dlreceived");
-
-                Log.d("GRABtaskPOST", "ok synchonizing " + currentFile + " of " + missingFilesNumber + " " + file.getAbsolutePath());
-                if (currentFile == missingFilesNumber) {
-
-                    Log.d("GRABtaskPOST", "lastfile, on lance le diapo");
-
-                    sendMessage("dlcomplete");
-                }
-                // pgb.incrementProgressBy((int)(result.getAbsoluteFile().length()/1024));}
-                return true;
-
-
-            }
-
-
-            // result.recycle();
-            // this.destifileImage.write(result);
-        }
-
-        @Override
-        public void run() {
-            Log.d(TAG, "run" );
-            if(this.doInBackground()) {
-
-            } else {
-
-
-
-
-            }
-        }
-    }
-//thread asynchrone chargé de:
-//récup la liste des fichiers sur https://server/projets/index.php
-//l'enregistrer sur external_cache/filelist.json
-
-    //l'ouvrir, le parser, returnez une liste de string corrrspondant aux noms des images présentes, une liste des images manquantes
-//et lancer le téléchargement des images manquantes.
-    public class ListImageTask extends AsyncTask<String, ArrayList<String>, ArrayList<String>> {
-        private static final String TAG = "ListImageTask";
-        final ArrayList<String> name;
-        ArrayList<String> sums;
-        final ArrayList<String> missings;
-        final ExecutorService executor = Executors.newFixedThreadPool(1);
-
-        public ListImageTask(ArrayList<String> missinfil, ArrayList<String> img) {
-            this.missings = missinfil;
-            this.name = img;
-        }
-
-        //return a array of string, naming the files downloaded, or found in the cache dir
-        //@url: basestring to construct files url
-        protected ArrayList<String> doInBackground(String... urls) {
-            String urldisplay = urls[0] + "index.php";
-            try {
-                //si la list des fichiers n'existe pas, on la recupere et on l'enregistre
-                File localjsonfile = new File(mContext.getExternalCacheDir() + "/" + "filelist.json");
-
-
-                if (!localjsonfile.exists()) {
-                    if (localjsonfile.createNewFile()) {
-//ByteArrayOutputStream bos=new ByteArrayOutputStream();
-                        byte[] bitmapdata = new byte[1024];
-                        //  is.read(bitmapdata);
-
-                        //  byte[] jsondata = new byte[0];
-                        int read;
-
-                        Log.d(TAG, "downloading " + localjsonfile.getPath() + "  from " + urldisplay);
-
-
-                        OutputStream fos = new FileOutputStream(localjsonfile);
-
-                        InputStream is = new java.net.URL(urldisplay).openStream();
-                        SystemClock.sleep(2000);
-
-                        while ((read = is.read(bitmapdata)) != -1) {
-                            fos.write(bitmapdata, 0, read);
-                            Log.d(TAG, "downloading filelist.jsonn from loop");
-                        }
-                        Log.d(TAG, "downloading filelist.jsonn ok ");
-
-                        fos.flush();
-                        fos.close();
-                    }           //  is.reset();
-                    if (!localjsonfile.exists()) {
-                        throw new IOException();
-                    }
-                }
-//TODO file can be empty if internet failed
-                Log.d(TAG, "opening" + localjsonfile.getAbsolutePath()+" of size "+localjsonfile.length());
-
-                InputStream i2s = new FileInputStream(localjsonfile.getAbsolutePath());
-
-
-                //une fois le fichier recupéré, on peut l'ouvrir
-
-                JsonReader reader = new JsonReader(new InputStreamReader(i2s));
-
-                //fis.close();
-                if(localjsonfile.length()>0)
-                {
-                    //si le json fais plus de 0 octets, on peut le parser
-                    reader.beginArray();
-
-                    String description = "";
-                    while (reader.hasNext()) {
-                        boolean mssgfile = false;
-                        reader.beginObject();
-
-                        while (reader.hasNext()) {
-                            String key = reader.nextName();
-                            // Log.e("key:", key);
-                            switch (key) {
-                                case "name":
-                                    String newIn = reader.nextString();
-                                    //TODO: should check if we already downloaded the files
-                                    //need context, really?
-
-                                    //File file;// = new File(getExternalFilesDir(null), newIn);
-                                    File file = new File(mContext.getExternalCacheDir() + "/" + newIn);
-                                    if (!file.exists()) {
-                                        //le fichier listé dans le json n'est pas trouvé, on ajoute son nom dans "missing[]"
-                                        Log.d("ListImageTask", "caching file " + newIn + " to " + mContext.getExternalCacheDir());
-                                        this.name.add(newIn);
-                                        //mDLisCompleted = false;
-
-
-                                        executor.execute(new grabImageThread(newIn));
-
-                                        this.missings.add(newIn);
-                                        missingFilesNumber++;
-
-                                        // Log.e("error", "FAILED ! writen file " +testfile.getAbsolutePath() );
-                                    } else {
-                                        //!log bcp Log.d("ListImageTask", "file " + newIn + " already found to " + getExternalCacheDir());
-                                        this.name.add(newIn);
-                                        //  mDLisCompleted = true;
-                                        //Log.e("found_file:", newIn);
-                                    }
-                                    break;
-                                case "size":
-
-                                    int filesize = reader.nextInt();
-                                    //    missingfilessize += filesize;
-                                    //  Log.d("ListImageTask", "added " + filesize + " Bytes to download for " + this.name.get(this.name.size() - 1));
-                                    // reader.skipValue();
-
-                                    break;
-                                case "sum":
-                                    reader.nextString();
-                                    break;
-                                default:
-                                    reader.skipValue();
-
-
-                                    break;
-                            }
-                        }
-                        reader.endObject();
-                    }
-                    reader.endArray();
-                    return this.name;
-
-                } else {
-                    localjsonfile.delete();
-                    return null;
-                }
-
-
-
-
-            } catch (FileNotFoundException e) {
-                Log.e(TAG, "fichier json local non trouvé");
-
-                e.printStackTrace();
-            } catch (MalformedURLException e) {
-                Log.e(TAG, "mauvaise url");
-
-                e.printStackTrace();
-            }  catch (IOException e) {
-                Log.e(TAG, "fichier json internet non trouvé ou malformé");
-                sendMessage("nojson");
-
-                //popup : pas internet
-                e.printStackTrace();
-
-                // e.printStackTrace();
-            } catch (Exception e) {
-                Log.e("UnexpectedError", e.getMessage());
-                e.printStackTrace();
-            }
-            executor.shutdown();
-            while (!executor.isTerminated()) {
-                try {
-                    Thread.sleep(30);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                System.out.println("Finished all threads");
-            }
-            return this.name;
-        }
-        //backgroundtask end:
-        //if result==null=>jsonfile is empty( no internet)
-
-        protected void onPostExecute(ArrayList<String> result) {
-            if(result!=null)
-            {
-                if (result.size() == 0) {
-                    //Toast.makeText(mContext, "impossible de récup index.php, veuillez  activer le WIFI et relancer l'appli", Toast.LENGTH_LONG).show();
-                    //mNoInternet=true;
-
-                    Log.e(TAG, "aucun resultat (impossible de creer le fichier json ou d'aller sur internet)");
-                } else {
-                    Log.d(TAG, "on a trouvé ce nombre d'image a afficher:" + result.size() + " " + missings.size());
-                    sendMessageWithInt("filesfound", missings.size());
-                    //    sendMessageWithInt("filesmissing",missings.size());
-                    // if (true /*currentfile == missingfiles.size()*/) {
-                    //   mDLisCompleted = true;
-
-//!!                    mDiapoHandler.postDelayed(startdiapoRunnable, UI_ANIMATION_DELAY);
-
-
-                    //!!!                mHideHandler.postDelayed(hidedebugmenuRunnable, UI_ANIMATION_DELAY);
-
-                    /*}
-                    else{//mDLisCompleted=false;
-                    }*/
-                    //       mDLprogressBar.setMax(missingfiles.size());
-                    //     mNoInternet=true;
-
-                    //    totalfiles = result.size();
-                }
-
-            }else { Log.e(TAG, "jsonfile VIDE!!!");
-                    sendMessage("nojson");
-            }
-
-        }}
-    private boolean mTextBlink = false;
-
     ////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////ASYNCTASK////////////////////////////////
+    /////////////////////////////////tools functions////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////
-
-     public class showImageFileWithTextTask extends AsyncTask<String, Void, Bitmap> {
-        final ImageView bmImage;
-        String name;
-     TextView destview;
-            String title;
-        public showImageFileWithTextTask(ImageView bbmImage, TextView titleview,String ttle) {
-            this.bmImage = bbmImage;
-            this.destview=titleview;
-            this.title=ttle;
-            //   this.name=namee;
-        }
-
-        protected Bitmap doInBackground(String... urls) {
-            try {
-              // return BitmapFactory.decodeFile(mContext.getExternalCacheDir() + "/" + urls[0]);
-                // decodeSampledBitmapFromFilepath
-         return decodeSampledBitmapFromFilepath(mContext.getExternalCacheDir() + "/" + urls[0],screenWidth,screenHeight);
-
-
-
-            } catch (Exception e) {
-                Log.e("showImageFileTask", "Execption in decodeSampledBitmapFromFilepath");
-                return null;
-
-            }
-        }
-
-        protected void onPostExecute(Bitmap result) {
-
-            //((TextView) findViewById(R.id.pressme_text)).setText("Diapo " + (pwa + 1) + "/" + mDiapo.size() + "réussi");
-            //!log bcp  Log.d("showimageTask","Diapo " + (pwa ) + "/" + mDiapo.size() + "réussi");
-
-            //((TextView)findViewById(R.id.pressme_text)).setText(getResources().getString(R.string.string_press_me)
-//            mDiapoProgressBar.incrementProgressBy(1);
-            bmImage.setImageBitmap(result);
-           // destview.setText(title);
-            sendMessage("imgshown");
-            //                ((TextView) findViewById(R.id.pressme_text)).setTextColor(getResources().getColor(R.color.OurPink));
-            //     ((TextView) findViewById(R.id.pressme_text)).setTextColor(getResources().getColor(R.color.colorAccent));
-            mTextBlink = !mTextBlink;
-
-
-            //SystemClock.sleep(1000);
-
-        }
-    }
-
-
-
-
-
-    public class showImageFileTask extends AsyncTask<String, Void, Bitmap> {
-        final ImageView bmImage;
-        String name;
-long starttime;
-        public showImageFileTask(ImageView bbmImage) {
-            this.bmImage = bbmImage;
-            //   this.name=namee;
-        }
-
-        protected Bitmap doInBackground(String... urls) {
-            try {
-                //
-                starttime= System.currentTimeMillis();
-
-              // return BitmapFactory.decodeFile(mContext.getExternalCacheDir() + "/" + urls[0]);
-                // decodeSampledBitmapFromFilepath
-         //return decodeSampledBitmapFromFilepath(mContext.getExternalCacheDir() + "/" + urls[0],screenWidth,screenHeight);
-         return decodeSampledBitmapFromFilepath(mContext.getExternalCacheDir() + "/" + urls[0],screenWidth,screenHeight);
-
-
-
-            } catch (Exception e) {
-                Log.e("showImageFileTask", "Execption in decodeSampledBitmapFromFilepath");
-                return null;
-
-            }
-        }
-
-        protected void onPostExecute(Bitmap result) {
-
-            //((TextView) findViewById(R.id.pressme_text)).setText("Diapo " + (pwa + 1) + "/" + mDiapo.size() + "réussi");
-            long timer=System.currentTimeMillis()-starttime;
-            long delay=750-timer;
-
-                if(delay>0) {
-                    //!log bcp
-                    long time1=delay+timer;
-                 //   Log.d("showimageTask","Diapo retardé :"+time1);
-                   //                     Log.d("showimageTask","Diapo wait en ms?"+delay);
-                                                            SystemClock.sleep(delay);
-
-                  /*  Drawable d = new BitmapDrawable(mContext.getResources(), result);
-                    bmImage.setImageDrawable(d);
-                    bmImage.setImageLevel(100);*/
-                  bmImage.setImageBitmap(result);
-                }
-                else
-                {
-
-                    bmImage.setImageBitmap(result);
-
-                }
-                Log.e("showimageTask","Diapo réussi en "+timer+"ms");
-//result.recycle();
-            //((TextView)findViewById(R.id.pressme_text)).setText(getResources().getString(R.string.string_press_me)
-//            mDiapoProgressBar.incrementProgressBy(1);
-            sendMessage("imgshown");
-            //                ((TextView) findViewById(R.id.pressme_text)).setTextColor(getResources().getColor(R.color.OurPink));
-            //     ((TextView) findViewById(R.id.pressme_text)).setTextColor(getResources().getColor(R.color.colorAccent));
-            mTextBlink = !mTextBlink;
-
-
-            //SystemClock.sleep(1000);
-
-        }
-    }
-
-    //grab from URL and save on sdcard the file DESTNAME
-    @SuppressLint("StaticFieldLeak")
-    private class grabImageTask extends AsyncTask<String, Void, File> {
-        private static final String TAG = "grabImageTask";
-
-        final String destifileImage;
-        final String urldisplay;
-
-        //TODO check the mess with the files
-        public grabImageTask(String destname) {
-
-            this.destifileImage = destname;
-            String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/" + "julia/";
-            urldisplay = mServerDirectoryURL + destname;
-        }
-
-        protected File doInBackground(String... urls) {
-            //mDLprogressBar.incrementSecondaryProgressBy(1);
-
-            // mDLprogressBar.setSecondaryProgressTintMode(PorterDuff.Mode.DARKEN);
-            // SystemClock.sleep(5);
-
-            File file = new File(mContext.getExternalCacheDir() + "/" + destifileImage);
-            Bitmap mIcon11;
-            try {
-                // this.destifileImage.createNewFile();
-                if (urldisplay.contains("json")) {
-                    Log.e("MEGAWWARN", "on decompresse le json comme une image :/");
-                }
-                //InputStream is = new java.net.URL(urldisplay).openStream();
-                BufferedInputStream bis = new BufferedInputStream(new java.net.URL(urldisplay).openStream());
-                //
-
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inSampleSize = calculateInSampleSize(options, screenwidth, screenheight);
-                options.outWidth = screenwidth;
-                options.outHeight = screenheight;//screenheight;
-                mIcon11 = BitmapFactory.decodeStream(bis, null, options);
-
-                bis.close();
-
-
-                if (mIcon11 != null) {
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-
-                    //result.copyPixelsToBuffer((Buffer)buf);//result=//get //compress(Bitmap.CompressFormat.JPEG, 0 /*ignored for PNG*/, bos);
-                    mIcon11.compress(Bitmap.CompressFormat.JPEG, 80 /*ignored for PNG*/, bos);
-                    byte[] bitmapdata = bos.toByteArray();
-                    bos.close();
-
-                    FileOutputStream fos = new FileOutputStream(file);
-
-                    fos.write(bitmapdata);
-                    fos.close();
-                    mIcon11.recycle();
-
-//result.recycle();
-
-
-                } else {
-                    Log.e("error", "skiping one empty file:" + destifileImage);
-                }
-
-            } catch (UnknownHostException e) {
-                Log.e(TAG, "pas internet pour recup le fichier " + destifileImage);
-                //popup : pas internet
-                //e.printStackTrace();
-
-                // e.printStackTrace();
-            } catch (IOException e) {
-                Log.e(TAG, "pb pour ouvrir le fichier json ou sauver limage" + e.getMessage());
-            } catch (Exception e) {
-                Log.e("Error", Objects.requireNonNull(e.getMessage()));
-                e.printStackTrace();
-            }
-            return file;
-
-        }
-
-        protected void onPostExecute(File result) {
-
-            if (!result.exists()) {
-                Log.e("error", "FAILED ! writen file " + result.getAbsolutePath());
-            } else {
-                Log.d("GRABtaskPOST", "ok synchonizing " + missingFilesNames.size() + " " + result.getAbsolutePath());
-                // pgb.incrementProgressBy((int)(result.getAbsoluteFile().length()/1024));}
-              /*  mDLprogressText.setText("Téléchargement " + currentfile + "/" + missingfiles.size() + "réussi");
-
-
-                mDLprogressBar.setMax(missingfiles.size());
-                mDLprogressBar.incrementSecondaryProgressBy(1);
-
-                mDLprogressBar.setProgress(currentfile);
-                mDLprogressBar.setSecondaryProgress(currentfile + 1);*/
-
-
-            }
-        /*    currentfile++;
-            if (currentfile == missingfiles.size()) {
-                mDLisCompleted = true;
-                mDiapoHandler.post(startdiapoRunnable);
-                Log.d("GRABtaskPOST", "lastfile, on lance le diapo");
-                mDLprogressText.setText("Téléchargement complet");
-                mHideHandler.postDelayed(hidedebugmenuRunnable, UI_ANIMATION_DELAY);
-
-            }*/
-
-            // result.recycle();
-            // this.destifileImage.write(result);
-        }
-
-
-    }
     public /*static*/ int calculateInSampleSize(
             BitmapFactory.Options options, int reqWidth, int reqHeight) {
         // Raw height and width of image
@@ -687,11 +93,13 @@ long starttime;
         return inSampleSize;
     }
 
-    public Bitmap decodeSampledBitmapFromFilepath(String res,
+
+
+    public Bitmap lastdecodeSampledBitmapFromFilepath(String res,
                                                   int reqWidth,
                                                   int reqHeight) throws IOException {
 
-         BitmapFactory.Options options = new BitmapFactory.Options();
+        BitmapFactory.Options options = new BitmapFactory.Options();
         options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
         options.outWidth = reqWidth;
         options.outHeight = reqHeight;
@@ -699,7 +107,7 @@ long starttime;
         //BufferedInputStream bis = new BufferedInputStream(fis);
         //
         //Bitmap result = BitmapFactory.decodeStream(bis, null, options);
-                        Bitmap result =BitmapFactory.decodeFileDescriptor(fis.getFD(), null, options);
+        Bitmap result = BitmapFactory.decodeFileDescriptor(fis.getFD(), null, options);
 
         fis.close();
         return result;
@@ -707,9 +115,8 @@ long starttime;
 
     }
 
-    int screenwidth;
-    int screenheight;
-    public /*static*/ Bitmap olddecodeSampledBitmapFromFilepath(String res,
+
+    public /*static*/ Bitmap oldDecodeSampledBitmapFromFilepath(String res,
                                                                 int reqWidth, int reqHeight) {
 
         // First decode with inJustDecodeBounds=true to check dimensions
@@ -719,9 +126,7 @@ long starttime;
         BitmapFactory.decodeFile(res, options);
 
         // Calculate inSampleSize
-//    options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-        //BitmapFactory.Options options = new BitmapFactory.Options();
-        //              options.inSampleSize = calculateInSampleSize(options, screenwidth, screenheight);
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
         options.outWidth = reqWidth;
         options.outHeight = reqHeight;
         // Decode bitmap with inSampleSize set
@@ -729,7 +134,394 @@ long starttime;
         return BitmapFactory.decodeFile(res, options);
     }
 
+    public void sendMessage(String message) {
+
+        Intent intent = new Intent(message);    //action: "msg"
+        intent.setPackage(mContext.getPackageName());
+
+
+        // intent.putExtra("EXTRA_MESSAGE", message);
+        mContext.sendBroadcast(intent);
+         Log.e("sendMessage", "ok" + intent);
+
+    }
+
+    public void sendMessageWithInt(String message, int params) {
+
+        Intent intent = new Intent(message);    //action: "msg"
+        intent.setPackage(mContext.getPackageName());
+
+
+        intent.putExtra("EXTRA_MESSAGE", params);
+        mContext.sendBroadcast(intent);
+         Log.e("sendMessage", "ok" + intent);
+
+    }
+
+
+    public void sendMessageWithString(String message, String params) {
+
+        Intent intent = new Intent(message);    //action: "msg"
+        intent.setPackage(mContext.getPackageName());
+
+
+        intent.putExtra("EXTRA_MESSAGE", params);
+        mContext.sendBroadcast(intent);
+
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////grabImageThread////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    //grab a file from URL and save it on sdcard under the file name "@destName"
+    protected class grabImageThread implements Runnable {
+        //declarations
+        private static final String TAG = "grabImageThread";
+        final String destFileImageName;
+        final String destPath;
+        final String urlToGrab;
+
+
+        //TODO check the mess with the files
+
+        public grabImageThread(String sourceUrl, String destPathArg, String destName) {
+            missingFilesNames = new ArrayList<>();
+            this.destPath = destPathArg;
+
+            this.destFileImageName = destName;
+            urlToGrab = sourceUrl + destName;
+        }
+
+        protected boolean doInBackground() {
+
+            sendMessage("dlStarted");
+
+            File file = new File(mContext.getExternalCacheDir() + "/" + destFileImageName);
+            Bitmap mIcon11;
+            try {
+                if (urlToGrab.contains("json")) {
+                    Log.e(TAG, "warn! we are trying to open the json file like an image :/");
+                } else {
+                    Log.e(TAG, "getting " + urlToGrab);
+
+                }
+                BufferedInputStream bis = new BufferedInputStream(new java.net.URL(urlToGrab).openStream());
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inSampleSize = calculateInSampleSize(options, screenWidth, screenHeight);
+                options.outWidth = screenWidth;
+                options.outHeight = screenHeight;
+                mIcon11 = BitmapFactory.decodeStream(bis, null, options);
+                bis.close();
+
+
+                if (mIcon11 != null) {
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+                    //result.copyPixelsToBuffer((Buffer)buf);//result=//get //compress(Bitmap.CompressFormat.JPEG, 0 /*ignored for PNG*/, bos);
+                    mIcon11.compress(Bitmap.CompressFormat.JPEG, 80 /*ignored for PNG*/, bos);
+                    byte[] bitmapByteData = bos.toByteArray();
+                    bos.close();
+
+                    FileOutputStream fos = new FileOutputStream(file);
+
+                    fos.write(bitmapByteData);
+                    fos.close();
+                    mIcon11.recycle();
+
+//result.recycle();
+
+
+                } else {
+                    Log.e(TAG, "skipping one empty file:" + destFileImageName);
+                }
+
+            } catch (UnknownHostException e) {
+                Log.e(TAG, "unable  " + destFileImageName);
+            } catch (IOException e) {
+                Log.e(TAG, "unable to create json file or image" + e.getMessage());
+            } catch (Exception e) {
+                Log.e(TAG, Objects.requireNonNull(e.getMessage()));
+                e.printStackTrace();
+            }
+            currentFile++;
+            if (!file.exists()) {
+                Log.e("error", "FAILED ! written file " + file.getAbsolutePath());
+                return false;
+            } else {
+                sendMessage("dlReceived");
+
+                Log.d(TAG, "ok synchronizing " + currentFile + " of " + missingFilesNumber + " " + file.getAbsolutePath());
+                if (currentFile == missingFilesNumber) {
+
+                    Log.d(TAG, "last file, starting slideshow");
+
+                    sendMessage("dlComplete");
+                }
+                // pgb.incrementProgressBy((int)(result.getAbsoluteFile().length()/1024));}
+                return true;
+
+
+            }
+
+
+        }
+
+        @Override
+        public void run() {
+            Log.d(TAG, "run");
+            if (this.doInBackground()) {
+
+            } else {
+
+
+            }
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////ListImageTask////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+
+    //asynchronous thread  which should:
+// -1 download file list on https://server/project/index.php
+// -2 save it under external_cache/filelist.json
+// -3 open it
+// -4 parse it,
+// -5 start the downloading of the missing images
+// -6 return a list of string for images found (second arg of constructor)
+// -7 and a list of the missing images names (third arg of constructor)
+    public class listImageTask implements Runnable {
+        private static final String TAG = "ListImageTask";
+        final ArrayList<String> name;
+        final ArrayList<String> missingImagesNames;
+        final ExecutorService executor = Executors.newFixedThreadPool(1);
+        ArrayList<String> sums;
+        String mServerDirectoryURL;
+        String destPath;
+
+        public listImageTask(String destPathArg,String sourceUrl, ArrayList<String> missingFileArg, ArrayList<String> img) {
+            this.missingImagesNames = missingFileArg;
+            this.name = img;
+            this.mServerDirectoryURL = sourceUrl;
+            this.destPath=destPathArg;
+
+        }
+
+        //return a array of string, naming the files downloaded, or found in the cache dir
+        //@string url: base string to construct files url
+        protected boolean doInBackground() {
+            String urlSourceString = mServerDirectoryURL + "index.php";
+            try {
+
+
+                //if the images list don't exists, download and save it
+                File localJsonFile = new File(destPath + "/" + "filelist.json");
+                if (!localJsonFile.exists()) {
+                    if (localJsonFile.createNewFile()) {
+                        byte[] bitmapBytesData = new byte[1024];
+                        int read;
+                        Log.d(TAG, "downloading " + localJsonFile.getPath() + "  from " + urlSourceString);
+                        OutputStream fos = new FileOutputStream(localJsonFile);
+                        InputStream is = new java.net.URL(urlSourceString).openStream();
+
+                        SystemClock.sleep(2000);
+
+                        while ((read = is.read(bitmapBytesData)) != -1) {
+                            fos.write(bitmapBytesData, 0, read);
+                            Log.d(TAG, "downloading filelist.json from loop");
+                        }
+                        Log.d(TAG, "downloading filelist.json ok ");
+
+                        fos.flush();
+                        fos.close();
+                    }           //  is.reset();
+                    if (!localJsonFile.exists()) {
+                        throw new IOException();
+                    }
+                }
+                Log.d(TAG, "opening" + localJsonFile.getAbsolutePath() + " of size " + localJsonFile.length());
+
+                //if the images list file is not empty, we can parse its json content
+                if (localJsonFile.length() > 0) {
+                    InputStream i2s = new FileInputStream(localJsonFile.getAbsolutePath());
+                    JsonReader reader = new JsonReader(new InputStreamReader(i2s));
+
+                    reader.beginArray();
+
+                    String description = "";
+                    while (reader.hasNext()) {
+                        reader.beginObject();
+
+                        while (reader.hasNext()) {
+                            String key = reader.nextName();
+                            // Log.e("key:", key);
+                            switch (key) {
+                                case "name":
+                                    String newIn = reader.nextString();
+                                    //TODO: should check if we already downloaded the files
+                                    //need context, really?
+
+                                    //File file;// = new File(getExternalFilesDir(null), newIn);
+                                    File file = new File(destPath + "/" + newIn);
+                                    if (!file.exists()) {
+                                        //filename found in json file was not found in the cache directory
+                                        Log.d("ListImageTask", "caching file " + newIn + " to " + destPath);
+                                        this.name.add(newIn);
+                                        executor.execute(new grabImageThread(mServerDirectoryURL,destPath, newIn));
+                                        this.missingImagesNames.add(newIn);
+                                        missingFilesNumber++;
+
+                                    } else {
+                                        //!log bcp
+                                        // Log.d("ListImageTask", "file " + newIn + " already found to " + getExternalCacheDir());
+                                        this.name.add(newIn);
+                                        //  mDLisCompleted = true;
+                                        //Log.e("found_file:", newIn);
+                                    }
+                                    break;
+                                case "size":
+
+                                    /*optional feature, TODO*/
+                                    //size of file on the server, used to check file corruption
+                                    reader.nextInt();
+
+                                    break;
+                                case "sum":
+                                    /*optional feature, TODO*/
+                                    //sum of file on the server, used to check file corruption
+                                    reader.nextString();
+                                    break;
+                                default:
+                                    reader.skipValue();
+                                    break;
+                            }
+                        }
+                        reader.endObject();
+                    }
+                    reader.endArray();
+
+                } else {
+                    localJsonFile.delete();
+this.name.clear();
+                }
+
+
+            } catch (FileNotFoundException e) {
+                Log.e(TAG, "local json file not found");
+
+                e.printStackTrace();
+            } catch (MalformedURLException e) {
+                Log.e(TAG, "bad url");
+
+                e.printStackTrace();
+            } catch (IOException e) {
+                Log.e(TAG, "Unable to download json file from internet");
+                sendMessage("noJson");
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage());
+                e.printStackTrace();
+            }
+            executor.shutdown();
+            while (!executor.isTerminated()) {
+                try {
+                    Thread.sleep(30);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("Finished all threads");
+            }
+
+
+            if (this.name != null) {
+                if (this.name.size() == 0) {
+                    Log.e(TAG, "no results: unable to get json from internet or to create files");
+                } else {
+                    Log.d(TAG, "found this number of images :" + this.name.size() + " (missing:) " + missingImagesNames.size());
+                    sendMessageWithInt("filesFound", missingImagesNames.size());
+                                    return true;
+
+                }
+
+            } else {
+                Log.e(TAG, "EMPTY json file!!!");
+                sendMessage("noJson");
+            }
+
+            return false;
+        }
+
+           @Override
+        public void run() {
+            Log.d(TAG, "run");
+            if (this.doInBackground()) {
+
+            } else {
+
+
+            }
+        }
+
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////showImageFileTask////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+
+    public class showImageFileTask implements Runnable {
+        private static final String TAG = "showImageFileTask";
+        final ImageView bmImage;
+        String url;
+        long startThreadTime;
+
+        public showImageFileTask(ImageView bbmImage,String urlArg) {
+            this.bmImage = bbmImage;
+            this.url=urlArg;
+        }
+
+        protected boolean doInBackground() {
+            try {
+                //
+                startThreadTime = System.currentTimeMillis();
+
+                // return BitmapFactory.decodeFile(mContext.getExternalCacheDir() + "/" + urls[0]);
+                // decodeSampledBitmapFromFilepath
+                //return decodeSampledBitmapFromFilepath(mContext.getExternalCacheDir() + "/" + urls[0],screenWidth,screenHeight);
+                //byte[] imgBits = decodeSampledBitmapFromFilepath(mContext.getExternalCacheDir() + "/" + url, screenWidth, screenHeight);
+
+                long timer = System.currentTimeMillis() - startThreadTime;
+                long delay = 750 - timer;
+
+                if (delay > 0) {
+                    long time1 = delay + timer;
+                 //   SystemClock.sleep(delay);
+
+                    sendMessageWithString("imgShown",mContext.getExternalCacheDir() + "/" + url);
+
+                } else {
+                    sendMessageWithString("imgShown",mContext.getExternalCacheDir() + "/" + url);
+                }
+                Log.d(TAG, "Slideshow succeed in  " + timer + "ms");
+                mTextBlink = !mTextBlink;
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return false;
+        }
+       @Override
+        public void run() {
+            Log.d(TAG, "run");
+            if (this.doInBackground()) {
+
+            } else {
+
+
+            }
+        }
+    }
+
 }
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
