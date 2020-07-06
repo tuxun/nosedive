@@ -659,6 +659,7 @@ executor.execute(asm.new showImageFileTask((ImageView) findViewById(R.id.imageVi
         BufferedInputStream bis = new BufferedInputStream(fis);
         //
 
+
          Bitmap result = BitmapFactory.decodeStream(bis, null, options);
         //Bitmap result = BitmapFactory.decodeFileDescriptor(fis.getFD(), null, options);
         //byte bits[]=new byte[bis.available()];
