@@ -4,9 +4,5 @@
 
 
         <color name="OurPink">#FF4081</color>
-    <color name="OurSecondaryViolet">#a01e5a</color>
-        <color name="OurGray">#EEE</color>
-            <color name="OurDarkerGray">#A3EEEEEE</color>
-        <color name="MyGray">#555555</color>
         <color name="OurWhite">#FFFFFF</color>
 </resources>
