@@ -57,7 +57,7 @@ public class ExampleInstrumentedTest extends Instrumentation {
 
 
         asyncTaskManager asm = new asyncTaskManager(appContext);
-        asm.new ListImageTask(missingFilesNames, mSlideshowFilesNames).execute(mServerDirectoryURL);
+        asm.new listImageTask(missingFilesNames, mSlideshowFilesNames).execute(mServerDirectoryURL);
         try {
             Thread.sleep(5 * 1000);
         } catch (InterruptedException e) {
@@ -75,7 +75,7 @@ public class ExampleInstrumentedTest extends Instrumentation {
 
 
         asyncTaskManager asm = new asyncTaskManager(appContext);
-        asm.new ListImageTask(missingFilesNames, mSlideshowFilesNames).execute(mServerDirectoryURL);
+        asm.new listImageTask(missingFilesNames, mSlideshowFilesNames).execute(mServerDirectoryURL);
         try {
             Thread.sleep(120 * 1000);
         } catch (InterruptedException e) {
@@ -100,7 +100,7 @@ public class ExampleInstrumentedTest extends Instrumentation {
         Log.d("testing:", "NO JSON AND NO NET");
         Log.e("testing:", "deleting " + json.getPath());
         json.delete();
-        asm.new ListImageTask(missingFilesNames, mSlideshowFilesNames).execute(mServerDirectoryURL);
+        asm.new listImageTask(missingFilesNames, mSlideshowFilesNames).execute(mServerDirectoryURL);
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {

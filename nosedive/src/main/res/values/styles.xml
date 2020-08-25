@@ -12,8 +12,6 @@
         <item name="metaButtonBarStyle">?android:attr/buttonBarStyle</item>
         <item name="metaButtonBarButtonStyle">?android:attr/buttonBarButtonStyle</item>
         <item name="colorPrimary">@color/OurWhite</item>
-        <item name="colorPrimaryDark">@color/OurGray</item>
-        <item name="colorAccent">@color/MyGray</item>
         <item name="buttonStyle">?android:attr/buttonStyle</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
