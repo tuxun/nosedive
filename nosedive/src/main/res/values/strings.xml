@@ -3,7 +3,7 @@
     <string name="string_press_me">TOUCHEZ MOI</string>
     <string name="string_wait4dl">Téléchargement en cours</string>
 
-    <string name="string_choose2word">pressez deux mots</string>
+    <string name="string_choose2word">Pressez deux mots</string>
     <string name="buttonLabel_smart">intelligente</string>
     <string name="buttonLabel_lovely">affectueuse</string>
     <string name="buttonLabel_fun">drôle</string>
@@ -22,10 +22,6 @@
     <string name="buttonLabel_strong">forte</string>
     <string name="portrait_de_julia">portrait de julia</string>
     <string name="dl_progressText">Téléchargement en cours</string>
-    <string name="exit_icontext">exit</string>
-    <string name="about_icontext">about</string>
-    <string name="fixjson_icontext">delete filelist.json</string>
-    <string name="create_icontext">add</string>
     <string name="activatewifiandrelauch">activez le wifi et relancez l\'appli</string>
 
 </resources>
