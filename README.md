@@ -1,5 +1,6 @@
 # nosedive
 ![Java CI with Gradle](https://github.com/tuxun/nosedive/workflows/Java%20CI%20with%20Gradle/badge.svg)
+![Android CI](https://github.com/tuxun/nosedive/workflows/Android%20CI/badge.svg)
 
 Little Android Slideshow application for an art show.
 
