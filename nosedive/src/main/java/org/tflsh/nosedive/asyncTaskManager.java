@@ -7,7 +7,6 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.text.TextUtils;
 import android.util.JsonReader;
 import android.util.Log;
 import android.widget.ImageView;
@@ -15,7 +14,6 @@ import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,7 +26,6 @@ import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -118,7 +115,7 @@ public class asyncTaskManager extends AppCompatActivity {
 
             sendMessage("dlStarted");
 
-            File file = new File(mContext.getExternalCacheDir() + "/" + destFileImageName);
+            File file = new File(mContext.getCacheDir() + "/" + destFileImageName);
             Bitmap mIcon11;
             try {
                 if (urlToGrab.contains("json")) {
@@ -234,7 +231,7 @@ public ListImageTask(ArrayList<String> missingFileArg, ArrayList<String> img) {
             String urlSourceString = urls[0] + "index.php";
             try {
                 //if the images list don't exists, download and save it
-                File localJsonFile = new File(mContext.getExternalCacheDir() + "/" + "filelist.json");
+                File localJsonFile = new File(mContext.getCacheDir() + "/" + "filelist.json");
 
 
                 if (!localJsonFile.exists()) {
@@ -269,6 +266,7 @@ public ListImageTask(ArrayList<String> missingFileArg, ArrayList<String> img) {
                 InputStream i2s = new FileInputStream(localJsonFile.getAbsolutePath());
 
                 JsonReader reader = new JsonReader(new InputStreamReader(i2s));
+                boolean sumToCheck = false;
 
                 //if the images list file is not empty, we can parse its json content
                 if (localJsonFile.length() > 0) {
@@ -283,15 +281,17 @@ public ListImageTask(ArrayList<String> missingFileArg, ArrayList<String> img) {
                                 case "name":
                                     String newIn = reader.nextString();
 
-                                    File file = new File(mContext.getExternalCacheDir() + "/" + newIn);
+                                    File file = new File(mContext.getCacheDir() + "/" + newIn);
                                     if (!file.exists()) {
                                         //filename found in json file was not found in the cache directory
-                                        Log.d("ListImageTask", "caching file " + newIn + " to " + mContext.getExternalCacheDir());
+                                        Log.d("ListImageTask", "caching file " + newIn + " to " + mContext.getCacheDir());
                                         this.name.add(newIn);
                                         executor.execute(new grabImageThread(newIn,urls[0]));
                                         this.missingImagesNames.add(newIn);
                                         missingFilesNumber++;
                                     } else {
+                                        sumToCheck = true;
+
                                         this.name.add(newIn);
                                     }
                                     break;
@@ -302,37 +302,39 @@ public ListImageTask(ArrayList<String> missingFileArg, ArrayList<String> img) {
                                     reader.nextInt();
 
                                     break;
+
                                 case "sum":
-                                    /*optional feature, TODO*/
-                                    //sum of file on the server, used to check file corruption
-                                  //  if(tocheck)
-                                    int read;
-                                       MessageDigest md=MessageDigest.getInstance("MD5");
-                                        InputStream is=new FileInputStream(mContext.getExternalCacheDir() + "/" +this.name.get(this.name.size()-1));
-                                        byte[] fb=new byte[8192];
-                                        while((read=is.read(fb))!=-1)
-                                        {
-                                            md.update(fb,0,read);
+                                    if (sumToCheck) {
+                                        int read;
+                                        MessageDigest md = MessageDigest.getInstance("MD5");
+                                        InputStream is = new FileInputStream(mContext.getCacheDir() + "/" + this.name.get(this.name.size() - 1));
+                                        byte[] fb = new byte[8192];
+                                        while ((read = is.read(fb)) != -1) {
+                                            md.update(fb, 0, read);
                                         }
-                                    byte[] sum=md.digest();
-                                    BigInteger bi=new BigInteger(1,sum);
+                                        byte[] sum = md.digest();
+                                        is.close();
+                                        BigInteger bi = new BigInteger(1, sum);
 
-                                                     String fssum=String.format("%32s",bi.toString(16));
-                                                     fssum=fssum.replace(' ', '0');
-                                                     String dbsum=reader.nextString();
+                                        String computedSum = String.format("%32s", bi.toString(16));
+                                        computedSum = computedSum.replace(' ', '0');
+                                        String originSum = reader.nextString();
 
 
-                                     if((dbsum.equals(fssum)))
-                                     {
-                                         Log.d("fs_sum","found one file ok");
+                                        if ((originSum.equals(computedSum))) {
+                                            Log.d("fs_sum", "found one file ok");
+                                        } else {
+                                            Log.d("fs_sum", "found one  broken file");
+
+                                            executor.execute(new grabImageThread(this.name.get(this.name.size() - 1), urls[0]));
+                                            this.missingImagesNames.add(this.name.get(this.name.size() - 1));
                                         }
-                                     else  {
-                                         Log.d("fs_sum","found one  broken file");
+                                        sumToCheck = false;
+                                    } else {
+                                        reader.nextString();
 
-                                         executor.execute(new grabImageThread(this.name.get(this.name.size()-1),urls[0]));
-                                         this.missingImagesNames.add(this.name.get(this.name.size()-1));
-                                     }
-                                                                  break;
+                                    }
+                                    break;
                                 default:
                                     reader.skipValue();
 
@@ -430,7 +432,7 @@ return this.name;
                 //
                 startTime = System.currentTimeMillis();
 
-                return decodeSampledBitmapFromFilepath(mContext.getExternalCacheDir() + "/" + urls[0],screenWidth,screenHeight);
+                return decodeSampledBitmapFromFilepath(mContext.getCacheDir() + "/" + urls[0], screenWidth, screenHeight);
 
 
             } catch (Exception e) {
@@ -451,7 +453,7 @@ return this.name;
             }
             bmImage.setImageBitmap(result);
 
-            sendMessageWithString("imgShown",mContext.getExternalCacheDir() + "/" + result);
+            sendMessageWithString("imgShown", mContext.getCacheDir() + "/" + result);
 
 
         }

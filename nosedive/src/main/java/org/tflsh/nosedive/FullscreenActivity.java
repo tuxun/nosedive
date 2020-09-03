@@ -6,8 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -16,6 +14,7 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -29,9 +28,6 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Random;
@@ -171,7 +167,17 @@ mSlideshowIsRunning=false;
         @Override
         public void run() {
             mSlideshowHandler.removeCallbacks(showNextRunnable);
-
+            mSlideshowHandler.removeCallbacks(showimgandrestartdiapoafter2words);
+            findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+            findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+            findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
+            mHideHandler.post(cleanButtonRunnable);
+            ((TextView) findViewById(R.id.ui_press_meTextView))
+                    .setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
+            ((TextView) findViewById(R.id.ui_press_meTextView)).setTextSize(
+                    TypedValue.COMPLEX_UNIT_SP, 64);
+            //findViewById(R.id.pressme_text).setVisibility(View.GONE);
+            ((TextView) findViewById(R.id.ui_press_meTextView)).setText(getResources().getString(R.string.string_press_me));
             if (!mSlideshowIsRunning) {
 
 //!? makeimageclickable();
@@ -180,7 +186,6 @@ mSlideshowIsRunning=false;
 
                 pwa = 0;
                 int i, j;
-                mHideHandler.postDelayed(hidemenuRunnable, UI_ANIMATION_DELAY);
 
                 for (i = 0; i < mSlideshowFilesNames.size() + 1; i++) {
                     mSlideshowHandler.postDelayed(showNextRunnable, i * delayInterFrameSetting);
@@ -271,12 +276,14 @@ int nextimg=new Random().nextInt(mSlideshowFilesNames.size());
         public void run() {
             Log.e("showMenuRunnable", "showmenuRunnable ?");
             imageView.setDrawingCacheBackgroundColor(Color.WHITE);
+            ((TextView) findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP, 38);
+            ((TextView) findViewById(R.id.ui_press_meTextView)).setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
 
             mSlideshowHandler.post(cleanButtonRunnable);
             mSlideshowHandler.removeCallbacks(showNextRunnable);
             mSlideshowHandler.removeCallbacks(cleanButtonRunnable);
             mSlideshowHandler.removeCallbacks(startdiapoRunnable);
-            mSlideshowIsRunning=false;
+            mSlideshowIsRunning = false;
             mSlideshowHandler.postDelayed(startdiapoRunnable, delayChoixMotsSetting);
             findViewById(R.id.ui_centralLinearLayout).setVisibility(View.GONE);
             findViewById(R.id.leftMenuLinearLayout).setVisibility(View.VISIBLE);
@@ -309,11 +316,9 @@ int nextimg=new Random().nextInt(mSlideshowFilesNames.size());
                 //  ((ToggleButton) view).setChecked(true);
                            mSlideshowIsRunning=false;
 
-                mSlideshowHandler.postDelayed(startdiapoRunnable, delayChoixMotsSetting);
+                // mSlideshowHandler.postDelayed(startdiapoRunnable, delayChoixMotsSetting);
             }
 
-            //findViewById(R.id.pressme_text).setVisibility(View.GONE);
-            ((TextView) findViewById(R.id.ui_press_meTextView)).setText(getResources().getString(R.string.string_press_me));
 
             findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
             findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
@@ -716,20 +721,26 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
 
             Button temptg = new Button(this);
             ViewGroup.LayoutParams layoutParams =
-                findViewById(R.id.fakeLinearLayout).getLayoutParams();
+                    findViewById(R.id.fakeLinearLayout).getLayoutParams();
             temptg.setBackground(this.getResources().getDrawable(R.drawable.ic_bouttonoff));
             temptg.setText(buttonName);
+            temptg.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
 
+
+            temptg.setTextSize(TypedValue.COMPLEX_UNIT_SP, 48);
             temptg.setAllCaps(true);
             temptg.setLayoutParams(layoutParams);
-            temptg.setPadding(10, 10, 10, 10);
+            temptg.setPadding(5, 3, 5, 3);
 
             ////////////////////////////////CRITICAL//////////////////////////////////////
             temptg.setOnTouchListener(new OnTouchListener() {
                 @Override
                 public boolean onTouch(View view, MotionEvent event) {
                     mSlideshowHandler.removeCallbacks(showimgandrestartdiapoafter2words);
+                    mSlideshowHandler.removeCallbacks(startdiapoRunnable);
                     mSlideshowHandler.removeCallbacks(showNextRunnable);
+                    mSlideshowHandler.postDelayed(startdiapoRunnable, delayChoixMotsSetting);
+                    mSlideshowIsRunning = false;
 
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         mCheckedToggleButtonsArrayList.add(((Button) view));
@@ -738,26 +749,31 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
                             Log.d("mCheckedToggle", "3 Button pressed");
                             view.setPressed(true);
 
-                            mSlideshowHandler.post(showimgandrestartdiapoafter2words);
+                            mSlideshowHandler.post(startdiapoRunnable);
                         }
                         Log.d("Pressed", "Button pressed");
                     } else if (event.getAction() == MotionEvent.ACTION_UP) {
                         Log.d("Pressed", "Button released");
                         if (mCheckedToggleButtonsArrayList.size() == 1) {
-
                             view.setPressed(true);
                             ((Button) view).setTextColor(Color.BLACK);
                             view.setEnabled(false);
+                            Log.d("toggleClick", "toggle 1 buttons ok");
+
+
                         } else if (mCheckedToggleButtonsArrayList.size() == 2) {
+
                             view.setPressed(true);
                             view.setEnabled(false);
                             mCheckedToggleButtonsArrayList.add(((Button) view));
                             ((Button) view).setTextColor(Color.BLACK);
 
-                            Log.d("toggleclick", "toggle 2 boutons ok");
+                            Log.d("toggleClick", "toggle 2 buttons ok");
+                            mSlideshowHandler.removeCallbacks(startdiapoRunnable);
 
                             mSlideshowHandler.post(showimgandrestartdiapoafter2words);
                         }
+                        view.performClick();
                     }
 
                     return false;
@@ -773,7 +789,6 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
         int j;
         //for the first 8 button, set in the left menu layout
         for (j = 0; j < _buttonNames.length / 2; j++) {
-            mToggleButtonsArrayList.get(j).setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
 
             lm.addView(mToggleButtonsArrayList.get(j));
         }
@@ -782,7 +797,6 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
         //for the first 8 buttons, set in the right menu layout
 
         for (; j < _buttonNames.length; j++) {
-            mToggleButtonsArrayList.get(j).setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
 
             rm.addView(mToggleButtonsArrayList.get(j));
         }
@@ -799,11 +813,7 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
 
         boolean isMetered = cm.isActiveNetworkMetered();
         if (isConnected) {
-            if (isMetered) {
-                Log.d("NetworkInfo", "limited network connection");
-            } else {
-                Log.d("NetworkInfo", "no speed limit");
-            }
+
             return true;
 
         } else {

@@ -83,7 +83,7 @@
                     android:layout_gravity="center_horizontal"
                     android:contentDescription="@string/portrait_de_julia"
                     android:scaleType="fitStart"
-                    android:src="@drawable/icon_app2" />
+                    android:src="@drawable/default_background" />
 
 
             </LinearLayout>
