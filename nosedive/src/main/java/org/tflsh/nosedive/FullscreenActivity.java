@@ -629,7 +629,7 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
 
         Log.d("ListimageResult", "missing file= " + missingFilesNames.size());
 
-
+/*
         imageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
@@ -638,7 +638,7 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
                 toggleFullscreen();
                 return true;
             }
-        });
+        });*/
         if ((missingFilesNames.size() == 0) && (mSlideshowFilesNames.size() > 0)) {
             mHideHandler.postDelayed(mfullscreenOnRunnable, UI_ANIMATION_DELAY - 10);
 
