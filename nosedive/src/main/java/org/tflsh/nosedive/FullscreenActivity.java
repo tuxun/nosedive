@@ -168,14 +168,16 @@ mSlideshowIsRunning=false;
         public void run() {
             mSlideshowHandler.removeCallbacks(showNextRunnable);
             mSlideshowHandler.removeCallbacks(showimgandrestartdiapoafter2words);
-            findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
-            findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
-            findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
+            makeImageClickable();
             mHideHandler.post(cleanButtonRunnable);
             ((TextView) findViewById(R.id.ui_press_meTextView))
                     .setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
             ((TextView) findViewById(R.id.ui_press_meTextView)).setTextSize(
                     TypedValue.COMPLEX_UNIT_SP, 64);
+                        ((TextView) findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurPink));
+            findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+            findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+            findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
             //findViewById(R.id.pressme_text).setVisibility(View.GONE);
             ((TextView) findViewById(R.id.ui_press_meTextView)).setText(getResources().getString(R.string.string_press_me));
             if (!mSlideshowIsRunning) {
@@ -274,6 +276,7 @@ int nextimg=new Random().nextInt(mSlideshowFilesNames.size());
     private final Runnable showMenuRunnable = new Runnable() {
         @Override
         public void run() {
+            makeImageNotClickable();
             Log.e("showMenuRunnable", "showmenuRunnable ?");
             imageView.setDrawingCacheBackgroundColor(Color.WHITE);
             ((TextView) findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP, 38);
@@ -674,6 +677,14 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
 
                 }
             });
+                findViewById(R.id.imageView).setClickable(true);
+
+    }
+    private void makeImageNotClickable()
+    {
+        Log.d("makeimageclickable","image is now clickable");
+        findViewById(R.id.imageView).setClickable(false);
+
     }
     //TOOLS FUNCTIONS/.......
     private void toggleFullscreen() {
@@ -747,7 +758,8 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
 
                         if (mCheckedToggleButtonsArrayList.size() > 2) {
                             Log.d("mCheckedToggle", "3 Button pressed");
-                            view.setPressed(true);
+                          //  view.setPressed(true);
+            mHideHandler.post(cleanButtonRunnable);
 
                             mSlideshowHandler.post(startdiapoRunnable);
                         }
@@ -767,6 +779,7 @@ mSlideshowHandler.removeCallbacks(showNextRunnable);
                             view.setEnabled(false);
                             mCheckedToggleButtonsArrayList.add(((Button) view));
                             ((Button) view).setTextColor(Color.BLACK);
+            mHideHandler.post(cleanButtonRunnable);
 
                             Log.d("toggleClick", "toggle 2 buttons ok");
                             mSlideshowHandler.removeCallbacks(startdiapoRunnable);
