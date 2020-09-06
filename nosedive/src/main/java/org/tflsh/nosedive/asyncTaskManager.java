@@ -36,7 +36,6 @@ public class asyncTaskManager extends AppCompatActivity {
      * Called when the user taps the Send button
      */
     final Context mContext;
-    ArrayList<String> missingFilesNames = new ArrayList<>();
     private int currentFile;
     static private int missingFilesNumber;
 
@@ -100,11 +99,9 @@ public class asyncTaskManager extends AppCompatActivity {
         final String destFileImageName;
         final String urlToGrab;
 
-
         //TODO check the mess with the files
 
         public grabImageThread(String destName, String baseDir) {
-            missingFilesNames = new ArrayList<>();
 
             this.destFileImageName = destName;
             //String mServerDirectoryURL = baseDir;
@@ -116,7 +113,6 @@ public class asyncTaskManager extends AppCompatActivity {
             sendMessage("dlStarted");
 
             File file = new File(mContext.getCacheDir() + "/" + destFileImageName);
-            Bitmap mIcon11;
             try {
                 if (urlToGrab.contains("json")) {
                     Log.e(TAG, "warn! we are trying to open the json file like an image :/");
@@ -127,7 +123,7 @@ public class asyncTaskManager extends AppCompatActivity {
 
 
 
-                    int read=0;
+                    int read;
  InputStream is =  new BufferedInputStream(new java.net.URL(urlToGrab).openStream());
                 FileOutputStream fos = new FileOutputStream(file);
 
@@ -136,26 +132,13 @@ public class asyncTaskManager extends AppCompatActivity {
                         while ((read = is.read(bitmapBytesData)) != -1) {
                             fos.write(bitmapBytesData, 0, read);
                         }
-
-
-
                 is.close();
-
-
-
-                   // fos.write(bitmapBytesData);
                 fos.flush();
                 fos.close();
-                   // mIcon11.recycle();
-
-
-
-
             } catch (UnknownHostException e) {
                 Log.e(TAG, "unable  " + destFileImageName);
                 //popup : pas internet
                 //e.printStackTrace();
-
                 // e.printStackTrace();
             } catch (IOException e) {
                 Log.e(TAG, "unable to create json file or image" + e.getMessage());
@@ -163,36 +146,28 @@ public class asyncTaskManager extends AppCompatActivity {
                 Log.e("Error", Objects.requireNonNull(e.getMessage()));
                 e.printStackTrace();
             }
-
-
             currentFile++;
-
             if (!file.exists()) {
                 Log.e("error", "FAILED ! written file " + file.getAbsolutePath());
                 return false;
             } else {
                 sendMessage("dlReceived");
-
                 Log.d(TAG, "ok synchronizing " + currentFile + " of " + missingFilesNumber + " " + file.getAbsolutePath());
                 if (currentFile == missingFilesNumber) {
-
                     Log.d(TAG, "last file, starting slideshow");
                     sendMessage("dlComplete");
                 }
                 return true;
-
-
             }
-
-
         }
 
         @Override
         public void run() {
-            Log.d(TAG, "run" );
             if(this.doInBackground()) {
+                Log.d(TAG, "succeed" );
 
             } else {
+                Log.d(TAG, "running" );
 
 
 
@@ -215,7 +190,6 @@ public class asyncTaskManager extends AppCompatActivity {
     public class ListImageTask extends AsyncTask<String, ArrayList<String>, ArrayList<String>> {
         private static final String TAG = "ListImageTask";
         final ArrayList<String> name;
-        ArrayList<String> sums;
         final ArrayList<String> missingImagesNames;
         final ExecutorService executor = Executors.newFixedThreadPool(1);
 
@@ -348,7 +322,14 @@ public ListImageTask(ArrayList<String> missingFileArg, ArrayList<String> img) {
                     return this.name;
 
                 } else {
-                    localJsonFile.delete();
+                    if(localJsonFile.delete())
+                    {
+                        Log.d(TAG, "local json file deleted because it was empty");
+
+                    }
+                    else {
+                        Log.e(TAG, "failed to delete empty local json");
+                    }
                     return null;
                 }
 

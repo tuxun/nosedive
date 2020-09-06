@@ -16,12 +16,12 @@
     <string name="buttonLabel_seductive">séduisante</string>
     <string name="buttonLabel_hungry">gourmande</string>
     <string name="buttonLabel_polite">polie</string>
-    <string name="buttonLabel_girly">féminine</string>
+    <string name="buttonLabel_feminine">féminine</string>
     <string name="buttonLabel_tenderly">tendre</string>
     <string name="buttonLabel_kind">gentille</string>
     <string name="buttonLabel_strong">forte</string>
     <string name="portrait_de_julia">portrait de julia</string>
     <string name="dl_progressText">Téléchargement en cours</string>
-    <string name="activatewifiandrelauch">activez le wifi et relancez l\'appli</string>
+    <string name="pleaseRestartWithInternet">activez le wifi et relancez l\'appli</string>
 
 </resources>

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".FullscreenActivity">
+    tools:context=".SlideshowActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -132,7 +132,9 @@
             android:layout_marginTop="30dp"
 
             android:layout_marginRight="20dp"
-            android:layout_marginBottom="30dp"></LinearLayout>
+            android:layout_marginBottom="30dp">
+
+        </LinearLayout>
         <TextView
             android:id="@+id/ui_press_meTextView"
             android:layout_width="match_parent"

@@ -35,8 +35,8 @@ import static org.junit.Assert.assertNotEquals;
 @RunWith(AndroidJUnit4.class)
 public class ExampleInstrumentedTest extends Instrumentation {
 
-
-    String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/" + "julia/";
+final String TAG= "ExampleInstrumentedTest";
+    final String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/" + "julia/";
     ArrayList<String> missingFilesNames;
     ArrayList<String> mSlideshowFilesNames;
     Context appContext;
@@ -57,7 +57,7 @@ public class ExampleInstrumentedTest extends Instrumentation {
 
 
         asyncTaskManager asm = new asyncTaskManager(appContext);
-        asm.new listImageTask(missingFilesNames, mSlideshowFilesNames).execute(mServerDirectoryURL);
+        asm.new ListImageTask(missingFilesNames, mSlideshowFilesNames).execute(mServerDirectoryURL);
         try {
             Thread.sleep(5 * 1000);
         } catch (InterruptedException e) {
@@ -97,10 +97,18 @@ public class ExampleInstrumentedTest extends Instrumentation {
         asyncTaskManager asm = new asyncTaskManager(appContext);
         //we should delete JSON
         File json = new File(appContext.getExternalCacheDir() + "/filelist.json");
-        Log.d("testing:", "NO JSON AND NO NET");
-        Log.e("testing:", "deleting " + json.getPath());
-        json.delete();
-        asm.new listImageTask(missingFilesNames, mSlideshowFilesNames).execute(mServerDirectoryURL);
+        Log.d(TAG, "NO JSON AND NO NET");
+        if(json.delete())
+        {
+            Log.d(TAG, "deleting " + json.getPath());
+
+        }
+        else
+        {
+            Log.e(TAG, "unable to delete " + json.getPath());
+
+        }
+        asm.new ListImageTask(missingFilesNames, mSlideshowFilesNames).execute(mServerDirectoryURL);
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {

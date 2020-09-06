@@ -3,24 +3,24 @@
 //see https://stackoverflow.com/questions/15870159/list-files-on-directory-and-print-result-as-json
 
 //main: return the json file if found, else create it
-$json_dbfile=fopen("filelist.json","r");
-    if(!$json_dbfile)
+$json_db_file=fopen("filelist.json","r");
+    if(!$json_db_file)
         {
-            create_jsonfile();
+            create_json_file();
         }
      else
         {
             header('Content-Type: application/json');
-	        echo fread($json_dbfile,filesize("filelist.json"));
-            fclose($json_dbfile);
+	        echo fread($json_db_file,filesize("filelist.json"));
+            fclose($json_db_file);
         }
 //end main
 
 
 
-function create_jsonfile()
+function create_json_file()
     {
-	    $json_dbfile=fopen("filelist.json","w");
+	    $json_db_file=fopen("filelist.json","w");
         //create json array
         $dir = "./"; //path
         $list = array(); //main array
@@ -47,10 +47,10 @@ function create_jsonfile()
                               }
                          }
 
-                fwrite($json_dbfile, json_encode($list));
+                fwrite($json_db_file, json_encode($list));
 	            header('Content-Type: application/json');
 	            echo json_encode($list);
             }
-fclose($json_dbfile);
+fclose($json_db_file);
 }
 ?>
