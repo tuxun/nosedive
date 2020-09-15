@@ -22,6 +22,6 @@
     <string name="buttonLabel_strong">forte</string>
     <string name="portrait_de_julia">portrait de julia</string>
     <string name="dl_progressText">Téléchargement en cours</string>
-    <string name="pleaseRestartWithInternet">activez le wifi et relancez l\'appli</string>
+<string name="pleaseRestartWithInternet">activez le wifi et relancez l\'appli</string>
 
 </resources>

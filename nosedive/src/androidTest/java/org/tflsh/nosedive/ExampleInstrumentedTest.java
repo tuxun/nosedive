@@ -56,7 +56,7 @@ final String TAG= "ExampleInstrumentedTest";
     public void testListImageTaskWithInternetWhileGRABBING() {
 
 
-        asyncTaskManager asm = new asyncTaskManager(appContext);
+        AsyncTaskManager asm = new AsyncTaskManager(appContext);
         asm.new ListImageTask(missingFilesNames, mSlideshowFilesNames).execute(mServerDirectoryURL);
         try {
             Thread.sleep(5 * 1000);
@@ -74,7 +74,7 @@ final String TAG= "ExampleInstrumentedTest";
     public void testListImageTaskWithInternet() {
 
 
-        asyncTaskManager asm = new asyncTaskManager(appContext);
+        AsyncTaskManager asm = new AsyncTaskManager(appContext);
         asm.new listImageTask(missingFilesNames, mSlideshowFilesNames).execute(mServerDirectoryURL);
         try {
             Thread.sleep(120 * 1000);
@@ -94,7 +94,7 @@ final String TAG= "ExampleInstrumentedTest";
     public void testListImageTaskWithoutInternetNorJSON() {
 
 
-        asyncTaskManager asm = new asyncTaskManager(appContext);
+        AsyncTaskManager asm = new AsyncTaskManager(appContext);
         //we should delete JSON
         File json = new File(appContext.getExternalCacheDir() + "/filelist.json");
         Log.d(TAG, "NO JSON AND NO NET");

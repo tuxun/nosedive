@@ -7,7 +7,7 @@ android {
     defaultConfig {
         applicationId "org.tflsh.nosedive"
         testApplicationId "org.tflsh.nosedivetest"
-        minSdkVersion 19
+        minSdkVersion 28
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -35,8 +35,9 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    testImplementation 'junit:junit:4.13'
+    //implementation 'com.jakewharton:disklrucache:2.0.2'
 
+    testImplementation 'junit:junit:4.13'
 
     androidTestImplementation 'androidx.test:runner:1.3.0'
     androidTestImplementation 'androidx.test:rules:1.3.0'
