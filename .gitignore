@@ -97,3 +97,5 @@ signing.properties
 target/
 pom.xml.*
 release.properties
+
+!.idea/

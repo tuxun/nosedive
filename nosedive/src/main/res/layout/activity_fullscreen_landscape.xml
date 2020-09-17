@@ -39,7 +39,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/fullscreen_content_controls"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
 
@@ -111,19 +110,6 @@ android:visibility="gone"
             android:layout_marginBottom="-00dp"
 
         >
-        <LinearLayout
-            android:id="@+id/fakeLinearLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:visibility="gone"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
-
-            android:layout_marginLeft="100dp"
-            android:layout_marginRight="100dp"
-            >
-        </LinearLayout>
         <TextView
             android:id="@+id/ui_press_meTextView"
             android:layout_width="match_parent"

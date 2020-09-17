@@ -12,7 +12,7 @@
         <item name="metaButtonBarStyle">?android:attr/buttonBarStyle</item>
         <item name="metaButtonBarButtonStyle">?android:attr/buttonBarButtonStyle</item>
         <item name="colorPrimary">@color/OurWhite</item>
-        <item name="buttonStyle">?android:attr/buttonStyle</item>
+        <item name="buttonStyle">?android:attr/borderlessButtonStyle</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowFullscreen">true</item>

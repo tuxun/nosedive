@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -19,22 +19,22 @@
             >
 
 
+            <ProgressBar
+                android:id="@+id/ui_dl_ProgressBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+
+
+
+                />
+
             <SeekBar
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="0dp"
                 android:thumb="@android:drawable/ic_dialog_info"
                 android:visibility="gone"
-                />
-
-            <ProgressBar
-                android:id="@+id/ui_dl_ProgressBar"
-                style="@android:style/Widget.ProgressBar.Horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-
-
-
                 />
 
             <TextView
@@ -47,7 +47,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/fullscreen_content_controls"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
 
@@ -59,9 +58,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_margin="5dp"
-                android:orientation="vertical"
                 android:layout_weight="1"
                 android:gravity="top"
+                android:orientation="vertical"
 
 
                 android:visibility="gone">
@@ -73,8 +72,8 @@
                 android:id="@+id/ui_centralLinearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:gravity="center"
-                    android:layout_gravity="center_horizontal"
+                android:layout_gravity="center_horizontal"
+                    android:gravity="center"
 
                 android:orientation="horizontal">
 
@@ -82,9 +81,9 @@
                     android:id="@+id/imageView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scaleType="fitStart"
-                    android:layout_gravity="center_horizontal"
+                    android:layout_gravity="top|center"
                     android:contentDescription="@string/portrait_de_julia"
+                    android:scaleType="fitStart"
                     android:src="@drawable/default_background" />
 
 
@@ -96,12 +95,12 @@
                 android:id="@+id/rightMenuLinearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="top"
-
                 android:layout_margin="5dp"
-                android:visibility="gone"
-                android:orientation="vertical">
+                android:layout_weight="1"
+
+                android:gravity="top"
+                android:orientation="vertical"
+                android:visibility="gone">
 
             </LinearLayout>
 
@@ -115,26 +114,13 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-            android:layout_gravity="bottom"
-        android:background="@color/OurPink"
+        android:layout_gravity="bottom"
             android:layout_marginBottom="-00dp"
+        android:background="@color/OurPink"
+            android:orientation="horizontal"
 
         >
 
-        <LinearLayout
-            android:id="@+id/fakeLinearLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:visibility="gone"
-            android:layout_marginLeft="20dp"
-            android:layout_marginTop="30dp"
-
-            android:layout_marginRight="20dp"
-            android:layout_marginBottom="30dp">
-
-        </LinearLayout>
         <TextView
             android:id="@+id/ui_press_meTextView"
             android:layout_width="match_parent"
@@ -146,4 +132,4 @@
 
     </LinearLayout>
 
-</merge>
+</androidx.appcompat.widget.LinearLayoutCompat>
