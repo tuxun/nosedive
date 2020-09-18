@@ -83,7 +83,6 @@ public class SlideshowActivity extends Activity {
   DisplayMetrics screenMetrics;
   private LinearLayout centralLinearLayout;
   private ProgressBar mDlProgressBar;
-  private TextView mDLProgressText;
   private final Runnable mSetFullscreenOnRunnable = new Runnable() {
     @Override
     public void run() {
@@ -100,7 +99,6 @@ public class SlideshowActivity extends Activity {
       }
       findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
       mDlProgressBar.setVisibility(View.GONE);
-      mDLProgressText.setVisibility(View.GONE);
       //exitfullscreen getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE|View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION|View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
       getWindow().getDecorView()
           .setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
@@ -122,12 +120,7 @@ public class SlideshowActivity extends Activity {
   private ImageView mImageView;
   private int pwa = 0;
   private TextView pressMeTextView;
-  private final Runnable mShowPressMeTextViewRunnable = new Runnable() {
-    @Override
-    public void run() {
-      pressMeTextView.setVisibility(View.VISIBLE);
-    }
-  };
+
   private int buttonVerticalPadding;
   private int buttonHorizontalPadding;
   private int buttonVerticalMargin;
@@ -137,9 +130,11 @@ public class SlideshowActivity extends Activity {
     @Override
     public void run() {
       Log.d(TAG, "mShowImageAfterTwoWordsRunnable");
-      pressMeTextView.setVisibility(View.GONE);
+      pressMeTextView.setTextColor(getColor(R.color.OurWhite));
       mSlideshowHandler.postDelayed(cleanButtonRunnable, UI_ANIMATION_DELAY);
       mSlideshowHandler.postDelayed(mHideMenuRunnable, DELAY_INTER_FRAME_SETTING);
+      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+      mSlideshowHandler.removeCallbacks(showNextRunnable);
 
       mImageView.setImageDrawable(
           ResourcesCompat.getDrawable(getResources(), R.drawable.whitebackground, null));
@@ -186,8 +181,8 @@ public class SlideshowActivity extends Activity {
       mImageView.setClickable(false);
 
       Log.d(TAG, "showMenuRunnable");
-      pressMeTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, pressTwoWordsTextSize);
-      pressMeTextView.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
+      //pressMeTextView.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
+     // pressMeTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, pressTwoWordsTextSize);
 
       // mSlideshowHandler.post(cleanButtonRunnable);
       mSlideshowHandler.removeCallbacks(showNextRunnable);
@@ -211,10 +206,8 @@ public class SlideshowActivity extends Activity {
       //antibounce
 
       mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
-      mHideHandler.post(mShowPressMeTextViewRunnable);
 
       int nextImageToShowIndex = new Random().nextInt(mSlideshowFilesNames.size());
-      if (mSlideshowIsRunning) {
         if (pwa < mSlideshowFilesNames.size()) {
           if ((pwa % 2) == 1) {
 
@@ -244,7 +237,7 @@ public class SlideshowActivity extends Activity {
           mSlideshowHandler.post(mStartSlideshowRunnable); //end handlepostdelay
         }
       }
-    }
+
 
     // Code here will run in UI thread
   };
@@ -256,33 +249,48 @@ public class SlideshowActivity extends Activity {
 
     @Override
     public void run() {
-      mSlideshowHandler.removeCallbacks(showNextRunnable);
-      mSlideshowHandler.removeCallbacks(mShowImageAfterTwoWordsRunnable);
-      makeImageClickable();
-      mHideHandler.post(cleanButtonRunnable);
-      pressMeTextView
-          .setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
-      pressMeTextView.setTextSize(
-          TypedValue.COMPLEX_UNIT_SP, pressMeTextSize);
-      pressMeTextView.setTextColor(getColor(R.color.OurPink));
-      //findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
-      //findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
-      pressMeTextView.setText(getResources().getString(R.string.string_press_me));
-      centralLinearLayout.setVisibility(View.VISIBLE);
+      mDlProgressBar.setVisibility(View.GONE);
 
-      if (!mSlideshowIsRunning) {
+      if ((missingFilesNames.isEmpty()) && (!mSlideshowFilesNames.isEmpty())) {
+        mSlideshowHandler.removeCallbacks(showNextRunnable);
+        //      mSlideshowHandler.removeCallbacks(mShowImageAfterTwoWordsRunnable);
 
-        mSlideshowIsRunning = true;
-        Log.d(TAG, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesNames.size());
+        makeImageClickable();
+        //hummm
+        mHideHandler.post(cleanButtonRunnable);
+        pressMeTextView
+            .setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
+        pressMeTextView.setTextSize(
+            TypedValue.COMPLEX_UNIT_SP, pressMeTextSize);
+        pressMeTextView.setTextColor(getColor(R.color.OurPink));
+        //findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+        //findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
 
-        pwa = 0;
-        long i;
-        for (i = 0; i < mSlideshowFilesNames.size() + 1; i++) {
-          mSlideshowHandler.postDelayed(showNextRunnable, i * DELAY_INTER_FRAME_SETTING);
+        ((TextView)findViewById(R.id.ui_press_meTextView)).setText(getResources().getString(R.string.string_press_me));
+        centralLinearLayout.setVisibility(View.VISIBLE);
+
+        if (!mSlideshowIsRunning) {
+
+          mSlideshowIsRunning = true;
+          Log.d(TAG, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesNames.size());
+
+          for (long i = 0; i < mSlideshowFilesNames.size() + 1; i++) {
+            mSlideshowHandler.postDelayed(showNextRunnable, i * DELAY_INTER_FRAME_SETTING);
+          }
+        } else {
+          Log.e(TAG, "mStartSlideshowRunnable tried to start twice" + mSlideshowFilesNames.size());
+          mSlideshowIsRunning = false;
+
         }
+
       } else {
-        Log.e(TAG, "mStartSlideshowRunnable tried to start twice" + mSlideshowFilesNames.size());
+        if (isInternetOk()) {
+          pressMeTextView.setText(R.string.string_wait4dl);
+        } else {
+          pressMeTextView.setText(R.string.pleaseRestartWithInternet);
+        }
       }
+
     }
   };
   public final BroadcastReceiver intentReceiver = new BroadcastReceiver() {
@@ -293,7 +301,6 @@ public class SlideshowActivity extends Activity {
         case "dlStarted":
           Log.d(TAG, "intentReceiver got action dl started");
           mDlProgressBar.incrementSecondaryProgressBy(1);
-          mDLProgressText.setVisibility(View.VISIBLE);
           mDlProgressBar.setVisibility(View.VISIBLE);
 
           missingFilesNumber++;
@@ -310,7 +317,6 @@ public class SlideshowActivity extends Activity {
 
           mSlideshowIsRunning = false;
           missingFilesNumber = 0;
-          mDLProgressText.setVisibility(View.GONE);
           mDlProgressBar.setVisibility(View.GONE);
 
           mSlideshowHandler.post(mStartSlideshowRunnable);
@@ -332,7 +338,6 @@ public class SlideshowActivity extends Activity {
           } else {
             Log.d(TAG, "intentReceiver did not set progress bar to" + max);
             makeImageClickable();
-            mSlideshowIsRunning = false;
             mSlideshowHandler.post(mStartSlideshowRunnable);
           }
           break;
@@ -370,7 +375,8 @@ public class SlideshowActivity extends Activity {
   @Override
   protected void onPause() {
     super.onPause();
-
+    mSlideshowHandler.removeCallbacks(showNextRunnable);
+    mSlideshowIsRunning=false;
     Log.d(TAG, "Activity.onPause()");
   }
 
@@ -413,23 +419,31 @@ public class SlideshowActivity extends Activity {
     buttonHorizontalMargin *= screenDensity;
     buttonTextSize *= screenDensity;
 
-    pressMeTextSize *= screenDensity;
+  //  pressMeTextSize *= screenDensity;
 
-    pressTwoWordsTextSize *= screenDensity / 160;
+//    pressTwoWordsTextSize = (int) (pressTwoWordsTextSize * screenDensity);
 
     Log.d("dpi", "metrics returned DPI " + (int) (screenDPI / 160) + " density " + screenDensity);
+    setContentView(R.layout.activity_fullscreen);
 
     screenOrientationNormal = false;
-    if (screenHeight > screenWidth) {
 
-      Log.d("dpi", "we loaded activity fullscreen layout");
-      setContentView(R.layout.activity_fullscreen);
+
+    //init GUI parts
+    pressMeTextView = findViewById(R.id.ui_press_meTextView);
+    centralLinearLayout = findViewById(R.id.ui_centralLinearLayout);
+    mImageView = findViewById(R.id.imageView);
+
+
+    mDlProgressBar = findViewById(R.id.ui_dl_ProgressBar);
+    if (screenHeight > screenWidth) {
+      mImageView.setScaleType(ImageView.ScaleType.FIT_START);
       screenOrientationNormal = true;
     } else {
-      Log.d("dpi", "we loaded activity fullscreen  landscape layout");
-      setContentView(R.layout.activity_fullscreen_landscape);
-    }
+      mImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
+    }
+    Log.d("dpi", "we loaded activity fullscreen layout");
     makeButtons();
 
     Log.d(TAG, "default screen width= " + screenWidth);
@@ -525,19 +539,17 @@ public class SlideshowActivity extends Activity {
   @Override
   public void onConfigurationChanged(@NotNull Configuration newConfig) {
     super.onConfigurationChanged(newConfig);
-    this.onResume();
+    Log.d(TAG, "onConfigurationChanged" + getIntent());
+    setScreenMetrics();
+    mSlideshowHandler.removeCallbacks(showNextRunnable);
+    mSlideshowIsRunning=false;
+    mSlideshowHandler.post(mStartSlideshowRunnable);
 
-    try {
-      Thread.sleep(500);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
 /*
     if ((missingFilesNames.isEmpty()) && (!mSlideshowFilesNames.isEmpty())) {
       mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY - 10);
     }
 */
-    Log.d(TAG, "onConfigurationChanged" + getIntent());
   }
 
   @Override
@@ -546,15 +558,9 @@ public class SlideshowActivity extends Activity {
     Log.d(TAG, "onResume" + getIntent());
 
     setScreenMetrics();
+    mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
+    mSlideshowIsRunning = false;
 
-    //init GUI parts
-    this.pressMeTextView = findViewById(R.id.ui_press_meTextView);
-    this.centralLinearLayout = findViewById(R.id.ui_centralLinearLayout);
-    this.mImageView = findViewById(R.id.imageView);
-    this.mImageView = findViewById(R.id.imageView);
-
-    mDlProgressBar = findViewById(R.id.ui_dl_ProgressBar);
-    mDLProgressText = findViewById(R.id.ui_dl_progressTextView);
 
     //REGLAGE DE LAPPLI
     //end runnables list
@@ -582,16 +588,8 @@ public class SlideshowActivity extends Activity {
       e.printStackTrace();
     }
 
-    if ((missingFilesNames.isEmpty()) && (!mSlideshowFilesNames.isEmpty())) {
-      mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
-    } else {
-      if (this.mHaveInternet) {
-        pressMeTextView.setText(R.string.string_wait4dl);
-      } else {
-        pressMeTextView.setText(R.string.pleaseRestartWithInternet);
-      }
-    }
-  }
+    mSlideshowHandler.postDelayed(mStartSlideshowRunnable, UI_ANIMATION_DELAY);
+   }
 
   private void makeImageClickable() {
     Log.d(TAG, "makeImageClickable(): image is now clickable");

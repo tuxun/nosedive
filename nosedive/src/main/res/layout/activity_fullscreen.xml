@@ -8,51 +8,25 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-
             >
-
-
             <ProgressBar
                 android:id="@+id/ui_dl_ProgressBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="@android:style/Widget.ProgressBar.Horizontal"
-
-
-
-                />
-
-            <SeekBar
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="0dp"
-                android:thumb="@android:drawable/ic_dialog_info"
-                android:visibility="gone"
-                />
-
-            <TextView
-                android:id="@+id/ui_dl_progressTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/dl_progressText" />
-
-
+                style="@android:style/Widget.ProgressBar.Horizontal" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-
-            android:baselineAligned="false"
+            android:layout_height="wrap_content"
             android:orientation="horizontal">
-
             <LinearLayout
                 android:id="@+id/leftMenuLinearLayout"
                 android:layout_width="match_parent"
@@ -61,30 +35,25 @@
                 android:layout_weight="1"
                 android:gravity="top"
                 android:orientation="vertical"
-
-
                 android:visibility="gone">
-
             </LinearLayout>
-
-
             <LinearLayout
                 android:id="@+id/ui_centralLinearLayout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                     android:gravity="center"
-
                 android:orientation="horizontal">
 
                 <ImageView
                     android:id="@+id/imageView"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="top|center"
-                    android:contentDescription="@string/portrait_de_julia"
-                    android:scaleType="fitStart"
-                    android:src="@drawable/default_background" />
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top"
+                    android:background="@color/OurWhite"
+
+                    android:src="@drawable/default_background"
+                    />
 
 
 
@@ -111,22 +80,22 @@
 
 
 
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
         android:layout_gravity="bottom"
-            android:layout_marginBottom="-00dp"
-        android:background="@color/OurPink"
-            android:orientation="horizontal"
+        android:background="@color/OurWhite"
+        android:layout_marginBottom="-00dp"
 
         >
-
         <TextView
             android:id="@+id/ui_press_meTextView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textSize="72sp"
+            android:layout_height="match_parent"
+            android:gravity="center|bottom"
+            android:textSize="30sp"
 
             />
 

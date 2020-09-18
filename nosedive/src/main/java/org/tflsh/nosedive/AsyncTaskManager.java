@@ -478,9 +478,17 @@ this.memoryCache=memoryCacheArg;
                     public void run() {
                         long timer = currentTimeMillis() - startTime;
                         long delay = maxDelay - timer;
-
-                        bmImage.get().setImageBitmap(result);
-
+if(delay>0)
+{
+    try {
+        Thread.sleep(delay);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+}
+if(bmImage!=null) {
+    bmImage.get().setImageBitmap(result);
+}
                         Log.d(CLASSNAME, " took " + timer + "ms , waited " + delay + "ms");
                     }
                 };
