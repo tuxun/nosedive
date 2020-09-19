@@ -4,34 +4,34 @@
         <shape android:shape="rectangle">
             <solid android:color="@color/OurPink" />
             <corners android:radius="12dp" />
-            <stroke android:width="2dp" android:color="@color/OurPink" />
+            <stroke android:width="4dp" android:color="@color/OurPink" />
         </shape>
     </item>
     <item android:state_enabled="false">
         <shape android:shape="rectangle">
-            <solid android:color="@android:color/tertiary_text_dark" />
+            <solid android:color="@android:color/secondary_text_dark" />
             <corners android:radius="12dp" />
-            <stroke android:width="2dp" android:color="@color/OurPink" />
+            <stroke android:width="4dp" android:color="@color/OurPink" />
         </shape>
     </item>
     <item android:state_active="true">
         <shape android:shape="rectangle">
-            <solid android:color="@android:color/tertiary_text_dark" />
+            <solid android:color="@android:color/secondary_text_dark" />
             <corners android:radius="12dp" />
-            <stroke android:width="2dp" android:color="@color/OurPink" />
+            <stroke android:width="4dp" android:color="@color/OurPink" />
         </shape>
     </item>
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
             <solid android:color="@color/OurWhite" />
             <corners android:radius="12dp" />
-            <stroke android:width="2dp" android:color="@color/OurPink" />
+            <stroke android:width="4dp" android:color="@color/OurPink" />
     </shape></item>
 <item>
 <shape android:shape="rectangle">
     <solid android:color="@color/OurWhite"/>
      <corners android:radius="12dp" />
-    <stroke android:width="2dp" android:color="@color/OurPink" />
+    <stroke android:width="4dp" android:color="@color/OurPink" />
  </shape>
 </item>
 </selector>

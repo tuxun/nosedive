@@ -74,12 +74,12 @@ public class SlideshowActivity extends Activity {
   boolean mHaveInternet = false;
   ArrayList<Button> mToggleButtonsArrayList = new ArrayList<>();
   //runnnable s'appelant lui meme a la fin du diapo qu'il lance
-  float screenHeight;
+  int screenHeight;
   ArrayList<String> missingFilesNames;
   IntentFilter filter;
   int missingFilesNumber = 0;
   AsyncTaskManager asm;
-  float screenWidth;
+  int screenWidth;
   DisplayMetrics screenMetrics;
   private LinearLayout centralLinearLayout;
   private ProgressBar mDlProgressBar;
@@ -142,7 +142,8 @@ public class SlideshowActivity extends Activity {
       mSlideshowHandler.post(asm.new ShowImageTask(mImageView, DELAY_INTER_FRAME_SETTING,
           getCacheDir() + "/" + mSlideshowFilesNames.get(
               new Random().nextInt(mSlideshowFilesNames.size()))));
-      SystemClock.sleep(50);
+      SystemClock.sleep(50);//entré?
+      mHideHandler.post(cleanButtonRunnable);
 
       mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_GUESSING_SETTING);
     }
@@ -182,7 +183,7 @@ public class SlideshowActivity extends Activity {
 
       Log.d(TAG, "showMenuRunnable");
       //pressMeTextView.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
-     // pressMeTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, pressTwoWordsTextSize);
+      // pressMeTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, pressTwoWordsTextSize);
 
       // mSlideshowHandler.post(cleanButtonRunnable);
       mSlideshowHandler.removeCallbacks(showNextRunnable);
@@ -194,7 +195,6 @@ public class SlideshowActivity extends Activity {
       findViewById(R.id.leftMenuLinearLayout).setVisibility(View.VISIBLE);
       findViewById(R.id.rightMenuLinearLayout).setVisibility(View.VISIBLE);
       pressMeTextView.setText(R.string.string_choose2word);
-      pressMeTextView.setTextColor(Color.BLACK);
     }
   };
   private LruCache<String, Bitmap> memoryCache;
@@ -208,35 +208,35 @@ public class SlideshowActivity extends Activity {
       mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
 
       int nextImageToShowIndex = new Random().nextInt(mSlideshowFilesNames.size());
-        if (pwa < mSlideshowFilesNames.size()) {
-          if ((pwa % 2) == 1) {
+      if (pwa < mSlideshowFilesNames.size()) {
+        if ((pwa % 2) == 1) {
 
-            executor.execute(
-                asm.new ShowImageTask(
-                    mImageView,
-                    DELAY_INTER_FRAME_SETTING,
-                    getCacheDir() + "/" + mSlideshowFilesNames.get(nextImageToShowIndex))
-            );
-            pressMeTextView.setTextColor(getColor(R.color.OurPink));
-          } else {
-
-            executor.execute(
-                asm.new ShowImageTask(
-                    mImageView,
-                    DELAY_INTER_FRAME_SETTING,
-                    getCacheDir() + "/" + mSlideshowFilesNames.get(nextImageToShowIndex))
-            );
-            pressMeTextView.setTextColor(getColor(R.color.OurWhite));
-          }
-
-          pwa++;
+          executor.execute(
+              asm.new ShowImageTask(
+                  mImageView,
+                  DELAY_INTER_FRAME_SETTING,
+                  getCacheDir() + "/" + mSlideshowFilesNames.get(nextImageToShowIndex))
+          );
+          ((TextView)findViewById(R.id.ui_press_meTextView)).setTextColor(getColor(R.color.OurPink));
         } else {
-          Log.d(TAG, "mShowNextRunnable: no more images, restarting slideshow");
-          pwa = 0;
-          mSlideshowIsRunning = false;
-          mSlideshowHandler.post(mStartSlideshowRunnable); //end handlepostdelay
+
+          executor.execute(
+              asm.new ShowImageTask(
+                  mImageView,
+                  DELAY_INTER_FRAME_SETTING,
+                  getCacheDir() + "/" + mSlideshowFilesNames.get(nextImageToShowIndex))
+          );
+          pressMeTextView.setTextColor(getColor(R.color.OurPink));
         }
+
+        pwa++;
+      } else {
+        Log.d(TAG, "mShowNextRunnable: no more images, restarting slideshow");
+        pwa = 0;
+        mSlideshowIsRunning = false;
+        mSlideshowHandler.post(mStartSlideshowRunnable); //end handlepostdelay
       }
+    }
 
 
     // Code here will run in UI thread
@@ -250,6 +250,12 @@ public class SlideshowActivity extends Activity {
     @Override
     public void run() {
       mDlProgressBar.setVisibility(View.GONE);
+      Log.d(TAG, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesNames.size());
+      centralLinearLayout.setVisibility(View.VISIBLE);
+      ((TextView)findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP, buttonTextSize);
+
+      ((TextView)findViewById(R.id.ui_press_meTextView)).setText(getResources().getString(R.string.string_press_me));
+      (findViewById(R.id.ui_press_meTextView)).setVisibility(View.VISIBLE);
 
       if ((missingFilesNames.isEmpty()) && (!mSlideshowFilesNames.isEmpty())) {
         mSlideshowHandler.removeCallbacks(showNextRunnable);
@@ -258,21 +264,16 @@ public class SlideshowActivity extends Activity {
         makeImageClickable();
         //hummm
         mHideHandler.post(cleanButtonRunnable);
-        pressMeTextView
-            .setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
-        pressMeTextView.setTextSize(
-            TypedValue.COMPLEX_UNIT_SP, pressMeTextSize);
+        pressMeTextView.setTextColor(getColor(R.color.OurPink));
         pressMeTextView.setTextColor(getColor(R.color.OurPink));
         //findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
         //findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
 
-        ((TextView)findViewById(R.id.ui_press_meTextView)).setText(getResources().getString(R.string.string_press_me));
         centralLinearLayout.setVisibility(View.VISIBLE);
 
         if (!mSlideshowIsRunning) {
 
           mSlideshowIsRunning = true;
-          Log.d(TAG, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesNames.size());
 
           for (long i = 0; i < mSlideshowFilesNames.size() + 1; i++) {
             mSlideshowHandler.postDelayed(showNextRunnable, i * DELAY_INTER_FRAME_SETTING);
@@ -284,6 +285,8 @@ public class SlideshowActivity extends Activity {
         }
 
       } else {
+        Log.e(TAG, "isInternetOk" + missingFilesNames.size());
+
         if (isInternetOk()) {
           pressMeTextView.setText(R.string.string_wait4dl);
         } else {
@@ -308,6 +311,7 @@ public class SlideshowActivity extends Activity {
           break;
         case "dlReceived":
           Log.d(TAG, "intentReceiver got action dl received");
+          mDlProgressBar.setVisibility(View.VISIBLE);
           mDlProgressBar.incrementProgressBy(1);
           pressMeTextView.setText(R.string.string_wait4dl);
           break;
@@ -318,7 +322,7 @@ public class SlideshowActivity extends Activity {
           mSlideshowIsRunning = false;
           missingFilesNumber = 0;
           mDlProgressBar.setVisibility(View.GONE);
-
+missingFilesNames.clear();
           mSlideshowHandler.post(mStartSlideshowRunnable);
           break;
 
@@ -338,7 +342,7 @@ public class SlideshowActivity extends Activity {
           } else {
             Log.d(TAG, "intentReceiver did not set progress bar to" + max);
             makeImageClickable();
-            mSlideshowHandler.post(mStartSlideshowRunnable);
+            //mSlideshowHandler.post(mStartSlideshowRunnable);
           }
           break;
         case "imgShown":
@@ -366,7 +370,7 @@ public class SlideshowActivity extends Activity {
     mSlideshowHandler.removeCallbacks(showNextRunnable);
     mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
     Log.d(TAG, "Activity.onStop()");
-    unregisterReceiver(intentReceiver);
+  //  unregisterReceiver(intentReceiver);
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -398,30 +402,30 @@ public class SlideshowActivity extends Activity {
     float screenDPI = screenMetrics.densityDpi;
     float screenDensity = screenMetrics.scaledDensity;
 
-    screenWidth = screenMetrics.widthPixels * screenDensity / 2;
-    screenHeight = screenMetrics.heightPixels * screenDensity / 2;
+    screenWidth = screenMetrics.widthPixels ;
+    screenHeight = screenMetrics.heightPixels;
     //en dp
     pressMeTextSize = 48;
     pressTwoWordsTextSize = 32;
     buttonTextSize = 20;
-
-    buttonVerticalPadding = 3;
-    buttonHorizontalPadding = 5;
+    //marge intérieure: entre le texte et la bordure du cadre (inversé si tablette en paysage)
+    buttonVerticalPadding = 5;
+    buttonHorizontalPadding = 10;
 
     buttonVerticalMargin = 20;
     buttonHorizontalMargin = 30;
 
     //in pixel
-    buttonVerticalPadding *= screenDensity / 160;
-    buttonHorizontalPadding *= screenDensity / 160;
+    //ahah! buttonVerticalPadding *= screenDensity / 160;
+    //je crois que cesqt ca buttonHorizontalPadding *= screenDensity / 160;
 
     buttonVerticalMargin *= screenDensity;
     buttonHorizontalMargin *= screenDensity;
     buttonTextSize *= screenDensity;
 
-  //  pressMeTextSize *= screenDensity;
+      //pressMeTextSize *= screenDensity;
 
-//    pressTwoWordsTextSize = (int) (pressTwoWordsTextSize * screenDensity);
+    //    pressTwoWordsTextSize = (int) (pressTwoWordsTextSize * screenDensity);
 
     Log.d("dpi", "metrics returned DPI " + (int) (screenDPI / 160) + " density " + screenDensity);
     setContentView(R.layout.activity_fullscreen);
@@ -436,13 +440,14 @@ public class SlideshowActivity extends Activity {
 
 
     mDlProgressBar = findViewById(R.id.ui_dl_ProgressBar);
+    /*
     if (screenHeight > screenWidth) {
       mImageView.setScaleType(ImageView.ScaleType.FIT_START);
       screenOrientationNormal = true;
     } else {
       mImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
-    }
+    }*/
     Log.d("dpi", "we loaded activity fullscreen layout");
     makeButtons();
 
@@ -487,7 +492,30 @@ public class SlideshowActivity extends Activity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    if (savedInstanceState == null) {
+  }
+
+  @Override
+  public void onConfigurationChanged(@NotNull Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    Log.d(TAG, "onConfigurationChanged" + getIntent());
+   onResume();
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    Log.d(TAG, "onResume" + getIntent());
+
+    setScreenMetrics();
+
+    filter = new IntentFilter("dlReceived");
+    filter.addAction("dlStarted");
+    filter.addAction("dlComplete");
+    filter.addAction("filesFound");
+    filter.addAction("filesMissing");
+    filter.addAction("noJson");
+    filter.addAction("imgShown");
+    registerReceiver(intentReceiver, filter);
       final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024);
       // Use 1/8th of the available memory for this memory cache.
       Log.d(TAG, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
@@ -500,21 +528,10 @@ public class SlideshowActivity extends Activity {
           return bitmap.getByteCount() / 1024;
         }
       };        //end try lru
-    } else {
-      Log.d(TAG, "we are RESTARTING");
-    }
 
-    filter = new IntentFilter("dlReceived");
-    filter.addAction("dlStarted");
-    filter.addAction("dlComplete");
-    filter.addAction("filesFound");
-    filter.addAction("filesMissing");
-    filter.addAction("noJson");
-    filter.addAction("imgShown");
     executor = Executors.newFixedThreadPool(1);
 
-    registerReceiver(intentReceiver, filter);
-    setScreenMetrics();
+
 
     asm = new AsyncTaskManager(getApplicationContext(), screenWidth, screenHeight, memoryCache,
         executor);
@@ -534,30 +551,6 @@ public class SlideshowActivity extends Activity {
     // startActivity(new Intent(this, AsyncTaskManager.ListImageTask.class).pu);
     org.tflsh.nosedive.AsyncTaskManager.ListImageTask.exec(missingFilesNames, mSlideshowFilesNames,
         M_SERVER_DIRECTORY_URL);
-  }
-
-  @Override
-  public void onConfigurationChanged(@NotNull Configuration newConfig) {
-    super.onConfigurationChanged(newConfig);
-    Log.d(TAG, "onConfigurationChanged" + getIntent());
-    setScreenMetrics();
-    mSlideshowHandler.removeCallbacks(showNextRunnable);
-    mSlideshowIsRunning=false;
-    mSlideshowHandler.post(mStartSlideshowRunnable);
-
-/*
-    if ((missingFilesNames.isEmpty()) && (!mSlideshowFilesNames.isEmpty())) {
-      mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY - 10);
-    }
-*/
-  }
-
-  @Override
-  protected void onResume() {
-    super.onResume();
-    Log.d(TAG, "onResume" + getIntent());
-
-    setScreenMetrics();
     mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
     mSlideshowIsRunning = false;
 
@@ -589,7 +582,7 @@ public class SlideshowActivity extends Activity {
     }
 
     mSlideshowHandler.postDelayed(mStartSlideshowRunnable, UI_ANIMATION_DELAY);
-   }
+  }
 
   private void makeImageClickable() {
     Log.d(TAG, "makeImageClickable(): image is now clickable");
@@ -674,7 +667,7 @@ public class SlideshowActivity extends Activity {
 
           if (event.getAction() == MotionEvent.ACTION_DOWN) {
             mCheckedToggleButtonsArrayList.add(((Button) view));
-
+            //ne doit arriver que si vous avez des gros doigts ;)
             if (mCheckedToggleButtonsArrayList.size() > 2) {
               Log.d("mCheckedToggle", "3 Button pressed");
               mHideHandler.post(cleanButtonRunnable);
@@ -692,12 +685,11 @@ public class SlideshowActivity extends Activity {
               view.performClick();
             } else if (mCheckedToggleButtonsArrayList.size() == 2) {
               view.performClick();
-
+              //deux boutons sont préssés
               view.setPressed(true);
               view.setEnabled(false);
               mCheckedToggleButtonsArrayList.add(((Button) view));
               ((Button) view).setTextColor(Color.BLACK);
-              mHideHandler.post(cleanButtonRunnable);
 
               Log.d("toggleClick", "toggle 2 buttons ok");
               mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);

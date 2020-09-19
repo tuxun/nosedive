@@ -36,7 +36,7 @@ import static java.lang.System.*;
 
 public class AsyncTaskManager extends Activity {
     static final String CLASSNAME = "AsyncTaskManager";
-        private final LruCache<String, Bitmap> memoryCache;
+    private final LruCache<String, Bitmap> memoryCache;
 
     public static final String NO_JSON = "noJson";
     static final String EXTRA_MESSAGE = "EXTRA_MESSAGE";
@@ -46,8 +46,8 @@ public class AsyncTaskManager extends Activity {
      * Called when the user taps the Send button
      */
     static Context mContext;
-    final float screenWidth;
-    final float screenHeight;
+    final int screenWidth;
+    final int screenHeight;
     private static File mCacheDir;
     private static int currentFile;
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,10 +56,10 @@ public class AsyncTaskManager extends Activity {
     private static int missingFilesNumber;
 
     //constructor: save the context for later uses
-    public AsyncTaskManager(Context ctx, float width, float height,LruCache<String, Bitmap> memoryCacheArg,ExecutorService executorArg) {
+    public AsyncTaskManager(Context ctx, int width, int height,LruCache<String, Bitmap> memoryCacheArg,ExecutorService executorArg) {
         executor=executorArg;
         Log.d("asyncTaskManager", "starting helper with context");
-this.memoryCache=memoryCacheArg;
+        this.memoryCache=memoryCacheArg;
         mContext = ctx;
         mCacheDir = ctx.getCacheDir();
         //tuxun: try lru cache for large bitmap
@@ -96,22 +96,39 @@ this.memoryCache=memoryCacheArg;
 
     // https://developer.android.com/topic/performance/graphics/load-bitmap
     public Bitmap decodeSampledBitmapFromFilepath(String res,
-        float reqWidth, float reqHeight) {
+        int reqWidth, int reqHeight) {
 
         // First decode with inJustDecodeBounds=true to check dimensions
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-         BitmapFactory.decodeFile(res, options);
+        BitmapFactory.decodeFile(res, options);
         options.inJustDecodeBounds = false;
-        float scale = Math.max(reqHeight, reqWidth);
-        //portrait: scale on height
-
-        return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res, options),
-            (int)scale,
-            (int)scale ,
-            true);
+        // Calculate inSampleSize
+        options.inSampleSize = calculateInSampleSize(options, reqWidth,
+            reqHeight);
+        //finde deformation de visage je regarde
+//        return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res, options),reqWidth,options.outHeight/2,true);
+        return BitmapFactory.decodeFile(res, options);
     }
-
+    static int calculateInSampleSize(BitmapFactory.Options options,
+        int reqWidth, int reqHeight) {
+        int inSampleSize = 1; // Default subsampling size
+        // See if image raw height and width is bigger than that of required
+        // view
+        if (options.outHeight > reqHeight || options.outWidth > reqWidth) {
+            // bigger
+            final int halfHeight = options.outHeight / 2;
+            final int halfWidth = options.outWidth / 2;
+            // Calculate the largest inSampleSize value that is a power of 2 and
+            // keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) > reqHeight
+                && (halfWidth / inSampleSize) > reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+        return inSampleSize;
+    }
     //return the bitmap from cache or from file. idea from https://developer.android.com/topic/performance/graphics/cache-bitmap
     public Bitmap getOrAddBitmapToMemoryCache(String filePath) {
         synchronized (memoryCache) {
@@ -195,6 +212,7 @@ this.memoryCache=memoryCacheArg;
 
         protected static boolean checkSum(String path, String originSum) {
             int read;
+
             try (InputStream is = new FileInputStream(path)
 
             ) {
@@ -235,7 +253,7 @@ this.memoryCache=memoryCacheArg;
 
                 while (reader.hasNext()) {
                     reader.beginObject();
-                    reader.nextName();
+                    Log.e(CLASSNAME, "reader:"+reader.nextName());
 
                     String newIn = reader.nextString();
                     name.add(newIn);
@@ -243,24 +261,28 @@ this.memoryCache=memoryCacheArg;
                     File file = new File(mCacheDir, newIn);
                     if (file.exists()) {
                         reader.nextName();
+                        reader.nextString();
+                        reader.nextName();
 
-                        reader.skipValue();
-                        reader.skipValue();
                         String sum = reader.nextString();
 
                         if (!checkSum(mCacheDir + "/" + name.get(name.size() - 1), sum)) {
+                            Log.e(CLASSNAME, "on dl le file, il etait corrompu");
+
                             getFile(downloadSrcUrl, mCacheDir.getAbsolutePath(),
                                 name.get(name.size() - 1));
                             missingImagesNames.add(name.get(name.size() - 1));
-                            missingFilesNumber++;
                         }
                     } else {
+                        Log.e(CLASSNAME, "on dl le file");
+                        missingImagesNames.add(name.get(name.size() - 1));
                         getFile(downloadSrcUrl, mCacheDir.getAbsolutePath(),
                             name.get(name.size() - 1));
-                        missingImagesNames.add(name.get(name.size() - 1));
-                        reader.skipValue();
-                        reader.skipValue();
-                        reader.skipValue();
+                        reader.nextName();
+                        reader.nextString();
+                        reader.nextName();
+                        reader.nextString();
+
                     }
 
                     reader.endObject();
@@ -281,7 +303,15 @@ this.memoryCache=memoryCacheArg;
                 Log.e(CLASSNAME, Objects.requireNonNull(e.getMessage()));
                 e.printStackTrace();
             } finally {
-
+                Log.d(CLASSNAME, "ok synchronizing "
+                    + currentFile
+                    + " of "
+                    +  missingImagesNames.size()
+                  );
+                if (currentFile == missingImagesNames.size()&&currentFile!=0         ) {
+                    Log.d(CLASSNAME, "last file, starting slideshow");
+                    sendMessage("dlComplete");
+                }
                 Log.d(CLASSNAME,
                     "Finished all threads (WARING: not really, we just removed the test)");
             }
@@ -293,7 +323,7 @@ this.memoryCache=memoryCacheArg;
          */
         protected static File getFile(String urlSourceString, String pathDest, String nameDest) {
             File localFile = new File(pathDest, nameDest);
-            Log.e("parseJson", "URL SRC=" + urlSourceString);
+
 
             Log.d(CLASSNAME, "creating ..."
                 + localFile.getAbsolutePath()
@@ -321,18 +351,15 @@ this.memoryCache=memoryCacheArg;
                 }
                 if (!localFile.getName().contains("json")) {
                     sendMessage("dlReceived");
-                    if (currentFile == missingFilesNumber) {
-                        Log.d(CLASSNAME, "last file, starting slideshow");
-                        sendMessage("dlComplete");
-                    }
+
                 }
                 Log.d(CLASSNAME, "ok synchronizing "
                     + currentFile
                     + " of "
-                    + missingFilesNumber
+                    +  missingImagesNames.size()
                     + " "
                     + localFile.getAbsolutePath());
-
+currentFile++;
                 return localFile;
             } catch (
                 FileNotFoundException e) {
@@ -391,11 +418,11 @@ this.memoryCache=memoryCacheArg;
 
 
 
-            /**
+        /**
          * @param objects
          * oldeprecated
          */
-         protected static final Runnable mRunnable;
+        protected static final Runnable mRunnable;
 
         public static final String FILELIST_JSON = "filelist.json";
 
@@ -442,18 +469,18 @@ this.memoryCache=memoryCacheArg;
             };
         }}
 
-            @Override protected void onStop(){
-            super.onStop();
+    @Override protected void onStop(){
+        super.onStop();
+        executor.shutdown();
+        while (!executor.isTerminated()) {
             executor.shutdown();
-            while (!executor.isTerminated()) {
-                executor.shutdown();
 
-                SystemClock.sleep(30);
-                Log.d(CLASSNAME, "have a struggling task");
-            }
+            SystemClock.sleep(30);
+            Log.d(CLASSNAME, "have a struggling task");
         }
+    }
 
-            public class ShowImageTask implements Runnable {
+    public class ShowImageTask implements Runnable {
         static final String CLASSNAME = "showImageFileTask";
         final WeakReference<ImageView> bmImage;
         final int maxDelay;
@@ -478,22 +505,22 @@ this.memoryCache=memoryCacheArg;
                     public void run() {
                         long timer = currentTimeMillis() - startTime;
                         long delay = maxDelay - timer;
-if(delay>0)
-{
-    try {
-        Thread.sleep(delay);
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-}
-if(bmImage!=null) {
-    bmImage.get().setImageBitmap(result);
-}
+                        if(delay>0)
+                        {
+                            try {
+                                Thread.sleep(delay);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        if(bmImage!=null) {
+                            bmImage.get().setImageBitmap(result);
+                        }
                         Log.d(CLASSNAME, " took " + timer + "ms , waited " + delay + "ms");
                     }
                 };
-runOnUiThread(r);
-return true;
+                runOnUiThread(r);
+                return true;
             } catch (Exception e) {
                 Log.e(CLASSNAME, "Exception in showImageFileTask.getOrAddBitmapToMemoryCache()");
                 e.printStackTrace();
