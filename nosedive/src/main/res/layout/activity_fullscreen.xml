@@ -31,7 +31,7 @@
             <LinearLayout
                 android:id="@+id/leftMenuLinearLayout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_margin="5dp"
                 android:layout_weight="1"
                 android:gravity="top"
@@ -42,17 +42,16 @@
                 android:id="@+id/ui_centralLinearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:background="@color/OurPink"
+                android:orientation="vertical"
                 >
 
                 <ImageView
                     android:id="@+id/imageView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@color/OurPink"
 
                 android:scaleType="fitStart"
-                    android:src="@drawable/default_background"
                     />
 
 
@@ -63,7 +62,7 @@
             <LinearLayout
                 android:id="@+id/rightMenuLinearLayout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_margin="5dp"
                 android:layout_weight="1"
 
@@ -76,29 +75,28 @@
         </LinearLayout>
 
 
+
+
     </LinearLayout>
-
-
 
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="horizontal"
-        android:layout_weight="50"
 
-        android:layout_marginBottom="-50dp"
+    >
+    <TextView
+        android:id="@+id/ui_press_meTextView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:text="@string/string_press_me"
+        android:textSize="48sp"
+        android:fontFamily="@font/alef"
+        />
 
-        >
-        <TextView
-            android:id="@+id/ui_press_meTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/string_press_me"
-            android:textSize="48sp"
-            />
-
-    </LinearLayout>
+</LinearLayout>
 
 </androidx.appcompat.widget.LinearLayoutCompat>

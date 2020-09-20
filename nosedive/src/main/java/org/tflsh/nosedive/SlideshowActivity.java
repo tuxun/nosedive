@@ -182,8 +182,9 @@ public class SlideshowActivity extends Activity {
       mImageView.setClickable(false);
 
       Log.d(TAG, "showMenuRunnable");
-      //pressMeTextView.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
-      // pressMeTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, pressTwoWordsTextSize);
+      pressMeTextView.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
+      pressMeTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, pressTwoWordsTextSize);
+      pressMeTextView.setTextColor(Color.BLACK);
 
       // mSlideshowHandler.post(cleanButtonRunnable);
       mSlideshowHandler.removeCallbacks(showNextRunnable);
@@ -226,7 +227,7 @@ public class SlideshowActivity extends Activity {
                   DELAY_INTER_FRAME_SETTING,
                   getCacheDir() + "/" + mSlideshowFilesNames.get(nextImageToShowIndex))
           );
-          pressMeTextView.setTextColor(getColor(R.color.OurPink));
+          pressMeTextView.setTextColor(getColor(R.color.OurWhite));
         }
 
         pwa++;
@@ -252,7 +253,7 @@ public class SlideshowActivity extends Activity {
       mDlProgressBar.setVisibility(View.GONE);
       Log.d(TAG, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesNames.size());
       centralLinearLayout.setVisibility(View.VISIBLE);
-      ((TextView)findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP, buttonTextSize);
+      ((TextView)findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP, pressMeTextSize);
 
       ((TextView)findViewById(R.id.ui_press_meTextView)).setText(getResources().getString(R.string.string_press_me));
       (findViewById(R.id.ui_press_meTextView)).setVisibility(View.VISIBLE);
@@ -342,7 +343,21 @@ missingFilesNames.clear();
           } else {
             Log.d(TAG, "intentReceiver did not set progress bar to" + max);
             makeImageClickable();
-            //mSlideshowHandler.post(mStartSlideshowRunnable);
+            mSlideshowHandler.post(mStartSlideshowRunnable);
+          }
+          break;
+          //TODO:
+        case "filesMissing":
+          Log.d(TAG, "intentReceiver got action files missing");
+          int max = intent.getIntExtra(EXTRA_MESSAGE, 0);
+          if (max > 0) {
+            mDlProgressBar.setMax(max);
+            Log.d(TAG, "intentReceiver set progress bar " + max);
+            mDlProgressBar.setVisibility(View.VISIBLE);
+          } else {
+            Log.d(TAG, "intentReceiver did not set progress bar to" + max);
+            makeImageClickable();
+           // mSlideshowHandler.post(mStartSlideshowRunnable);
           }
           break;
         case "imgShown":
@@ -409,23 +424,23 @@ missingFilesNames.clear();
     pressTwoWordsTextSize = 32;
     buttonTextSize = 20;
     //marge intérieure: entre le texte et la bordure du cadre (inversé si tablette en paysage)
-    buttonVerticalPadding = 5;
-    buttonHorizontalPadding = 10;
+    buttonVerticalPadding = 20;
+    buttonHorizontalPadding = 20;
 
-    buttonVerticalMargin = 20;
+    buttonVerticalMargin = 30;
     buttonHorizontalMargin = 30;
 
     //in pixel
     //ahah! buttonVerticalPadding *= screenDensity / 160;
-    //je crois que cesqt ca buttonHorizontalPadding *= screenDensity / 160;
+//buttonHorizontalPadding *= screenDensity / 160;
 
     buttonVerticalMargin *= screenDensity;
     buttonHorizontalMargin *= screenDensity;
     buttonTextSize *= screenDensity;
 
-      //pressMeTextSize *= screenDensity;
+      pressMeTextSize *= screenDensity;
 
-    //    pressTwoWordsTextSize = (int) (pressTwoWordsTextSize * screenDensity);
+    pressTwoWordsTextSize *= screenDensity;
 
     Log.d("dpi", "metrics returned DPI " + (int) (screenDPI / 160) + " density " + screenDensity);
     setContentView(R.layout.activity_fullscreen);
@@ -440,14 +455,14 @@ missingFilesNames.clear();
 
 
     mDlProgressBar = findViewById(R.id.ui_dl_ProgressBar);
-    /*
+
     if (screenHeight > screenWidth) {
       mImageView.setScaleType(ImageView.ScaleType.FIT_START);
       screenOrientationNormal = true;
     } else {
       mImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
-    }*/
+    }
     Log.d("dpi", "we loaded activity fullscreen layout");
     makeButtons();
 
@@ -489,9 +504,36 @@ missingFilesNames.clear();
     }
   }
 
+
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    setScreenMetrics();
+    final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024);
+    // Use maximum available memory for this memory cache.
+    Log.d(TAG, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
 
+    filter = new IntentFilter("dlReceived");
+    filter.addAction("dlStarted");
+    filter.addAction("dlComplete");
+    filter.addAction("filesFound");
+    filter.addAction("filesMissing");
+    filter.addAction("noJson");
+    filter.addAction("imgShown");
+    memoryCache = new LruCache<String, Bitmap>(cacheSize) {
+      @Override
+      protected int sizeOf(String key, Bitmap bitmap) {
+        // The cache size will be measured in kilobytes rather than
+        // number of items.
+        return bitmap.getByteCount() / 1024;
+      }
+    };        //end try lru
+
+    executor = Executors.newFixedThreadPool(1);
+
+    asm = new AsyncTaskManager(getApplicationContext(), screenWidth, screenHeight, memoryCache,
+        executor);
+
+    Log.d("activity", "onCreate" + getIntent());
   }
 
   @Override
@@ -508,35 +550,10 @@ missingFilesNames.clear();
 
     setScreenMetrics();
 
-    filter = new IntentFilter("dlReceived");
-    filter.addAction("dlStarted");
-    filter.addAction("dlComplete");
-    filter.addAction("filesFound");
-    filter.addAction("filesMissing");
-    filter.addAction("noJson");
-    filter.addAction("imgShown");
     registerReceiver(intentReceiver, filter);
-      final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024);
-      // Use 1/8th of the available memory for this memory cache.
-      Log.d(TAG, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
-
-      memoryCache = new LruCache<String, Bitmap>(cacheSize) {
-        @Override
-        protected int sizeOf(String key, Bitmap bitmap) {
-          // The cache size will be measured in kilobytes rather than
-          // number of items.
-          return bitmap.getByteCount() / 1024;
-        }
-      };        //end try lru
-
-    executor = Executors.newFixedThreadPool(1);
 
 
 
-    asm = new AsyncTaskManager(getApplicationContext(), screenWidth, screenHeight, memoryCache,
-        executor);
-
-    Log.d("activity", "onCreate" + getIntent());
     android.app.ActionBar actionBar = getActionBar();
 
     if (actionBar != null) {
@@ -549,7 +566,7 @@ missingFilesNames.clear();
     this.missingFilesNumber = 0;
     this.mHaveInternet = isInternetOk();
     // startActivity(new Intent(this, AsyncTaskManager.ListImageTask.class).pu);
-    org.tflsh.nosedive.AsyncTaskManager.ListImageTask.exec(missingFilesNames, mSlideshowFilesNames,
+    org.tflsh.nosedive.AsyncTaskManager.ListImageTask.exec(
         M_SERVER_DIRECTORY_URL);
     mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
     mSlideshowIsRunning = false;
@@ -561,7 +578,6 @@ missingFilesNames.clear();
     LinearLayout rm = findViewById(R.id.rightMenuLinearLayout);
 
     mDlProgressBar.setIndeterminate(false);
-
     Log.d(TAG,
         "ListImageTask missing file after 5second and an intent? = " + missingFilesNames.size());
 
@@ -642,13 +658,14 @@ missingFilesNames.clear();
       if (screenOrientationNormal) {
         layoutParams.setMargins(buttonVerticalMargin, buttonHorizontalMargin, buttonVerticalMargin,
             buttonHorizontalMargin);
-        tempButton.setPadding(buttonVerticalPadding, buttonHorizontalPadding, buttonVerticalPadding,
-            buttonHorizontalPadding);
+        tempButton.setPadding(buttonHorizontalPadding, buttonVerticalPadding, buttonHorizontalPadding,
+            buttonVerticalPadding);
       } else {
-        layoutParams.setMargins(buttonHorizontalMargin, buttonVerticalMargin / 2,
+        layoutParams.setMargins(buttonHorizontalMargin, buttonVerticalMargin
+            ,
             buttonHorizontalMargin,
-            buttonVerticalMargin / 2);
-        tempButton.setPadding(buttonHorizontalPadding, buttonVerticalPadding, buttonVerticalPadding,
+            buttonVerticalMargin );
+        tempButton.setPadding(buttonVerticalPadding, buttonHorizontalPadding, buttonVerticalPadding,
             buttonHorizontalPadding);
       }
 

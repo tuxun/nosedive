@@ -11,6 +11,8 @@ import android.util.Log;
 import android.util.LruCache;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,11 +24,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.math.BigInteger;
+import java.net.CookieStore;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
@@ -106,29 +113,34 @@ public class AsyncTaskManager extends Activity {
         // Calculate inSampleSize
         options.inSampleSize = calculateInSampleSize(options, reqWidth,
             reqHeight);
+
         //finde deformation de visage je regarde
 //        return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res, options),reqWidth,options.outHeight/2,true);
         return BitmapFactory.decodeFile(res, options);
     }
-    static int calculateInSampleSize(BitmapFactory.Options options,
-        int reqWidth, int reqHeight) {
-        int inSampleSize = 1; // Default subsampling size
-        // See if image raw height and width is bigger than that of required
-        // view
-        if (options.outHeight > reqHeight || options.outWidth > reqWidth) {
-            // bigger
-            final int halfHeight = options.outHeight / 2;
-            final int halfWidth = options.outWidth / 2;
-            // Calculate the largest inSampleSize value that is a power of 2 and
-            // keeps both
+    public static int calculateInSampleSize(
+        BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
             // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) > reqHeight
-                && (halfWidth / inSampleSize) > reqWidth) {
+            while ((halfHeight / inSampleSize) >= reqHeight
+                && (halfWidth / inSampleSize) >= reqWidth) {
                 inSampleSize *= 2;
             }
         }
+
         return inSampleSize;
     }
+
     //return the bitmap from cache or from file. idea from https://developer.android.com/topic/performance/graphics/cache-bitmap
     public Bitmap getOrAddBitmapToMemoryCache(String filePath) {
         synchronized (memoryCache) {
@@ -191,6 +203,10 @@ public class AsyncTaskManager extends Activity {
         static String urlSource;
         static List<String> missingImagesNames;
 
+
+
+        private static List<String>  everyImagesNames;
+
         private ListImageTask() {
             Log.d(CLASSNAME, "ListImageTask constructor");
         }
@@ -248,7 +264,8 @@ public class AsyncTaskManager extends Activity {
                     new InputStreamReader(new FileInputStream(jsonFile.getAbsolutePath())))
 
             ) {
-
+                everyImagesNames=new ArrayList<String>();
+                missingImagesNames=new ArrayList<String>();
                 reader.beginArray();
 
                 while (reader.hasNext()) {
@@ -256,7 +273,7 @@ public class AsyncTaskManager extends Activity {
                     Log.e(CLASSNAME, "reader:"+reader.nextName());
 
                     String newIn = reader.nextString();
-                    name.add(newIn);
+                    everyImagesNames.add(newIn);
 
                     File file = new File(mCacheDir, newIn);
                     if (file.exists()) {
@@ -266,18 +283,18 @@ public class AsyncTaskManager extends Activity {
 
                         String sum = reader.nextString();
 
-                        if (!checkSum(mCacheDir + "/" + name.get(name.size() - 1), sum)) {
+                        if (!checkSum(mCacheDir + "/" + everyImagesNames.get(everyImagesNames.size() - 1), sum)) {
                             Log.e(CLASSNAME, "on dl le file, il etait corrompu");
 
                             getFile(downloadSrcUrl, mCacheDir.getAbsolutePath(),
-                                name.get(name.size() - 1));
-                            missingImagesNames.add(name.get(name.size() - 1));
+                                everyImagesNames.get(everyImagesNames.size() - 1));
+                            missingImagesNames.add(everyImagesNames.get(name.size() - 1));
                         }
                     } else {
                         Log.e(CLASSNAME, "on dl le file");
-                        missingImagesNames.add(name.get(name.size() - 1));
+                        missingImagesNames.add(everyImagesNames.get(everyImagesNames.size() - 1));
                         getFile(downloadSrcUrl, mCacheDir.getAbsolutePath(),
-                            name.get(name.size() - 1));
+                            everyImagesNames.get(everyImagesNames.size() - 1));
                         reader.nextName();
                         reader.nextString();
                         reader.nextName();
@@ -287,7 +304,7 @@ public class AsyncTaskManager extends Activity {
 
                     reader.endObject();
                 }
-                return name;
+                return everyImagesNames;
             } catch (FileNotFoundException e) {
                 Log.e(CLASSNAME, "local json file not found");
 
@@ -359,7 +376,9 @@ public class AsyncTaskManager extends Activity {
                     +  missingImagesNames.size()
                     + " "
                     + localFile.getAbsolutePath());
-currentFile++;
+                sendMessageWithInt("filesFound", everyImagesNames.size());
+
+                currentFile++;
                 return localFile;
             } catch (
                 FileNotFoundException e) {
@@ -381,11 +400,9 @@ currentFile++;
             }
         }
 
-        public static void exec(List<String> missingFileArg, List<String> img,
-            String urlSourceArg) {
+        public static void exec(String urlSourceArg) {
 
-            missingImagesNames = missingFileArg;
-            name = img;
+
             urlSource = urlSourceArg;
 
             FutureTask<String>
@@ -451,17 +468,18 @@ currentFile++;
                         List<String> result = parseJson(localJsonFile, urlSource);
                         if (result.isEmpty()) {
 
+                            Log.e(CLASSNAME, "EMPTY json file!!!");
+                            sendMessage(NO_JSON);
                             Log.e(CLASSNAME,
                                 "no results: unable to get json from internet or to create files");
                         } else {
                             Log.d(CLASSNAME, "found this number of images :"
-                                + name.size()
+                                + everyImagesNames.size()
                                 + " (missing:) "
                                 + missingImagesNames.size());
-                            sendMessageWithInt("filesFound", missingImagesNames.size());
+                            sendMessageWithInt("filesFound", everyImagesNames.size());
+                            sendMessageWithInt("filesMissing", missingImagesNames.size());
                         }
-                        Log.e(CLASSNAME, "EMPTY json file!!!");
-                        sendMessage(NO_JSON);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -514,6 +532,7 @@ currentFile++;
                             }
                         }
                         if(bmImage!=null) {
+                            bmImage.get().setAdjustViewBounds(true);
                             bmImage.get().setImageBitmap(result);
                         }
                         Log.d(CLASSNAME, " took " + timer + "ms , waited " + delay + "ms");
