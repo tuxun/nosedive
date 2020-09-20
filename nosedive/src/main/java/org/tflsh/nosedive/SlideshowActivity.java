@@ -78,7 +78,7 @@ public class SlideshowActivity extends Activity {
   ArrayList<String> missingFilesNames;
   IntentFilter filter;
   int missingFilesNumber = 0;
-  AsyncTaskManager asm;
+  AsyncTaskManager mAsyncTaskManager;
   int screenWidth;
   DisplayMetrics screenMetrics;
   private LinearLayout centralLinearLayout;
@@ -125,7 +125,7 @@ public class SlideshowActivity extends Activity {
   private int buttonHorizontalPadding;
   private int buttonVerticalMargin;
   private int buttonHorizontalMargin;
-  private ArrayList<String> mSlideshowFilesNames;
+  private ArrayList<String> mSlideshowFilesName;
   private final Runnable mShowImageAfterTwoWordsRunnable = new Runnable() {
     @Override
     public void run() {
@@ -139,9 +139,10 @@ public class SlideshowActivity extends Activity {
       mImageView.setImageDrawable(
           ResourcesCompat.getDrawable(getResources(), R.drawable.whitebackground, null));
 
-      mSlideshowHandler.post(asm.new ShowImageTask(mImageView, DELAY_INTER_FRAME_SETTING,
-          getCacheDir() + "/" + mSlideshowFilesNames.get(
-              new Random().nextInt(mSlideshowFilesNames.size()))));
+      mSlideshowHandler.post(
+          mAsyncTaskManager.new ShowImageTask(mImageView, DELAY_INTER_FRAME_SETTING,
+          getCacheDir() + "/" + mSlideshowFilesName.get(
+              new Random().nextInt(mSlideshowFilesName.size()))));
       SystemClock.sleep(50);//entré?
       mHideHandler.post(cleanButtonRunnable);
 
@@ -208,24 +209,24 @@ public class SlideshowActivity extends Activity {
 
       mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
 
-      int nextImageToShowIndex = new Random().nextInt(mSlideshowFilesNames.size());
-      if (pwa < mSlideshowFilesNames.size()) {
+      int nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
+      if (pwa < mSlideshowFilesName.size()) {
         if ((pwa % 2) == 1) {
 
           executor.execute(
-              asm.new ShowImageTask(
+              mAsyncTaskManager.new ShowImageTask(
                   mImageView,
                   DELAY_INTER_FRAME_SETTING,
-                  getCacheDir() + "/" + mSlideshowFilesNames.get(nextImageToShowIndex))
+                  getCacheDir() + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
           );
           ((TextView)findViewById(R.id.ui_press_meTextView)).setTextColor(getColor(R.color.OurPink));
         } else {
 
           executor.execute(
-              asm.new ShowImageTask(
+              mAsyncTaskManager.new ShowImageTask(
                   mImageView,
                   DELAY_INTER_FRAME_SETTING,
-                  getCacheDir() + "/" + mSlideshowFilesNames.get(nextImageToShowIndex))
+                  getCacheDir() + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
           );
           pressMeTextView.setTextColor(getColor(R.color.OurWhite));
         }
@@ -251,14 +252,14 @@ public class SlideshowActivity extends Activity {
     @Override
     public void run() {
       mDlProgressBar.setVisibility(View.GONE);
-      Log.d(TAG, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesNames.size());
+      Log.d(TAG, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesName.size());
       centralLinearLayout.setVisibility(View.VISIBLE);
       ((TextView)findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP, pressMeTextSize);
 
       ((TextView)findViewById(R.id.ui_press_meTextView)).setText(getResources().getString(R.string.string_press_me));
       (findViewById(R.id.ui_press_meTextView)).setVisibility(View.VISIBLE);
 
-      if ((missingFilesNames.isEmpty()) && (!mSlideshowFilesNames.isEmpty())) {
+      if ((missingFilesNames.isEmpty()) && (!mSlideshowFilesName.isEmpty())) {
         mSlideshowHandler.removeCallbacks(showNextRunnable);
         //      mSlideshowHandler.removeCallbacks(mShowImageAfterTwoWordsRunnable);
 
@@ -276,11 +277,11 @@ public class SlideshowActivity extends Activity {
 
           mSlideshowIsRunning = true;
 
-          for (long i = 0; i < mSlideshowFilesNames.size() + 1; i++) {
+          for (long i = 0; i < mSlideshowFilesName.size() + 1; i++) {
             mSlideshowHandler.postDelayed(showNextRunnable, i * DELAY_INTER_FRAME_SETTING);
           }
         } else {
-          Log.e(TAG, "mStartSlideshowRunnable tried to start twice" + mSlideshowFilesNames.size());
+          Log.e(TAG, "mStartSlideshowRunnable tried to start twice" + mSlideshowFilesName.size());
           mSlideshowIsRunning = false;
 
         }
@@ -291,6 +292,9 @@ public class SlideshowActivity extends Activity {
         if (isInternetOk()) {
           pressMeTextView.setText(R.string.string_wait4dl);
         } else {
+
+
+
           pressMeTextView.setText(R.string.pleaseRestartWithInternet);
         }
       }
@@ -334,31 +338,24 @@ missingFilesNames.clear();
           break;
 
         case "filesFound":
-          Log.d(TAG, "intentReceiver got action files found");
-          int max = intent.getIntExtra(EXTRA_MESSAGE, 0);
-          if (max > 0) {
-            mDlProgressBar.setMax(max);
-            Log.d(TAG, "intentReceiver set progress bar " + max);
-            mDlProgressBar.setVisibility(View.VISIBLE);
-          } else {
-            Log.d(TAG, "intentReceiver did not set progress bar to" + max);
-            makeImageClickable();
+          String max = intent.getStringExtra(EXTRA_MESSAGE);
+
+            Log.d(TAG, "intentReceiver got action files found "+max);
+
+            mSlideshowFilesName.add(max);
             mSlideshowHandler.post(mStartSlideshowRunnable);
-          }
+
           break;
           //TODO:
         case "filesMissing":
           Log.d(TAG, "intentReceiver got action files missing");
-          int max = intent.getIntExtra(EXTRA_MESSAGE, 0);
-          if (max > 0) {
-            mDlProgressBar.setMax(max);
-            Log.d(TAG, "intentReceiver set progress bar " + max);
+          String max5 = intent.getStringExtra(EXTRA_MESSAGE);
+          missingFilesNames.add(max5);
+
+          mDlProgressBar.setMax(missingFilesNames.size());
+            Log.d(TAG, "intentReceiver set progress bar " + missingFilesNames.size() + max5);
             mDlProgressBar.setVisibility(View.VISIBLE);
-          } else {
-            Log.d(TAG, "intentReceiver did not set progress bar to" + max);
-            makeImageClickable();
-           // mSlideshowHandler.post(mStartSlideshowRunnable);
-          }
+
           break;
         case "imgShown":
           //should be never called (cause it bug, and a bitmap is too heavy for intent)
@@ -452,8 +449,6 @@ missingFilesNames.clear();
     pressMeTextView = findViewById(R.id.ui_press_meTextView);
     centralLinearLayout = findViewById(R.id.ui_centralLinearLayout);
     mImageView = findViewById(R.id.imageView);
-
-
     mDlProgressBar = findViewById(R.id.ui_dl_ProgressBar);
 
     if (screenHeight > screenWidth) {
@@ -507,7 +502,6 @@ missingFilesNames.clear();
 
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setScreenMetrics();
     final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024);
     // Use maximum available memory for this memory cache.
     Log.d(TAG, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
@@ -516,6 +510,7 @@ missingFilesNames.clear();
     filter.addAction("dlStarted");
     filter.addAction("dlComplete");
     filter.addAction("filesFound");
+    filter.addAction("filesAllOk");
     filter.addAction("filesMissing");
     filter.addAction("noJson");
     filter.addAction("imgShown");
@@ -529,8 +524,8 @@ missingFilesNames.clear();
     };        //end try lru
 
     executor = Executors.newFixedThreadPool(1);
-
-    asm = new AsyncTaskManager(getApplicationContext(), screenWidth, screenHeight, memoryCache,
+    setScreenMetrics();
+    mAsyncTaskManager = new AsyncTaskManager(getApplicationContext(), screenWidth, screenHeight, memoryCache,
         executor);
 
     Log.d("activity", "onCreate" + getIntent());
@@ -548,7 +543,6 @@ missingFilesNames.clear();
     super.onResume();
     Log.d(TAG, "onResume" + getIntent());
 
-    setScreenMetrics();
 
     registerReceiver(intentReceiver, filter);
 
@@ -560,18 +554,17 @@ missingFilesNames.clear();
       actionBar.hide();
     }
 
-    this.mSlideshowFilesNames = new ArrayList<>();
+    this.mSlideshowFilesName = new ArrayList<>();
     pwa = 0;
     this.missingFilesNames = new ArrayList<>();
     this.missingFilesNumber = 0;
-    this.mHaveInternet = isInternetOk();
     // startActivity(new Intent(this, AsyncTaskManager.ListImageTask.class).pu);
-    org.tflsh.nosedive.AsyncTaskManager.ListImageTask.exec(
-        M_SERVER_DIRECTORY_URL);
-    mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
+
+    //mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
     mSlideshowIsRunning = false;
 
-
+    org.tflsh.nosedive.AsyncTaskManager.ListImageTask.exec(
+        M_SERVER_DIRECTORY_URL);
     //REGLAGE DE LAPPLI
     //end runnables list
     LinearLayout lm = findViewById(R.id.leftMenuLinearLayout);
@@ -591,13 +584,6 @@ missingFilesNames.clear();
       }
     });
 
-    try {
-      Thread.sleep(500);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-
-    mSlideshowHandler.postDelayed(mStartSlideshowRunnable, UI_ANIMATION_DELAY);
   }
 
   private void makeImageClickable() {

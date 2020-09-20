@@ -93,6 +93,15 @@ public class AsyncTaskManager extends Activity {
         intent.putExtra(EXTRA_MESSAGE, params);
         mContext.sendBroadcast(intent);
     }
+
+    public static void sendMessageWithString(String message, String params) {
+
+        Intent intent = new Intent(message);    //action: "msg"
+        intent.setPackage(mContext.getPackageName());
+
+        intent.putExtra(EXTRA_MESSAGE, params);
+        mContext.sendBroadcast(intent);
+    }
     ////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////@ListImageTask////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////
@@ -111,8 +120,8 @@ public class AsyncTaskManager extends Activity {
         BitmapFactory.decodeFile(res, options);
         options.inJustDecodeBounds = false;
         // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth,
-            reqHeight);
+        options.inSampleSize = calculateInSampleSize(options, reqWidth/2,
+            reqHeight/2);
 
         //finde deformation de visage je regarde
 //        return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res, options),reqWidth,options.outHeight/2,true);
@@ -199,7 +208,7 @@ public class AsyncTaskManager extends Activity {
      */
     static class ListImageTask {
         private static final String CLASSNAME = "ListImageTask";
-        static List<String> name;
+       // static List<String> name;
         static String urlSource;
         static List<String> missingImagesNames;
 
@@ -244,7 +253,7 @@ public class AsyncTaskManager extends Activity {
                 computedSum = computedSum.replace(' ', '0');
 
                 if ((originSum.equals(computedSum))) {
-                    Log.d("fs_sum", "found one file ok");
+                    //Log.d("fs_sum", "found one file ok");
                     return true;
                 } else {
                     Log.e("fs_sum", "found one  broken file " + path);
@@ -270,7 +279,7 @@ public class AsyncTaskManager extends Activity {
 
                 while (reader.hasNext()) {
                     reader.beginObject();
-                    Log.e(CLASSNAME, "reader:"+reader.nextName());
+                 reader.nextName();
 
                     String newIn = reader.nextString();
                     everyImagesNames.add(newIn);
@@ -288,7 +297,12 @@ public class AsyncTaskManager extends Activity {
 
                             getFile(downloadSrcUrl, mCacheDir.getAbsolutePath(),
                                 everyImagesNames.get(everyImagesNames.size() - 1));
-                            missingImagesNames.add(everyImagesNames.get(name.size() - 1));
+                            missingImagesNames.add(everyImagesNames.get(everyImagesNames.size() - 1));
+                            sendMessageWithString("filesMissing", newIn);
+
+                        }
+                        else {
+                            sendMessageWithString("filesFound", newIn);
                         }
                     } else {
                         Log.e(CLASSNAME, "on dl le file");
@@ -325,14 +339,14 @@ public class AsyncTaskManager extends Activity {
                     + " of "
                     +  missingImagesNames.size()
                   );
-                if (currentFile == missingImagesNames.size()&&currentFile!=0         ) {
+                if (currentFile == missingImagesNames.size()         ) {
                     Log.d(CLASSNAME, "last file, starting slideshow");
                     sendMessage("dlComplete");
                 }
                 Log.d(CLASSNAME,
                     "Finished all threads (WARING: not really, we just removed the test)");
             }
-            return name;
+            return everyImagesNames;
         }
 
         /*return a array of string, naming the files downloaded, or found in the cache dir
@@ -376,7 +390,7 @@ public class AsyncTaskManager extends Activity {
                     +  missingImagesNames.size()
                     + " "
                     + localFile.getAbsolutePath());
-                sendMessageWithInt("filesFound", everyImagesNames.size());
+                sendMessageWithString("filesFound",localFile.getName());
 
                 currentFile++;
                 return localFile;
@@ -477,8 +491,7 @@ public class AsyncTaskManager extends Activity {
                                 + everyImagesNames.size()
                                 + " (missing:) "
                                 + missingImagesNames.size());
-                            sendMessageWithInt("filesFound", everyImagesNames.size());
-                            sendMessageWithInt("filesMissing", missingImagesNames.size());
+                            //sendMessageWithString("filesMissing", localJsonFile.getAbsolutePath());
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();
