@@ -157,9 +157,10 @@ public class AsyncTaskManager extends Activity {
 
             if (cachedResult == null) {
                 cachedResult = decodeSampledBitmapFromFilepath(filePath, screenWidth, screenHeight);
-                memoryCache.put(filePath, cachedResult);
+if(memoryCache.evictionCount()==0)
+{                memoryCache.put(filePath, cachedResult);
 
-                Log.d("LRU:",
+    Log.d("LRU:",
                     "[PUSH] "
                         + filePath
                         + cachedResult.getByteCount() / 1024 / 1024
@@ -172,7 +173,10 @@ public class AsyncTaskManager extends Activity {
                         + memoryCache.size() / 1024
                         + "Mo eviction= "
                         + memoryCache.evictionCount()
-                );
+                );}
+else{
+Log.e(CLASSNAME,"cache is full, loading image from disk");}
+
             } else {
                 Log.d("LRU:",
                     "[GET] "

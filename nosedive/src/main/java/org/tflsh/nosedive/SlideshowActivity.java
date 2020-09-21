@@ -135,15 +135,15 @@ public class SlideshowActivity extends Activity {
       mSlideshowHandler.postDelayed(mHideMenuRunnable, DELAY_INTER_FRAME_SETTING);
       mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
       mSlideshowHandler.removeCallbacks(showNextRunnable);
-
+/*
       mImageView.setImageDrawable(
           ResourcesCompat.getDrawable(getResources(), R.drawable.whitebackground, null));
-
+*/
       mSlideshowHandler.post(
           mAsyncTaskManager.new ShowImageTask(mImageView, DELAY_INTER_FRAME_SETTING,
           getCacheDir() + "/" + mSlideshowFilesName.get(
               new Random().nextInt(mSlideshowFilesName.size()))));
-      SystemClock.sleep(50);//entré?
+
       mHideHandler.post(cleanButtonRunnable);
 
       mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_GUESSING_SETTING);
@@ -219,7 +219,7 @@ public class SlideshowActivity extends Activity {
                   DELAY_INTER_FRAME_SETTING,
                   getCacheDir() + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
           );
-          ((TextView)findViewById(R.id.ui_press_meTextView)).setTextColor(getColor(R.color.OurPink));
+          ((TextView)findViewById(R.id.ui_press_meTextView)).setTextColor(getColor(R.color.OurWhite));
         } else {
 
           executor.execute(
@@ -228,7 +228,7 @@ public class SlideshowActivity extends Activity {
                   DELAY_INTER_FRAME_SETTING,
                   getCacheDir() + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
           );
-          pressMeTextView.setTextColor(getColor(R.color.OurWhite));
+          pressMeTextView.setTextColor(getColor(R.color.OurPink));
         }
 
         pwa++;
@@ -267,11 +267,9 @@ public class SlideshowActivity extends Activity {
         //hummm
         mHideHandler.post(cleanButtonRunnable);
         pressMeTextView.setTextColor(getColor(R.color.OurPink));
-        pressMeTextView.setTextColor(getColor(R.color.OurPink));
         //findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
         //findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
 
-        centralLinearLayout.setVisibility(View.VISIBLE);
 
         if (!mSlideshowIsRunning) {
 
@@ -343,10 +341,12 @@ missingFilesNames.clear();
             Log.d(TAG, "intentReceiver got action files found "+max);
 
             mSlideshowFilesName.add(max);
-            mSlideshowHandler.post(mStartSlideshowRunnable);
 
           break;
           //TODO:
+        case "filesAllOk":
+          mSlideshowHandler.post(mStartSlideshowRunnable);
+
         case "filesMissing":
           Log.d(TAG, "intentReceiver got action files missing");
           String max5 = intent.getStringExtra(EXTRA_MESSAGE);
@@ -382,7 +382,7 @@ missingFilesNames.clear();
     mSlideshowHandler.removeCallbacks(showNextRunnable);
     mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
     Log.d(TAG, "Activity.onStop()");
-  //  unregisterReceiver(intentReceiver);
+//done in pause    unregisterReceiver(intentReceiver);
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -394,6 +394,8 @@ missingFilesNames.clear();
     mSlideshowHandler.removeCallbacks(showNextRunnable);
     mSlideshowIsRunning=false;
     Log.d(TAG, "Activity.onPause()");
+    unregisterReceiver(intentReceiver);
+
   }
 
   @Override
@@ -424,8 +426,8 @@ missingFilesNames.clear();
     buttonVerticalPadding = 20;
     buttonHorizontalPadding = 20;
 
-    buttonVerticalMargin = 30;
-    buttonHorizontalMargin = 30;
+    buttonVerticalMargin =28;
+    buttonHorizontalMargin = 20;
 
     //in pixel
     //ahah! buttonVerticalPadding *= screenDensity / 160;
@@ -502,7 +504,7 @@ missingFilesNames.clear();
 
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024);
+    final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024/2);
     // Use maximum available memory for this memory cache.
     Log.d(TAG, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
 
@@ -560,7 +562,7 @@ missingFilesNames.clear();
     this.missingFilesNumber = 0;
     // startActivity(new Intent(this, AsyncTaskManager.ListImageTask.class).pu);
 
-    //mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
+    mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
     mSlideshowIsRunning = false;
 
     org.tflsh.nosedive.AsyncTaskManager.ListImageTask.exec(
@@ -579,7 +581,7 @@ missingFilesNames.clear();
       public boolean onLongClick(View view) {
         Log.e("onLongClick", "LONG PRESS");
 
-        mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY - 10);
+        mHideHandler.post(mSetFullscreenOnRunnable);
         return true;
       }
     });
