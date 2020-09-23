@@ -120,9 +120,9 @@ public class AsyncTaskManager extends Activity {
         BitmapFactory.decodeFile(res, options);
         options.inJustDecodeBounds = false;
         // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth/2,
-            reqHeight/2);
-
+        options.inSampleSize = calculateInSampleSize(options, (int) (reqWidth/1.3),
+            (int) (reqHeight/1.3));
+options.inPreferQualityOverSpeed=true;
         //finde deformation de visage je regarde
 //        return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res, options),reqWidth,options.outHeight/2,true);
         return BitmapFactory.decodeFile(res, options);
@@ -284,7 +284,6 @@ Log.e(CLASSNAME,"cache is full, loading image from disk");}
                 while (reader.hasNext()) {
                     reader.beginObject();
                  reader.nextName();
-
                     String newIn = reader.nextString();
                     everyImagesNames.add(newIn);
 
@@ -319,7 +318,6 @@ Log.e(CLASSNAME,"cache is full, loading image from disk");}
                         reader.nextString();
 
                     }
-
                     reader.endObject();
                 }
                 return everyImagesNames;
@@ -387,15 +385,15 @@ Log.e(CLASSNAME,"cache is full, loading image from disk");}
                 if (!localFile.getName().contains("json")) {
                     sendMessage("dlReceived");
 
-                }
+               /*
                 Log.d(CLASSNAME, "ok synchronizing "
                     + currentFile
                     + " of "
                     +  missingImagesNames.size()
                     + " "
-                    + localFile.getAbsolutePath());
+                    + localFile.getAbsolutePath());*/
                 sendMessageWithString("filesFound",localFile.getName());
-
+            }
                 currentFile++;
                 return localFile;
             } catch (
@@ -551,6 +549,13 @@ Log.e(CLASSNAME,"cache is full, loading image from disk");}
                         if(bmImage!=null) {
                             bmImage.get().setAdjustViewBounds(true);
                             bmImage.get().setImageBitmap(result);
+
+                            if (screenHeight > screenWidth) {
+                                bmImage.get().setScaleType(ImageView.ScaleType.FIT_START);
+                            } else {
+                                bmImage.get().setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+                            }
                         }
                         Log.d(CLASSNAME, " took " + timer + "ms , waited " + delay + "ms");
                     }

@@ -5,4 +5,7 @@
 
         <color name="OurPink">#FF4081</color>
         <color name="OurWhite">#FFFFFF</color>
+  <color name="testGreen" >#4CAF50</color>
+  <color name="testBlue" >#005DFF</color>
+  <color name="testRed" >#AF4C4C</color>
 </resources>

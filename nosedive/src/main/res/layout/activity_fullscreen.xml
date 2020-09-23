@@ -1,102 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    tools:context=".SlideshowActivity"
+    android:id="@+id/motherLayout"
 
-    tools:context=".SlideshowActivity">
-
+    >
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:id="@+id/buttons"
+        >
 
-        <LinearLayout
+        <Button
+            android:id="@+id/button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            >
-            <ProgressBar
-                android:id="@+id/ui_dl_ProgressBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                style="@android:style/Widget.ProgressBar.Horizontal" />
-        </LinearLayout>
-
-        <LinearLayout
+            android:text="checkfiles"
+            />
+        <Button
+            android:id="@+id/button2"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-            <LinearLayout
-                android:id="@+id/leftMenuLinearLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:layout_weight="1"
-                android:gravity="top"
-                android:orientation="vertical"
-                android:visibility="gone">
-            </LinearLayout>
-            <LinearLayout
-                android:id="@+id/ui_centralLinearLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                >
-
-                <ImageView
-                    android:id="@+id/imageView"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@color/OurPink"
-
-                android:scaleType="fitStart"
-                    />
-
-
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/rightMenuLinearLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:layout_weight="1"
-
-                android:gravity="top"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-
+            android:layout_height="wrap_content"
+            android:text="dlmissing"
+            />
+        <Button
+            android:id="@+id/button3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="config"
+            />
     </LinearLayout>
-
-
-
-
     <LinearLayout
+
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        android:background="@color/testGreen"
+        >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:id="@+id/dlLayout"
+            >
 
-    >
-    <TextView
-        android:id="@+id/ui_press_meTextView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:layout_gravity="center"
-        android:text="@string/string_press_me"
-        android:textSize="48sp"
-        android:fontFamily="@font/alef"
-        />
-    </LinearLayout>
+            <TextView
+                android:id="@+id/ui_dl_progressTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center|bottom"
+                android:text="@string/dl_progressText"
+                android:textSize="30sp"
+                />
+
+            <ProgressBar
+                android:id="@+id/ui_dl_ProgressBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:indeterminateOnly="false"
+                android:max="132"
+                android:progressDrawable="@drawable/ringprogressbar"
+                />
 
 
-</androidx.appcompat.widget.LinearLayoutCompat>
+        </LinearLayout>
+
+</LinearLayout>
+
+
+</LinearLayout>
