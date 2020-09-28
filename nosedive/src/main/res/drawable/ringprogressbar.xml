@@ -6,7 +6,7 @@
     android:innerRadiusRatio="2.5"
     android:thicknessRatio="16"
     android:useLevel="false">
-<solid android:color="@color/testRed"/>
+<solid android:color="@color/OurWhite" />
 </shape>
   </item>
   <item>
@@ -19,7 +19,7 @@
         android:innerRadiusRatio="2.5"
         android:thicknessRatio="16"
         android:useLevel="true">
-      <solid android:color="@color/testGreen"/>
+      <solid android:color="@color/OurPink" />
     </shape>
   </rotate> </item>
 </layer-list>

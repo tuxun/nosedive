@@ -9,14 +9,9 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.LruCache;
@@ -53,20 +48,20 @@ public class SlideshowActivity extends Activity {
   private static final long UI_ANIMATION_DELAY = 300;
   final ArrayList<Button> mCheckedToggleButtonsArrayList = new ArrayList<>();
   private final Handler mSlideshowHandler = new Handler();
+
   private final Runnable cleanButtonRunnable = new Runnable() {
     @Override
     public void run() {
-
       int clickedButtons = mCheckedToggleButtonsArrayList.size();
       Log.d(TAG, "cleanButtonRunnable:" + clickedButtons + " cleaned buttons");
       for (int i = clickedButtons - 1; i >= 0; i--) {
-
         mCheckedToggleButtonsArrayList.get(i).setEnabled(true);
         mCheckedToggleButtonsArrayList.get(i).setClickable(true);
         mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(i));
       }
     }
   };
+
   private final Handler mHideHandler = new Handler();
   ////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////ATTRIBUTES////////////////////////////////
@@ -97,6 +92,7 @@ public class SlideshowActivity extends Activity {
       if (actionBar != null) {
         actionBar.hide();
       }
+
       //findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
       //exitfullscreen getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE|View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION|View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
       getWindow().getDecorView()
@@ -170,32 +166,66 @@ public class SlideshowActivity extends Activity {
       findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
     }
   };
-  ////////////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////RUNNABLES////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////
-  //used for show words?.
-  private final Runnable showMenuRunnable = new Runnable() {
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////ACTIVITY (MAIN)/////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  private final Runnable mStartSlideshowRunnable = new Runnable() {
+
     @Override
     public void run() {
 
-      Log.d(TAG, "makeImageNotClickable(): image is not clickable anymore");
-      findViewById(R.id.imageView).setClickable(false);
+      Log.d(TAG, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesName.size());
+      findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
 
-      Log.d(TAG, "showMenuRunnable");
-      ((TextView)findViewById(R.id.ui_press_meTextView)).setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
-      ((TextView)findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP, pressTwoWordsTextSize);
-      ((TextView)findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
+      findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+      findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
 
-      // mSlideshowHandler.post(cleanButtonRunnable);
-      mSlideshowHandler.removeCallbacks(showNextRunnable);
-      mSlideshowHandler.removeCallbacks(cleanButtonRunnable);
-      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
-      mSlideshowIsRunning = false;
-      mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_CHOICE_WORDS_SETTING);
-      findViewById(R.id.ui_centralLinearLayout).setVisibility(View.GONE);
-      findViewById(R.id.leftMenuLinearLayout).setVisibility(View.VISIBLE);
-      findViewById(R.id.rightMenuLinearLayout).setVisibility(View.VISIBLE);
-      ((TextView)findViewById(R.id.ui_press_meTextView)).setText(R.string.string_choose2word);
+      if ((missingFilesNames.isEmpty()) && (!mSlideshowFilesName.isEmpty())) {
+        mSlideshowHandler.removeCallbacks(showNextRunnable);
+        //      mSlideshowHandler.removeCallbacks(mShowImageAfterTwoWordsRunnable);
+
+        makeImageClickable();
+        //hummm
+        mHideHandler.post(cleanButtonRunnable);
+
+        ((TextView) findViewById(R.id.ui_press_meTextView)).setTypeface(
+            ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
+        ((TextView) findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
+        ((TextView) findViewById(R.id.ui_press_meTextView)).setText(
+            getResources().getString(R.string.string_press_me));
+
+        ((TextView) findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP,
+            pressMeTextSize);
+
+        (findViewById(R.id.ui_press_meTextView)).setVisibility(View.VISIBLE);
+        ((TextView) findViewById(R.id.ui_press_meTextView)).setTextColor(getColor(R.color.OurPink));
+        //findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+        //findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+
+        if (!mSlideshowIsRunning) {
+
+          mSlideshowIsRunning = true;
+
+          for (long i = 0; i < mSlideshowFilesName.size() + 1; i++) {
+            mSlideshowHandler.postDelayed(showNextRunnable, i * DELAY_INTER_FRAME_SETTING);
+          }
+        } else {
+          Log.e(TAG, "mStartSlideshowRunnable tried to start twice" + mSlideshowFilesName.size());
+          mSlideshowIsRunning = false;
+        }
+      } else {
+        Log.e(TAG, "isInternetOk" + missingFilesNames.size());
+
+        //if (isInternetOk()) {
+        //  pressMeTextView.setText(R.string.string_wait4dl);
+        //} else {
+        //
+        //
+        //
+        //  ((TextView)findViewById(R.id.ui_press_meTextView)).setText(R.string.pleaseRestartWithInternet);
+        //}
+      }
     }
   };
   private LruCache<String, Bitmap> memoryCache;
@@ -239,76 +269,63 @@ public class SlideshowActivity extends Activity {
       }
     }
 
-
     // Code here will run in UI thread
   };
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////ACTIVITY (MAIN)/////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  private final Runnable mStartSlideshowRunnable = new Runnable() {
-
+  ////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////RUNNABLES////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////
+  //used for show words?.
+  private final Runnable showMenuRunnable = new Runnable() {
     @Override
     public void run() {
 
+      Log.d(TAG, "makeImageNotClickable(): image isshowMenuRunnable not clickable anymore");
+      findViewById(R.id.imageView).setClickable(false);
 
+      Log.d(TAG, "showMenuRunnable");
+      ((TextView) findViewById(R.id.ui_press_meTextView)).setTypeface(
+          ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
+      ((TextView) findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP,
+          pressTwoWordsTextSize);
+      ((TextView) findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
 
-      ((TextView)findViewById(R.id.ui_press_meTextView)).setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.alef));
-      ((TextView)findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP, pressTwoWordsTextSize);
-      ((TextView)findViewById(R.id.ui_press_meTextView)).setTextColor(Color.YELLOW);
-      ((TextView)findViewById(R.id.ui_press_meTextView)).setText(getResources().getString(R.string.string_press_me));
-
-      ((TextView)findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP, pressMeTextSize);
-
-      (findViewById(R.id.ui_press_meTextView)).setVisibility(View.VISIBLE);
-
-
-
-
-      Log.d(TAG, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesName.size());
-      findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
-
-
-      if ((missingFilesNames.isEmpty()) && (!mSlideshowFilesName.isEmpty())) {
-        mSlideshowHandler.removeCallbacks(showNextRunnable);
-        //      mSlideshowHandler.removeCallbacks(mShowImageAfterTwoWordsRunnable);
-
-        makeImageClickable();
-        //hummm
-        mHideHandler.post(cleanButtonRunnable);
-        ((TextView) findViewById(R.id.ui_press_meTextView)).setTextColor(getColor(R.color.OurPink));
-        //findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
-        //findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
-
-
-        if (!mSlideshowIsRunning) {
-
-          mSlideshowIsRunning = true;
-
-          for (long i = 0; i < mSlideshowFilesName.size() + 1; i++) {
-            mSlideshowHandler.postDelayed(showNextRunnable, i * DELAY_INTER_FRAME_SETTING);
-          }
-        } else {
-          Log.e(TAG, "mStartSlideshowRunnable tried to start twice" + mSlideshowFilesName.size());
-          mSlideshowIsRunning = false;
-
-        }
-
-      } else {
-        Log.e(TAG, "isInternetOk" + missingFilesNames.size());
-
-        if (isInternetOk()) {
-          pressMeTextView.setText(R.string.string_wait4dl);
-        } else {
-
-
-
-          ((TextView)findViewById(R.id.ui_press_meTextView)).setText(R.string.pleaseRestartWithInternet);
-        }
-      }
-
+      // mSlideshowHandler.post(cleanButtonRunnable);
+      mSlideshowHandler.removeCallbacks(showNextRunnable);
+      mSlideshowHandler.removeCallbacks(cleanButtonRunnable);
+      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+      mSlideshowIsRunning = false;
+      mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_CHOICE_WORDS_SETTING);
+      findViewById(R.id.ui_centralLinearLayout).setVisibility(View.GONE);
+      findViewById(R.id.leftMenuLinearLayout).setVisibility(View.VISIBLE);
+      findViewById(R.id.rightMenuLinearLayout).setVisibility(View.VISIBLE);
+      ((TextView) findViewById(R.id.ui_press_meTextView)).setText(R.string.string_choose2word);
     }
   };
+  boolean fileschecked = false;
+  private boolean screenOrientationNormal;
+
+  @Override
+  protected void onStop() {
+    super.onStop();
+    mSlideshowIsRunning = false;
+    mSlideshowHandler.removeCallbacks(showNextRunnable);
+    mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+    Log.d(TAG, "Activity.onStop()");
+    //done in pause    unregisterReceiver(intentReceiver);
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //tools
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    mSlideshowHandler.removeCallbacks(showNextRunnable);
+    mSlideshowIsRunning = false;
+    Log.d(TAG, "Activity.onPause()");
+    unregisterReceiver(intentReceiver);
+  }
+
   public final BroadcastReceiver intentReceiver = new BroadcastReceiver() {
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -322,14 +339,29 @@ public class SlideshowActivity extends Activity {
           missingFilesNumber++;
 
           break;
+        //todo: we now also receive filename as string
         case "dlReceived":
           Log.d(TAG, "intentReceiver got action dl received");
           //mDlProgressBar.setVisibility(View.VISIBLE);
-          //((ProgressBar)findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
-          ((TextView)findViewById(R.id.ui_dl_progressTextView)).setText(R.string.string_wait4dl);
+          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText("il manque "
+              + ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
+              + " fichiers");
+
+          ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).incrementProgressBy(-1);
+          ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
+          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(R.string.string_wait4dl);
           break;
         case "dlComplete":
           Log.d(TAG, "intentReceiver got action dl complete");
+          (findViewById(R.id.button2)).setBackgroundColor(
+              getResources().getColor(R.color.OurPink, null));
+
+          fileschecked = true;
+          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
+              "Tous les fichiers sont OK!");
+          findViewById(R.id.ui_dl_ProgressBar).setBackground(
+              getDrawable(R.drawable.ic_not_started_black));
+          findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
          /* View iframe=findViewById(R.id.slideshowLayout   );
 
           ViewGroup parent = (ViewGroup) iframe.getParent();
@@ -352,18 +384,32 @@ missingFilesNames.clear();
 
         case "noJson":
           mHaveInternet = false;
-          ((TextView)findViewById(R.id.ui_dl_progressTextView)).setText(R.string.pleaseRestartWithInternet);
+          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
+              R.string.pleaseRestartWithInternet);
 
           break;
+        case "JSONok":
+          Log.d(TAG, "intentReceiver got JSONok");
+          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText("Mise a jour OK");
 
+          //       (findViewById(R.id.button5)).setBackgroundColor(getResources().getColor(R.color.OurPink,null));
+          break;
+        case "JSONlocalonly":
+          Log.d(TAG, "intentReceiver got JSONlocalonly");
+          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
+              "Pas internet mais liste fichiers ok");
+
+          //   (findViewById(R.id.button5)).setBackgroundColor(getResources().getColor(R.color.OurPink,null));
+          break;
         case "filesFound":
           String max = intent.getStringExtra(EXTRA_MESSAGE);
           mSlideshowFilesName.add(max);
-          Log.d(TAG, "intentReceiver got action files found "+max);
+          Log.d(TAG, "intentReceiver got action files found " + max);
+          findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
 
-           //   ((ProgressBar)findViewById(R.id.ui_dl_ProgressBar)).setProgress(0);
+          //   ((ProgressBar)findViewById(R.id.ui_dl_ProgressBar)).setProgress(0);
 
-              //((ProgressBar)findViewById(R.id.ui_dl_ProgressBar)).setMax(134);
+          //((ProgressBar)findViewById(R.id.ui_dl_ProgressBar)).setMax(134);
 
               ((ProgressBar)findViewById(R.id.ui_dl_ProgressBar)).setProgress(mSlideshowFilesName.size());
 
@@ -375,18 +421,64 @@ missingFilesNames.clear();
           }
 */
           break;
-          //TODO:
+        //TODO:
         case "filesAllOk":
-          mSlideshowHandler.post(mStartSlideshowRunnable);
+          (findViewById(R.id.button)).setBackgroundColor(
+              getResources().getColor(R.color.OurPink, null));
+          if (missingFilesNames.isEmpty()) {
+            fileschecked = true;
+            ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
+                "Tous les fichiers sont OK!");
+            findViewById(R.id.ui_dl_ProgressBar).setBackground(
+                getDrawable(R.drawable.ic_not_started_black));
+            findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
+            /*start button*/
+            (findViewById(R.id.ui_dl_ProgressBar)).setOnTouchListener(new OnTouchListener() {
 
+              @Override
+              public boolean onTouch(View view, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                  fileschecked = true;
+
+                  View iframe = findViewById(R.id.motherLayout);
+                  //*
+                  ViewGroup parent = (ViewGroup) iframe.getParent();
+                  int index = parent.indexOfChild(iframe);
+                  parent.removeView(iframe);
+                  //inflate
+                  View dlLayout = getLayoutInflater().inflate(R.layout.slideshow, parent, false);
+                  parent.addView(dlLayout, index);
+                  //  setContentView(dlLayout);
+                  makeButtons();
+                  makeImageClickable();
+                  mSlideshowHandler.post(mStartSlideshowRunnable);
+                  //*/
+
+                }
+                return true;
+              }
+            });
+            //////////
+          } else {
+            ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
+                "il manque " + missingFilesNames.size() + " fichiers");
+            findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
+          }
+
+          break;
         case "filesMissing":
           Log.d(TAG, "intentReceiver got action files missing");
           String max5 = intent.getStringExtra(EXTRA_MESSAGE);
           missingFilesNames.add(max5);
-
-          mDlProgressBar.setMax(missingFilesNames.size());
-            Log.d(TAG, "intentReceiver set progress bar " + missingFilesNames.size() + max5);
-            mDlProgressBar.setVisibility(View.VISIBLE);
+          findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
+          findViewById(R.id.button2).setVisibility(View.VISIBLE);
+          ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).setProgress(
+              missingFilesNames.size());
+          ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setSecondaryProgress(
+              missingFilesNames.size());
+          Log.d(TAG, "intentReceiver set progress bar " + missingFilesNames.size() + max5);
+          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
+              "il manque " + missingFilesNames.size() + " fichiers");
 
           break;
         case "imgShown":
@@ -405,34 +497,11 @@ missingFilesNames.clear();
       }
     }
   };
-  private boolean screenOrientationNormal;
-
-  @Override
-  protected void onStop() {
-    super.onStop();
-    mSlideshowIsRunning = false;
-    mSlideshowHandler.removeCallbacks(showNextRunnable);
-    mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
-    Log.d(TAG, "Activity.onStop()");
-//done in pause    unregisterReceiver(intentReceiver);
-  }
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //tools
-
-  @Override
-  protected void onPause() {
-    super.onPause();
-    mSlideshowHandler.removeCallbacks(showNextRunnable);
-    mSlideshowIsRunning=false;
-    Log.d(TAG, "Activity.onPause()");
-    unregisterReceiver(intentReceiver);
-
-  }
 
   @Override
   public void onSaveInstanceState(@NotNull Bundle outState) {
     super.onSaveInstanceState(outState);
+    outState.putBoolean("allfileschecked", fileschecked);
   }
 
   void initScreenMetrics() {
@@ -444,49 +513,42 @@ missingFilesNames.clear();
       getWindowManager().getDefaultDisplay().getMetrics(screenMetrics);
     }
 
-    boolean highDPI;
-    float screenDPI = screenMetrics.densityDpi;
-    float screenDensity = screenMetrics.scaledDensity;
-
-    screenWidth = screenMetrics.widthPixels ;
-    screenHeight = screenMetrics.heightPixels;
     //en dp
     pressMeTextSize = 48;
     pressTwoWordsTextSize = 32;
-    buttonTextSize = 20;
+    buttonTextSize = 24;
     //marge intérieure: entre le texte et la bordure du cadre (inversé si tablette en paysage)
-    buttonVerticalPadding = 20;
+    buttonVerticalPadding = 15;
     buttonHorizontalPadding = 20;
 
-    buttonVerticalMargin =28;
+    buttonVerticalMargin = 18;
     buttonHorizontalMargin = 20;
 
+    float screenDPI = screenMetrics.densityDpi;
+    float screenDensity = screenMetrics.scaledDensity;
+
     //in pixel
-    //ahah! buttonVerticalPadding *= screenDensity / 160;
-//buttonHorizontalPadding *= screenDensity / 160;
+
+    buttonVerticalPadding *= screenDensity;
+    buttonHorizontalPadding *= screenDensity;
 
     buttonVerticalMargin *= screenDensity;
     buttonHorizontalMargin *= screenDensity;
     buttonTextSize *= screenDensity;
 
-      pressMeTextSize *= screenDensity;
+    pressMeTextSize *= screenDensity;
 
     pressTwoWordsTextSize *= screenDensity;
-
     Log.d("dpi", "metrics returned DPI " + (int) (screenDPI / 160) + " density " + screenDensity);
 
     screenOrientationNormal = false;
 
-
-    //init GUI parts
-    pressMeTextView = findViewById(R.id.ui_press_meTextView);
-    centralLinearLayout = findViewById(R.id.ui_centralLinearLayout);
-    mImageView = findViewById(R.id.imageView);
-    mDlProgressBar = findViewById(R.id.ui_dl_ProgressBar);
-
-    Log.d("dpi", "we loaded activity fullscreen layout");
-    makeButtons();
-
+    screenWidth = screenMetrics.widthPixels;
+    screenHeight = screenMetrics.heightPixels;
+    //en dp
+    if (screenHeight > screenWidth) {
+      screenOrientationNormal = true;
+    }
     Log.d(TAG, "default screen width= " + screenWidth);
     Log.d(TAG, "default screen height= " + screenHeight);
   }
@@ -528,10 +590,16 @@ missingFilesNames.clear();
 
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    bundle = savedInstanceState;
     final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024);
     // Use maximum available memory for this memory cache.
     Log.d(TAG, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
       setContentView(R.layout.activity_fullscreen);
+    if (savedInstanceState != null) {
+
+      fileschecked = savedInstanceState.getBoolean("allfileschecked");
+      Log.d(TAG, " fileschecked=" + fileschecked);
+    }
     /************
 
     View iframe=findViewById(R.id.motherLayout);
@@ -541,46 +609,9 @@ missingFilesNames.clear();
     //inflate
     View dlLayout=getLayoutInflater().inflate(R.layout.activity_dlfullscreen,parent,false);
     parent.addView(dlLayout,index);
-********/
+     ********/
 
-    screenMetrics = new DisplayMetrics();
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      Objects.requireNonNull(getDisplay()).getRealMetrics(screenMetrics);
-    } else {
-      getWindowManager().getDefaultDisplay().getMetrics(screenMetrics);
-    }
-
-    boolean highDPI;
-    float screenDPI = screenMetrics.densityDpi;
-    float screenDensity = screenMetrics.scaledDensity;
-
-    screenWidth = screenMetrics.widthPixels ;
-    screenHeight = screenMetrics.heightPixels;
-    //en dp
-    pressMeTextSize = 48;
-    pressTwoWordsTextSize = 32;
-    buttonTextSize = 20;
-    //marge intérieure: entre le texte et la bordure du cadre (inversé si tablette en paysage)
-    buttonVerticalPadding = 20;
-    buttonHorizontalPadding = 20;
-
-    buttonVerticalMargin =28;
-    buttonHorizontalMargin = 20;
-
-    //in pixel
-    //ahah! buttonVerticalPadding *= screenDensity / 160;
-    //buttonHorizontalPadding *= screenDensity / 160;
-
-    buttonVerticalMargin *= screenDensity;
-    buttonHorizontalMargin *= screenDensity;
-    buttonTextSize *= screenDensity;
-
-    pressMeTextSize *= screenDensity;
-
-    pressTwoWordsTextSize *= screenDensity;
-
-
+    initScreenMetrics();
     filter = new IntentFilter("dlReceived");
     filter.addAction("dlStarted");
     filter.addAction("dlComplete");
@@ -588,6 +619,9 @@ missingFilesNames.clear();
     filter.addAction("filesAllOk");
     filter.addAction("filesMissing");
     filter.addAction("noJson");
+    filter.addAction("JSONok");
+    filter.addAction("JSONlocalonly");
+
     filter.addAction("imgShown");
     memoryCache = new LruCache<String, Bitmap>(cacheSize) {
       @Override
@@ -614,11 +648,15 @@ missingFilesNames.clear();
   @Override
   protected void onResume() {
     super.onResume();
-    Log.d(TAG, "onResume" + getIntent());
-//setScreenMetrics();
-    mAsyncTaskManager = new AsyncTaskManager(getApplicationContext(), screenWidth, screenHeight, memoryCache,
-        executor);
     registerReceiver(intentReceiver, filter);
+    mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
+
+    if (!fileschecked) {
+      Log.d(TAG, "onResume: no bundle" + getIntent());
+      //setScreenMetrics();
+      mAsyncTaskManager =
+          new AsyncTaskManager(getApplicationContext(), screenWidth, screenHeight, memoryCache,
+              executor);
 
   /*  View iframe=findViewById(R.id.motherLayout);
 
@@ -631,28 +669,27 @@ missingFilesNames.clear();
 //setContentView(dlLayout);
     makeButtons();
 */
-    android.app.ActionBar actionBar = getActionBar();
+      android.app.ActionBar actionBar = getActionBar();
 
-    if (actionBar != null) {
-      actionBar.hide();
-    }
+      if (actionBar != null) {
+        actionBar.hide();
+      }
 
-    this.mSlideshowFilesName = new ArrayList<>();
-    pwa = 0;
-    this.missingFilesNames = new ArrayList<>();
-    this.missingFilesNumber = 0;
-    // startActivity(new Intent(this, AsyncTaskManager.ListImageTask.class).pu);
+      this.mSlideshowFilesName = new ArrayList<>();
+      pwa = 0;
+      this.missingFilesNames = new ArrayList<>();
+      this.missingFilesNumber = 0;
+      // startActivity(new Intent(this, AsyncTaskManager.ListImageTask.class).pu);
 
-    //mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
-    mSlideshowIsRunning = false;
+      mSlideshowIsRunning = false;
 
-    //REGLAGE DE LAPPLI
-    //end runnables list
-    LinearLayout lm = findViewById(R.id.leftMenuLinearLayout);
-    LinearLayout rm = findViewById(R.id.rightMenuLinearLayout);
+      //REGLAGE DE LAPPLI
+      //end runnables list
+      LinearLayout lm = findViewById(R.id.leftMenuLinearLayout);
+      LinearLayout rm = findViewById(R.id.rightMenuLinearLayout);
 
-    Log.d(TAG,
-        "ListImageTask missing file after 5second and an intent? = " + missingFilesNames.size());
+      Log.d(TAG,
+          "ListImageTask missing file after 5second and an intent? = " + missingFilesNames.size());
 /*
     ((ImageView)findViewById(R.id.imageView))/.setOnLongClickListener(new View.OnLongClickListener() {
       @Override
@@ -664,61 +701,131 @@ missingFilesNames.clear();
       }
     });
 */
-/*check button*/
-    ((Button)findViewById(R.id.button)).setOnTouchListener(new OnTouchListener() {
+
+
+    /*update json (verifier l'appli )button
+    ((Button)findViewById(R.id.button5)).setOnTouchListener(new OnTouchListener() {
 
       @Override
       public boolean onTouch(View view, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
+
+          (findViewById(R.id.button5)).setBackgroundColor(getResources().getColor(R.color.OurWhite,null));
+          (findViewById(R.id.button2)).setBackgroundColor(getResources().getColor(R.color.OurWhite,null));
+          (findViewById(R.id.button)).setBackgroundColor(getResources().getColor(R.color.OurWhite,null));
           ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setProgress(0);
-new Thread(new Runnable() {
-  @Override public void run() {
-    ((ProgressBar)findViewById(R.id.ui_dl_ProgressBar)).setProgress(0);
-mSlideshowFilesName.clear();
-    org.tflsh.nosedive.AsyncTaskManager.ListImageTask.exec( M_SERVER_DIRECTORY_URL);
 
-  }
-}).start();
-        }
-      return true;
-      }
-    });
+          new Thread(new Runnable() {
+            @Override public void run() {
+              try {
+                Thread.sleep(1000);
+              } catch (InterruptedException e) {
+                e.printStackTrace();
+              }
+              org.tflsh.nosedive.AsyncTaskManager.ListImageTask.grabJson(M_SERVER_DIRECTORY_URL);
 
-
-    /*start button*/
-    ((Button)findViewById(R.id.button3)).setOnTouchListener(new OnTouchListener() {
-
-      @Override
-      public boolean onTouch(View view, MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_UP) {
-              View iframe=findViewById(R.id.motherLayout   );
-
-          ViewGroup parent = (ViewGroup) iframe.getParent();
-          int index=parent.indexOfChild(iframe);
-          parent.removeView(iframe);
-          //inflate
-          View dlLayout=getLayoutInflater().inflate(R.layout.slideshow,parent,false);
-          parent.addView(dlLayout,index);
-//  setContentView(dlLayout);
-makeButtons();
-    makeImageClickable();
-          mSlideshowHandler.post(mStartSlideshowRunnable);
-
+            }
+          }).start();
         }
         return true;
       }
     });
-    //////////
+  */  //////////
+
+      /*check files button*/
+      findViewById(R.id.button).setOnTouchListener(new OnTouchListener() {
+
+        @Override
+        public boolean onTouch(View view, MotionEvent event) {
+          if (event.getAction() == MotionEvent.ACTION_UP) {
+            (findViewById(R.id.button)).setBackgroundColor(
+                getResources().getColor(R.color.OurWhite, null));
+            //          (findViewById(R.id.button5)).setBackgroundColor(getResources().getColor(R.color.OurWhite,null));
+            (findViewById(R.id.button2)).setBackgroundColor(
+                getResources().getColor(R.color.OurWhite, null));
+            ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setProgress(0);
+            findViewById(R.id.button2).setVisibility(View.GONE);
+
+            missingFilesNames.clear();
+            new Thread(new Runnable() {
+              @Override public void run() {
+                try {
+                  Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                  e.printStackTrace();
+                }
+                mSlideshowFilesName.clear();
+                org.tflsh.nosedive.AsyncTaskManager.ListImageTask.exec(M_SERVER_DIRECTORY_URL);
+              }
+            }).start();
+          }
+          return true;
+        }
+      });
 
 
 
+      /*repair files button*/
+      findViewById(R.id.button2).setOnTouchListener(new OnTouchListener() {
 
+        @Override
+        public boolean onTouch(View view, MotionEvent event) {
+          if (event.getAction() == MotionEvent.ACTION_UP) {
+            (findViewById(R.id.button2)).setBackgroundColor(
+                getResources().getColor(R.color.OurWhite, null));
+
+            (findViewById(R.id.button)).setBackgroundColor(
+                getResources().getColor(R.color.OurWhite, null));
+            //   (findViewById(R.id.button5)).setBackgroundColor(getResources().getColor(R.color.OurWhite,null));
+
+            new Thread(new Runnable() {
+              @Override public void run() {
+
+                org.tflsh.nosedive.AsyncTaskManager.ListImageTask.repairfiles(
+                    M_SERVER_DIRECTORY_URL, missingFilesNames);
+              }
+            }).start();
+          }
+          return true;
+        }
+      });
+      //////////
+
+      new Thread(new Runnable() {
+        @Override public void run() {
+          try {
+            Thread.sleep(1000);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+          org.tflsh.nosedive.AsyncTaskManager.ListImageTask.grabJson(M_SERVER_DIRECTORY_URL);
+        }
+      }).start();
+    } else {
+      Log.e("onResume", "files were already ALLOK");
+
+      if (findViewById(R.id.imageView) == null) {
+        View iframe = findViewById(R.id.motherLayout);
+        //*
+        ViewGroup parent = (ViewGroup) iframe.getParent();
+        int index = parent.indexOfChild(iframe);
+        parent.removeView(iframe);
+        //inflate
+        View dlLayout = getLayoutInflater().inflate(R.layout.slideshow, parent, false);
+        parent.addView(dlLayout, index);
+        //  setContentView(dlLayout);
+        makeButtons();
+        makeImageClickable();
+      }
+      initScreenMetrics();
+      mSlideshowHandler.post(mStartSlideshowRunnable);
+    }
 
   }
 
   private void makeImageClickable() {
     Log.d(TAG, "makeImageClickable(): image is now clickable");
-    ((ImageView)findViewById(R.id.imageView)).setOnClickListener(new View.OnClickListener() {
+    findViewById(R.id.imageView).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
 
@@ -726,7 +833,7 @@ makeButtons();
         mHideHandler.postDelayed(showMenuRunnable, UI_ANIMATION_DELAY);
       }
     });
-    ((ImageView)findViewById(R.id.imageView)).setClickable(true);
+    findViewById(R.id.imageView).setClickable(true);
 
 
 
@@ -862,19 +969,6 @@ makeButtons();
     }
   }
 
-  private boolean isInternetOk() {
-    //https://developer.android.com/training/monitoring-device-state/connectivity-status-type
-    ConnectivityManager cm =
-        (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      Network activeNetwork = cm.getActiveNetwork();
-      return Objects.requireNonNull(cm.getNetworkCapabilities(activeNetwork))
-          .hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
-    } else {
-      NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-      return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-    }
-  }
 /*
   enum appStatus {
     SUMMING, DL_IN_PROGRESS, PLAYING, MENU, GUESSING,

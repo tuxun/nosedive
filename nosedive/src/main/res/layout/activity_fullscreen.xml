@@ -8,6 +8,15 @@
     android:id="@+id/motherLayout"
 
     >
+    <ImageButton
+        android:id="@+id/settingsImageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxHeight="30dp"
+        android:minHeight="18dp"
+        android:src="@drawable/ic_build_circle_black"
+
+        />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,20 +28,17 @@
             android:id="@+id/button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="checkfiles"
+            android:text="Vérifier les fichiers"
             />
         <Button
             android:id="@+id/button2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="dlmissing"
+            android:clickable="false"
+            android:text="Réparer les fichiers*"
+            android:visibility="gone"
             />
-        <Button
-            android:id="@+id/button3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="config"
-            />
+
     </LinearLayout>
     <LinearLayout
 
@@ -42,34 +48,55 @@
         android:background="@color/testGreen"
         >
         <LinearLayout
+
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:id="@+id/dlLayout"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
             >
-
-            <TextView
-                android:id="@+id/ui_dl_progressTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center|bottom"
-                android:text="@string/dl_progressText"
-                android:textSize="30sp"
-                />
-
             <ProgressBar
                 android:id="@+id/ui_dl_ProgressBar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:indeterminateOnly="false"
                 android:max="132"
+                android:layout_marginRight="0dp"
+                android:gravity="right"
+                android:maxHeight="30dp"
+                android:maxWidth="30dp"
+                android:soundEffectsEnabled="false"
                 android:progressDrawable="@drawable/ringprogressbar"
+                android:visibility="gone"
+                />
+            <TextView
+                android:id="@+id/ui_dl_progressTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:text="patientez"
+                android:textSize="30sp"
+                />
+        </LinearLayout>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/dlLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/default_background"
+            android:gravity="top|center"
+            android:orientation="vertical"
+            >
+
+            <ProgressBar
+                android:id="@+id/ui_missing_ProgressBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?android:attr/progressBarStyleHorizontal"
                 />
 
 
-        </LinearLayout>
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
-</LinearLayout>
+    </LinearLayout>
 
 
 </LinearLayout>
