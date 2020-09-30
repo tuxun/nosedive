@@ -1,4 +1,8 @@
 @startuml
+
+
+System->SlideshowActivity: startIntent
+System->SlideshowActivity: configurationChangedIntent
 AsyncTaskManager->SlideshowActivity: filesMissing
 AsyncTaskManager->SlideshowActivity: filesFound
 AsyncTaskManager->SlideshowActivity: filesAllOk
@@ -10,10 +14,6 @@ AsyncTaskManager->SlideshowActivity: dlComplete
 AsyncTaskManager->SlideshowActivity: dlReceived
 AsyncTaskManager->SlideshowActivity: dlStarted
 
-
-
-System->SlideshowActivity: startIntent
-System->SlideshowActivity: configurationChangedIntent
 
 
 @enduml
