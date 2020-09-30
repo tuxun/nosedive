@@ -738,15 +738,15 @@ missingFilesNames.clear();
         @Override
         public boolean onTouch(View view, MotionEvent event) {
           if (event.getAction() == MotionEvent.ACTION_UP) {
-            (findViewById(R.id.button)).setBackgroundColor(
-                getResources().getColor(R.color.OurWhite, null));
+
+      //      (findViewById(R.id.button)).setBackgroundColor(
+         //       getResources().getColor(R.color.OurWhite, null));
             //          (findViewById(R.id.button5)).setBackgroundColor(getResources().getColor(R.color.OurWhite,null));
-            (findViewById(R.id.button2)).setBackgroundColor(
-                getResources().getColor(R.color.OurWhite, null));
+           // (findViewById(R.id.button2)).setBackgroundColor(
+             //   getResources().getColor(R.color.OurWhite, null));
             ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setProgress(0);
             findViewById(R.id.button2).setVisibility(View.GONE);
 
-            missingFilesNames.clear();
             new Thread(new Runnable() {
               @Override public void run() {
                 try {
@@ -754,6 +754,8 @@ missingFilesNames.clear();
                 } catch (InterruptedException e) {
                   e.printStackTrace();
                 }
+                missingFilesNames.clear();
+
                 mSlideshowFilesName.clear();
                 org.tflsh.nosedive.AsyncTaskManager.ListImageTask.exec(M_SERVER_DIRECTORY_URL);
               }

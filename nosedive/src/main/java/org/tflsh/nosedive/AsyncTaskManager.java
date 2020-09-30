@@ -26,6 +26,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.math.BigInteger;
+import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
@@ -510,7 +511,13 @@ Log.e(CLASSNAME,"cache is full, loading image from disk");}
 
                 e.printStackTrace();
                 return localFile;
-            } catch (
+            }
+            catch (ConnectException e)
+            {Log.e(CLASSNAME, "Unable to download json file from internet (we think we have internet but we dont");
+                e.printStackTrace();
+            return null;}
+
+            catch (
                 IOException e) {
                 Log.e(CLASSNAME, "Unable to download json file from internet");
                 e.printStackTrace();
