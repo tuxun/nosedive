@@ -1,6 +1,8 @@
 package org.tflsh.nosedive;
 
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -303,6 +305,8 @@ public class SlideshowActivity extends Activity {
   };
   boolean fileschecked = false;
   private boolean screenOrientationNormal;
+  private org.tflsh.nosedive.GrabFilesBackgroundTask mBackgroundFilesGrabber;
+  private org.tflsh.nosedive.SlideshowFragment mSlideshowFragment;
 
   @Override
   protected void onStop() {
@@ -343,13 +347,13 @@ public class SlideshowActivity extends Activity {
         case "dlReceived":
           Log.d(TAG, "intentReceiver got action dl received");
           //mDlProgressBar.setVisibility(View.VISIBLE);
-          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText("il manque "
+          ((Button) findViewById(R.id.checkFilesButton)).setText("Téléchargement en cours de  "
               + ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
               + " fichiers");
 
           ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).incrementProgressBy(-1);
           ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
-          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(R.string.string_wait4dl);
+          //((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(R.string.string_wait4dl);
           break;
         case "dlComplete":
           Log.d(TAG, "intentReceiver got action dl complete");
@@ -423,7 +427,7 @@ missingFilesNames.clear();
           break;
         //TODO:
         case "filesAllOk":
-          (findViewById(R.id.button)).setBackgroundColor(
+          (findViewById(R.id.checkFilesButton)).setBackgroundColor(
               getResources().getColor(R.color.OurPink, null));
           if (missingFilesNames.isEmpty()) {
             fileschecked = true;
@@ -439,19 +443,8 @@ missingFilesNames.clear();
               public boolean onTouch(View view, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                   fileschecked = true;
-
-                  View iframe = findViewById(R.id.motherLayout);
-                  //*
-                  ViewGroup parent = (ViewGroup) iframe.getParent();
-                  int index = parent.indexOfChild(iframe);
-                  parent.removeView(iframe);
-                  //inflate
-                  View dlLayout = getLayoutInflater().inflate(R.layout.slideshow, parent, false);
-                  parent.addView(dlLayout, index);
-                  //  setContentView(dlLayout);
-                  makeButtons();
-                  makeImageClickable();
-                  mSlideshowHandler.post(mStartSlideshowRunnable);
+                  //!!!loadSlideshowLayout();
+                  loadSlideshowFragment();
                   //*/
 
                 }
@@ -657,6 +650,8 @@ missingFilesNames.clear();
       mAsyncTaskManager =
           new AsyncTaskManager(getApplicationContext(), screenWidth, screenHeight, memoryCache,
               executor);
+      mBackgroundFilesGrabber =          new org.tflsh.nosedive.GrabFilesBackgroundTask(getApplicationContext());
+      mSlideshowFragment =          new org.tflsh.nosedive.SlideshowFragment();
 
   /*  View iframe=findViewById(R.id.motherLayout);
 
@@ -733,12 +728,13 @@ missingFilesNames.clear();
   */  //////////
 
       /*check files button*/
-      findViewById(R.id.button).setOnTouchListener(new OnTouchListener() {
+      findViewById(R.id.checkFilesButton).setOnTouchListener(new OnTouchListener() {
 
         @Override
         public boolean onTouch(View view, MotionEvent event) {
           if (event.getAction() == MotionEvent.ACTION_UP) {
-
+            ((Button)view).setClickable(false);
+            ((Button)view).setEnabled(false);
       //      (findViewById(R.id.button)).setBackgroundColor(
          //       getResources().getColor(R.color.OurWhite, null));
             //          (findViewById(R.id.button5)).setBackgroundColor(getResources().getColor(R.color.OurWhite,null));
@@ -757,7 +753,7 @@ missingFilesNames.clear();
                 missingFilesNames.clear();
 
                 mSlideshowFilesName.clear();
-                org.tflsh.nosedive.AsyncTaskManager.ListImageTask.exec(M_SERVER_DIRECTORY_URL);
+               mBackgroundFilesGrabber.exec(M_SERVER_DIRECTORY_URL);
               }
             }).start();
           }
@@ -776,14 +772,14 @@ missingFilesNames.clear();
             (findViewById(R.id.button2)).setBackgroundColor(
                 getResources().getColor(R.color.OurWhite, null));
 
-            (findViewById(R.id.button)).setBackgroundColor(
+            (findViewById(R.id.checkFilesButton)).setBackgroundColor(
                 getResources().getColor(R.color.OurWhite, null));
             //   (findViewById(R.id.button5)).setBackgroundColor(getResources().getColor(R.color.OurWhite,null));
 
             new Thread(new Runnable() {
               @Override public void run() {
 
-                org.tflsh.nosedive.AsyncTaskManager.ListImageTask.repairfiles(
+               mBackgroundFilesGrabber.repairfiles(
                     M_SERVER_DIRECTORY_URL, missingFilesNames);
               }
             }).start();
@@ -800,30 +796,78 @@ missingFilesNames.clear();
           } catch (InterruptedException e) {
             e.printStackTrace();
           }
-          org.tflsh.nosedive.AsyncTaskManager.ListImageTask.grabJson(M_SERVER_DIRECTORY_URL);
+          mBackgroundFilesGrabber.grabJson(M_SERVER_DIRECTORY_URL);
         }
       }).start();
     } else {
       Log.e("onResume", "files were already ALLOK");
+      initScreenMetrics();
 
       if (findViewById(R.id.imageView) == null) {
-        View iframe = findViewById(R.id.motherLayout);
-        //*
-        ViewGroup parent = (ViewGroup) iframe.getParent();
-        int index = parent.indexOfChild(iframe);
-        parent.removeView(iframe);
-        //inflate
-        View dlLayout = getLayoutInflater().inflate(R.layout.slideshow, parent, false);
-        parent.addView(dlLayout, index);
-        //  setContentView(dlLayout);
-        makeButtons();
-        makeImageClickable();
+        Log.e("onResume", "loading fragment");
+//!!!loadSlideshowLayout();
+  loadSlideshowFragment();
       }
-      initScreenMetrics();
-      mSlideshowHandler.post(mStartSlideshowRunnable);
     }
 
   }
+
+  private void loadSlideshowLayout() {
+    View iframe = findViewById(R.id.motherLayout);
+
+    ViewGroup parent = (ViewGroup) iframe.getParent();
+    int index = parent.indexOfChild(iframe);
+    parent.removeView(iframe);
+    //inflate
+    View dlLayout = getLayoutInflater().inflate(R.layout.slideshow, parent, false);
+    parent.addView(dlLayout, index);
+    //  setContentView(dlLayout);
+    makeButtons();
+    makeImageClickable();
+    mSlideshowHandler.post(mStartSlideshowRunnable);
+
+  }
+
+  private void loadSlideshowFragment() {
+
+
+    Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
+
+
+    View iframe = findViewById(R.id.buttons);
+
+    ViewGroup parent = (ViewGroup) iframe.getParent();
+    int index = parent.indexOfChild(iframe);
+    parent.removeView(iframe);
+
+    Log.d(TAG, "loadSlideshowFragment()");
+
+
+    Bundle args = new Bundle();
+    args.putStringArrayList("SlideshowFilenames", mSlideshowFilesName);
+    mSlideshowFragment.setArguments(args);
+
+
+
+
+
+
+
+
+
+
+
+
+
+    FragmentManager manager = getFragmentManager();
+    FragmentTransaction transaction = manager.beginTransaction();
+    transaction.add(R.id.motherLayout,mSlideshowFragment,"MULTIFACETTE_SLIDESHOW");
+    transaction.addToBackStack(null);
+    transaction.commit();
+    //mSlideshowHandler.post(mStartSlideshowRunnable);
+
+  }
+
 
   private void makeImageClickable() {
     Log.d(TAG, "makeImageClickable(): image is now clickable");

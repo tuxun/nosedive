@@ -6,29 +6,31 @@
     android:layout_height="match_parent"
     tools:context=".SlideshowActivity"
     android:id="@+id/motherLayout"
-
+android:gravity="center"
     >
-    <ImageButton
-        android:id="@+id/settingsImageButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:maxHeight="30dp"
-        android:minHeight="18dp"
-        android:src="@drawable/ic_build_circle_black"
 
-        />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:id="@+id/buttons"
-        >
+        android:gravity="center"
 
+        >
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@drawable/default_background"
+            />
         <Button
-            android:id="@+id/button"
+            android:id="@+id/checkFilesButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Vérifier les fichiers"
+            android:background="@drawable/ic_bouttonoff"
+
+            android:layout_margin="7dp"
+
             />
         <Button
             android:id="@+id/button2"
@@ -37,65 +39,76 @@
             android:clickable="false"
             android:text="Réparer les fichiers*"
             android:visibility="gone"
+            android:layout_margin="7dp"
+            android:background="@drawable/ic_bouttonoff"
+
             />
 
-    </LinearLayout>
-    <LinearLayout
 
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="@color/testGreen"
-        >
+
+        <TextView
+            android:id="@+id/ui_dl_progressTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="patientez"
+            android:textSize="30sp"
+            />
+        <ProgressBar
+            android:id="@+id/ui_missing_ProgressBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_margin="7dp"
+            android:progressTint="@color/OurPink"
+
+            />
+        <ProgressBar
+            android:id="@+id/ui_dl_ProgressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminateOnly="false"
+            android:max="132"
+            android:maxHeight="120dp"
+            android:maxWidth="60dp"
+            android:minHeight="120dp"
+            android:minWidth="60dp"
+
+            android:soundEffectsEnabled="false"
+            android:progressDrawable="@drawable/ringprogressbar"
+            android:visibility="visible"
+
+            />
         <LinearLayout
 
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="horizontal"
             >
-            <ProgressBar
-                android:id="@+id/ui_dl_ProgressBar"
+            <ImageButton
+                android:id="@+id/settingsImageButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:indeterminateOnly="false"
-                android:max="132"
-                android:layout_marginRight="0dp"
-                android:gravity="right"
-                android:maxHeight="30dp"
-                android:maxWidth="30dp"
-                android:soundEffectsEnabled="false"
-                android:progressDrawable="@drawable/ringprogressbar"
-                android:visibility="gone"
+                android:maxHeight="120dp"
+                android:maxWidth="60dp"
+                android:minHeight="120dp"
+                android:minWidth="60dp"
+
+                android:src="@drawable/ic_iconfinder_42_web_essential_3401860"
+
                 />
-            <TextView
-                android:id="@+id/ui_dl_progressTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="left"
-                android:text="patientez"
-                android:textSize="30sp"
-                />
+            <ImageButton
+            android:id="@+id/aboutImageButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxHeight="120dp"
+            android:maxWidth="60dp"
+            android:minHeight="120dp"
+            android:minWidth="60dp"
+android:gravity="right"
+            android:src="@drawable/ic_iconfinder_v_31_3162614"
+
+            />
         </LinearLayout>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/dlLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/default_background"
-            android:gravity="top|center"
-            android:orientation="vertical"
-            >
-
-            <ProgressBar
-                android:id="@+id/ui_missing_ProgressBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                style="?android:attr/progressBarStyleHorizontal"
-                />
-
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
     </LinearLayout>
 
 
