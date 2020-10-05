@@ -1,5 +1,6 @@
 package org.tflsh.nosedive;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -28,15 +29,15 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
-import static org.tflsh.nosedive.AsyncTaskManager.executor;
-import static org.tflsh.nosedive.AsyncTaskManager.sendMessageWithString;
+import static org.tflsh.nosedive.BackgroundImageDecoder.executor;
 
 public class GrabFilesBackgroundTask extends Fragment {
 
-    private static final String CLASSNAME = "ListImageTask";
+    private static final String CLASSNAME = "GrabFilesBackgroundTask";
     // static List<String> name;
     static String urlSource;
     static List<String> missingImagesNames;
@@ -54,12 +55,8 @@ public class GrabFilesBackgroundTask extends Fragment {
         public void run() {
 
           try {
-            File localJsonFile = grabJson(urlSource);
-            try {
-              Thread.sleep(1000);
-            } catch (InterruptedException e) {
-              e.printStackTrace();
-            }
+            File localJsonFile = new File(mContext.getCacheDir().getAbsolutePath(), FILELIST_JSON);
+
             if (localJsonFile == null) {
 
               Log.d(CLASSNAME, "unable to create json");
@@ -76,7 +73,7 @@ public class GrabFilesBackgroundTask extends Fragment {
             if (result.isEmpty()) {
 
               Log.e(CLASSNAME, "EMPTY json file!!!");
-              AsyncTaskManager.sendMessage(AsyncTaskManager.NO_JSON);
+              sendMessage(NO_JSON);
               Log.e(CLASSNAME,
                   "no results: unable to get json from internet or to create files");
             } else {
@@ -92,9 +89,11 @@ public class GrabFilesBackgroundTask extends Fragment {
         }
       };
     }
-public Context mContext;
+public static Context mContext;
   public GrabFilesBackgroundTask(Context applicationContext) {
     mContext=applicationContext;
+    executor = Executors.newFixedThreadPool(1);
+
   }
 
   /**
@@ -195,7 +194,7 @@ public Context mContext;
         getFile(urlSource, mContext.getCacheDir().getAbsolutePath(), name);
       }
 
-      AsyncTaskManager.sendMessage("dlComplete");
+      sendMessage("dlComplete");
     }
 
     //parse the json file, start the dl of missing files or of corrupted files
@@ -279,7 +278,7 @@ public Context mContext;
         );
         if ((!everyImagesNames.isEmpty()) && (missingImagesNames.isEmpty())) {
           Log.d(CLASSNAME, "last file, starting slideshow");
-          AsyncTaskManager.sendMessage("filesAllOk");
+          sendMessage("filesAllOk");
         }
         Log.d(CLASSNAME,
             "Finished all threads (WARING: not really, we just removed the test)");
@@ -435,10 +434,10 @@ public Context mContext;
         if (!checkFile(mContext.getCacheDir().getAbsolutePath(), FILELIST_JSON)) {
           Log.d(CLASSNAME,
               "grabJson update forced was canceled cause not internet");
-          AsyncTaskManager.sendMessage("noJson");
+          sendMessage("noJson");
           return null;
         } else {
-          AsyncTaskManager.sendMessage("JSONlocalonly");
+          sendMessage("JSONlocalonly");
           return new File(mContext.getCacheDir().getAbsolutePath(), FILELIST_JSON);
         }
       } else {
@@ -450,14 +449,41 @@ public Context mContext;
         if (checkFile(mContext.getCacheDir().getAbsolutePath(), FILELIST_JSON)) {
           Log.d(CLASSNAME,
               "grabJson got local file after update");
-          AsyncTaskManager.sendMessage("JSONok");
+          sendMessage("JSONok");
           return new File(mContext.getCacheDir().getAbsolutePath(), FILELIST_JSON);
         } else {
           Log.d(CLASSNAME,
               "grabJson got no local file and was unable to dl the update");
-          AsyncTaskManager.sendMessage("noJson");
+          sendMessage("noJson");
           return null;
         }
       }
     }
+  public static void sendMessage(String message) {
+
+    Intent intent = new Intent(message);    //action: "msg"
+    intent.setPackage(mContext.getPackageName());
+    mContext.sendBroadcast(intent);
+  }
+
+  public static final String NO_JSON = "noJson";
+  static final String EXTRA_MESSAGE = "EXTRA_MESSAGE";
+
+  public  void sendMessageWithInt(String message, int params) {
+
+    Intent intent = new Intent(message);    //action: "msg"
+    intent.setPackage(mContext.getPackageName());
+
+    intent.putExtra(EXTRA_MESSAGE, params);
+    mContext.sendBroadcast(intent);
+  }
+
+  public static void sendMessageWithString(String message, String params) {
+
+    Intent intent = new Intent(message);    //action: "msg"
+    intent.setPackage(mContext.getPackageName());
+
+    intent.putExtra(EXTRA_MESSAGE, params);
+    mContext.sendBroadcast(intent);
+  }
   }

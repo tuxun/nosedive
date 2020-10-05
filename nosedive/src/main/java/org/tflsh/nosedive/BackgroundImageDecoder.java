@@ -40,12 +40,10 @@ import java.util.concurrent.TimeUnit;
 
 import static java.lang.System.currentTimeMillis;
 
-public class AsyncTaskManager extends Activity {
-    static final String CLASSNAME = "AsyncTaskManager";
+public class BackgroundImageDecoder extends Activity {
+    static final String CLASSNAME = "BackgroundImageDecoder";
     private final LruCache<String, Bitmap> memoryCache;
 
-    public static final String NO_JSON = "noJson";
-    static final String EXTRA_MESSAGE = "EXTRA_MESSAGE";
     static ExecutorService executor;// = Executors.newFixedThreadPool(1);
 
     /**
@@ -54,7 +52,6 @@ public class AsyncTaskManager extends Activity {
     static Context mContext;
     final int screenWidth;
     final int screenHeight;
-    private static File mCacheDir;
     private static int currentFile;
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -62,12 +59,12 @@ public class AsyncTaskManager extends Activity {
     private static int missingFilesNumber;
 
     //constructor: save the context for later uses
-    public AsyncTaskManager(Context ctx, int width, int height,LruCache<String, Bitmap> memoryCacheArg,ExecutorService executorArg) {
+    public BackgroundImageDecoder(Context ctx, int width, int height,LruCache<String, Bitmap> memoryCacheArg,ExecutorService executorArg) {
         executor=executorArg;
         Log.d("asyncTaskManager", "starting helper with context");
         this.memoryCache=memoryCacheArg;
         mContext = ctx;
-        mCacheDir = ctx.getCacheDir();
+        File mCacheDir = ctx.getCacheDir();
         //tuxun: try lru cache for large bitmap
         // Get max available VM memory, exceeding this amount will throw an
         // OutOfMemory exception. Stored in kilobytes as LruCache takes an
@@ -77,30 +74,7 @@ public class AsyncTaskManager extends Activity {
         screenHeight = height;
     }
 
-    public static void sendMessage(String message) {
 
-        Intent intent = new Intent(message);    //action: "msg"
-        intent.setPackage(mContext.getPackageName());
-        mContext.sendBroadcast(intent);
-    }
-
-    public static void sendMessageWithInt(String message, int params) {
-
-        Intent intent = new Intent(message);    //action: "msg"
-        intent.setPackage(mContext.getPackageName());
-
-        intent.putExtra(EXTRA_MESSAGE, params);
-        mContext.sendBroadcast(intent);
-    }
-
-    public static void sendMessageWithString(String message, String params) {
-
-        Intent intent = new Intent(message);    //action: "msg"
-        intent.setPackage(mContext.getPackageName());
-
-        intent.putExtra(EXTRA_MESSAGE, params);
-        mContext.sendBroadcast(intent);
-    }
     ////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////@ListImageTask////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////
@@ -121,8 +95,8 @@ public class AsyncTaskManager extends Activity {
         // Calculate inSampleSize
         options.inSampleSize = calculateInSampleSize(options, (int) (reqWidth / 1.5),
             (int) (reqHeight / 1.5));
-        options.inSampleSize = calculateInSampleSize(options, (int) (reqWidth / 2),
-            (int) (reqHeight / 2));
+        options.inSampleSize = calculateInSampleSize(options, reqWidth / 2,
+            reqHeight / 2);
         options.inPreferQualityOverSpeed = true;
         return BitmapFactory.decodeFile(res, options);
     }

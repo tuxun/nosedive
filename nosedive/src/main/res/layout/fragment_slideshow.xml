@@ -3,8 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0099cc"
     tools:context=".SlideshowFragment"
+    android:id="@+id/SlideshowFragment"
+
     >
 
   <!-- The primary full-screen view. This can be replaced with whatever view
@@ -64,25 +65,7 @@
         android:orientation="vertical"
         android:visibility="gone">
     </LinearLayout>
-    <LinearLayout
-        android:id="@+id/ui_centralLinearLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        >
 
-      <ImageView
-          android:id="@+id/imageView"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:adjustViewBounds="true"
-          android:scaleType="fitStart"
-          />
-
-
-
-
-    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/rightMenuLinearLayout"
@@ -114,7 +97,8 @@
         android:gravity="center"
         android:layout_gravity="center"
         android:text="@string/string_press_me"
-        android:textSize="48sp"
+        android:textColor="@color/OurPink"
+        android:textSize="50sp"
         android:fontFamily="@font/alef"
         />
   </LinearLayout>

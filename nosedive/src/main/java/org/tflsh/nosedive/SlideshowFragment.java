@@ -3,6 +3,7 @@ package org.tflsh.nosedive;
 import android.annotation.SuppressLint;
 
 import android.app.Fragment;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
@@ -29,7 +30,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.core.content.res.ResourcesCompat;
-import androidx.fragment.app.FragmentActivity;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Random;
@@ -41,6 +42,8 @@ import java.util.concurrent.Executors;
  * status bar and navigation/system bar) with user interaction.
  */
 public class SlideshowFragment extends Fragment {
+
+  private View mParentView;
 
   public SlideshowFragment ()
   {
@@ -73,12 +76,19 @@ public class SlideshowFragment extends Fragment {
       // Note that some of these constants are new as of API 16 (Jelly Bean)
       // and API 19 (KitKat). It is safe to use them, as they are inlined
       // at compile-time and do nothing on earlier devices.
-      int flags = View.SYSTEM_UI_FLAG_LOW_PROFILE
+      /*int flags = View.SYSTEM_UI_FLAG_LOW_PROFILE
           | View.SYSTEM_UI_FLAG_FULLSCREEN
           | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
           | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
           | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
           | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+          */
+      int flags =View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+          | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+          | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+          | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+          | View.SYSTEM_UI_FLAG_FULLSCREEN
+          | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
 
       Activity activity = getActivity();
       if (activity != null
@@ -100,6 +110,7 @@ public class SlideshowFragment extends Fragment {
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
       if (AUTO_HIDE) {
+        view.performClick();
         delayedHide(AUTO_HIDE_DELAY_MILLIS);
       }
       return false;
@@ -115,7 +126,7 @@ public class SlideshowFragment extends Fragment {
       if (actionBar != null) {
         actionBar.show();
       }
-      mControlsView.setVisibility(View.VISIBLE);
+      mParentView.setVisibility(View.VISIBLE);
     }
   };
 
@@ -126,8 +137,7 @@ public class SlideshowFragment extends Fragment {
   private int pwa = 0;
   private TextView pressMeTextView;
 
-  //ne devrait plus exister?/devenir un showimagetask seulement
-  AsyncTaskManager mAsyncTaskManager;
+  BackgroundImageDecoder mBackgroundImageDecoder;
 
   private int buttonVerticalPadding;
   private int buttonHorizontalPadding;
@@ -140,13 +150,17 @@ public class SlideshowFragment extends Fragment {
       hide();
     }
   };
-  private LruCache<String, Bitmap> memoryCache;
-
+ Context mContext;
+ File mCacheDirPath;
   @Nullable
   @Override
   public View onCreateView(@NonNull LayoutInflater inflater,
       @Nullable ViewGroup container,
       @Nullable Bundle savedInstanceState) {
+    mContext=container.getContext();
+    mCacheDirPath=mContext.getCacheDir();
+    mParentView = container.findViewById(R.id.motherLayout);
+
     return inflater.inflate(R.layout.fragment_slideshow, container, false);
   }
 //quand on crée le fragment, on commence forcemment par une image du slideshow
@@ -157,7 +171,9 @@ public class SlideshowFragment extends Fragment {
     // Use maximum available memory for this memory cache.
     Log.d(TAG, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
 
-    memoryCache = new LruCache<String, Bitmap>(cacheSize) {
+    // The cache size will be measured in kilobytes rather than
+    // number of items.
+    LruCache<String, Bitmap> memoryCache = new LruCache<String, Bitmap>(cacheSize) {
       @Override
       protected int sizeOf(String key, Bitmap bitmap) {
         // The cache size will be measured in kilobytes rather than
@@ -170,24 +186,28 @@ public class SlideshowFragment extends Fragment {
     mVisible = true;
     initScreenMetrics();
     executor = Executors.newFixedThreadPool(1);
-    mAsyncTaskManager =
-        new AsyncTaskManager(getContext(), screenWidth, screenHeight, memoryCache,
+    mBackgroundImageDecoder =
+        new BackgroundImageDecoder(mContext, screenWidth, screenHeight, memoryCache,
             executor);
     mControlsView = view.findViewById(R.id.fullscreen_content_controls);
     mContentView = view.findViewById(R.id.fullscreen_content);
 
     // Set up the user interaction to manually show or hide the system UI.
-    mContentView.setOnClickListener(new View.OnClickListener() {
+    mParentView.setOnLongClickListener(new View.OnLongClickListener() {
       @Override
-      public void onClick(View view) {
+      public boolean onLongClick(View view) {
         toggle();
+        return false;
       }
     });
-
+    Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
+    View iframe = mParentView.findViewById(R.id.startupScreenLinearLayout);
+    ViewGroup parent = (ViewGroup) iframe.getParent();
+    parent.removeView(iframe);
     // Upon interacting with UI controls, delay any scheduled hide()
     // operations to prevent the jarring behavior of controls going away
     // while interacting with the UI.
-    view.findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+    //!parent.findViewById(R.id.motherLayout).setOnTouchListener(mDelayHideTouchListener);
     makeButtons();
     makeImageClickable();
 
@@ -224,7 +244,7 @@ public class SlideshowFragment extends Fragment {
 
     for (String buttonName : buttonNames) {
 
-      Button tempButton = new AppCompatButton(getContext()) {
+      Button tempButton = new AppCompatButton(mContext) {
         @Override public boolean performClick() {
           super.performClick();
           return true;
@@ -234,9 +254,9 @@ public class SlideshowFragment extends Fragment {
           ResourcesCompat.getDrawable(getResources(), R.drawable.ic_bouttonoff, null));
       tempButton.setText(buttonName);
       tempButton.setStateListAnimator(null);
-      tempButton.setTypeface(ResourcesCompat.getFont(getContext(), R.font.alef));
+      tempButton.setTypeface(ResourcesCompat.getFont(mContext, R.font.alef));
 
-      tempButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, buttonTextSize);
+      tempButton.setTextSize(TypedValue.COMPLEX_UNIT_PX, buttonTextSize);
       tempButton.setAllCaps(true);
       LinearLayout.LayoutParams layoutParams =
           new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
@@ -333,7 +353,7 @@ public class SlideshowFragment extends Fragment {
 
   private void makeImageClickable() {
     Log.d(TAG, "makeImageClickable(): image is now clickable");
-    mContentView.findViewById(R.id.imageView).setOnClickListener(new View.OnClickListener() {
+    mParentView.findViewById(R.id.imageView).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
 
@@ -341,7 +361,7 @@ public class SlideshowFragment extends Fragment {
         mHideHandler.postDelayed(showMenuRunnable, UI_ANIMATION_DELAY);
       }
     });
-    mContentView.findViewById(R.id.imageView).setClickable(true);
+    mParentView.findViewById(R.id.imageView).setClickable(true);
 
 
 
@@ -382,22 +402,22 @@ public class SlideshowFragment extends Fragment {
 
       int nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
       if (pwa < mSlideshowFilesName.size()) {
-        if ((pwa % 2) == 1) {
+        if ((pwa % 2) ==0) {
 
           executor.execute(
-              mAsyncTaskManager.new ShowImageTask(
-                  (ImageView) mContentView.findViewById(R.id.imageView),
+              mBackgroundImageDecoder.new ShowImageTask(
+                  (ImageView) mParentView.findViewById(R.id.imageView),
                   DELAY_INTER_FRAME_SETTING,
-                  getContext().getCacheDir() + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
+                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
           );
           ((TextView)mContentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurWhite));
         } else {
 
           executor.execute(
-              mAsyncTaskManager.new ShowImageTask(
-                  ((ImageView)mContentView.findViewById(R.id.imageView)),
+              mBackgroundImageDecoder.new ShowImageTask(
+                  ((ImageView)mParentView.findViewById(R.id.imageView)),
                   DELAY_INTER_FRAME_SETTING,
-                  getContext().getCacheDir() + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
+                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
           );
           ((TextView)mContentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurPink));
         }
@@ -432,9 +452,41 @@ public class SlideshowFragment extends Fragment {
 
       mContentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
       mContentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
-      mContentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
+      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
     }
   };
+
+
+  @Override
+  public void onStop() {
+    super.onStop();
+    mSlideshowIsRunning = false;
+    mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+    Log.d(TAG, "Fragment.onStop()");
+    //done in pause    unregisterReceiver(intentReceiver);
+  }
+
+
+
+  @Override
+  public void onPause() {
+    super.onPause();
+    mHideHandler.removeCallbacks(mShowPart2Runnable);
+
+    mSlideshowHandler.removeCallbacks(showNextRunnable);
+    mSlideshowIsRunning = false;
+
+    if (getActivity() != null && getActivity().getWindow() != null) {
+      getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
+      Log.d(TAG, "Fragment.onPause()");
+      // Clear the systemUiVisibility flag
+      getActivity().getWindow().getDecorView().setSystemUiVisibility(0);
+    }
+    show();
+  }
+
+
   private final Runnable mShowImageAfterTwoWordsRunnable = new Runnable() {
     @Override
     public void run() {
@@ -449,8 +501,8 @@ public class SlideshowFragment extends Fragment {
           ResourcesCompat.getDrawable(getResources(), R.drawable.whitebackground, null));
 */
       mSlideshowHandler.post(
-          mAsyncTaskManager.new ShowImageTask(((ImageView)mContentView.findViewById(R.id.imageView)), DELAY_INTER_FRAME_SETTING,
-              getContext().getCacheDir() + "/" + mSlideshowFilesName.get(
+          mBackgroundImageDecoder.new ShowImageTask(((ImageView)mParentView.findViewById(R.id.imageView)), DELAY_INTER_FRAME_SETTING,
+              mCacheDirPath + "/" + mSlideshowFilesName.get(
                   new Random().nextInt(mSlideshowFilesName.size()))));
 
       mHideHandler.post(cleanButtonRunnable);
@@ -470,7 +522,7 @@ public class SlideshowFragment extends Fragment {
     public void run() {
 
       Log.d(TAG, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesName.size());
-      mContentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
+      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
 
       mContentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
       mContentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
@@ -483,19 +535,12 @@ public class SlideshowFragment extends Fragment {
         //hummm
         mHideHandler.post(cleanButtonRunnable);
 
-        ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setTypeface(
-            ResourcesCompat.getFont(getContext(), R.font.alef));
-        ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
         ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setText(
             getResources().getString(R.string.string_press_me));
 
         ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP,
             pressMeTextSize);
 
-        (mContentView.findViewById(R.id.ui_press_meTextView)).setVisibility(View.VISIBLE);
-        ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurPink));
-        //findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
-        //findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
 
         if (!mSlideshowIsRunning) {
 
@@ -511,14 +556,6 @@ public class SlideshowFragment extends Fragment {
       } else {
         Log.e(TAG, "isInternetOk" + missingFilesNames.size());
 
-        //if (isInternetOk()) {
-        //  pressMeTextView.setText(R.string.string_wait4dl);
-        //} else {
-        //
-        //
-        //
-        //  ((TextView)findViewById(R.id.ui_press_meTextView)).setText(R.string.pleaseRestartWithInternet);
-        //}
       }
     }
   };
@@ -532,11 +569,11 @@ public class SlideshowFragment extends Fragment {
     }
 
     //en dp
-    pressMeTextSize = 48;
+    pressMeTextSize = 50;
     pressTwoWordsTextSize = 32;
-    buttonTextSize = 24;
+    buttonTextSize = 38;
     //marge intérieure: entre le texte et la bordure du cadre (inversé si tablette en paysage)
-    buttonVerticalPadding = 15;
+    buttonVerticalPadding = 18;
     buttonHorizontalPadding = 20;
 
     buttonVerticalMargin = 18;
@@ -547,17 +584,17 @@ public class SlideshowFragment extends Fragment {
 
     //in pixel
 
-    buttonVerticalPadding *= screenDensity;
-    buttonHorizontalPadding *= screenDensity;
+    buttonVerticalPadding *= screenDPI/160;
+    buttonHorizontalPadding *= screenDPI/160;
 
-    buttonVerticalMargin *= screenDensity;
-    buttonHorizontalMargin *= screenDensity;
-    buttonTextSize *= screenDensity;
+    buttonVerticalMargin *= screenDPI/160;
+    buttonHorizontalMargin *= screenDPI/160;
+    buttonTextSize *= screenDPI/160;
 
-    pressMeTextSize *= screenDensity;
+    pressMeTextSize *= screenDPI/160;
 
-    pressTwoWordsTextSize *= screenDensity;
-    Log.d("dpi", "metrics returned DPI " + (int) (screenDPI / 160) + " density " + screenDensity);
+    pressTwoWordsTextSize *=screenDPI/160;
+    Log.d("dpi", "metrics returned DPI " + screenDPI  + " density " + screenDensity+ " textsize " +pressMeTextSize);
 
     screenOrientationNormal = false;
 
@@ -576,12 +613,10 @@ public class SlideshowFragment extends Fragment {
     public void run() {
 
       Log.d(TAG, "makeImageNotClickable(): image isshowMenuRunnable not clickable anymore");
-      mContentView.findViewById(R.id.imageView).setClickable(false);
+      mParentView.findViewById(R.id.imageView).setClickable(false);
 
       Log.d(TAG, "showMenuRunnable");
-      ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setTypeface(
-          ResourcesCompat.getFont(getContext(), R.font.alef));
-      ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP,
+      ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_PX,
           pressTwoWordsTextSize);
       ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
 
@@ -591,7 +626,7 @@ public class SlideshowFragment extends Fragment {
       mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
       mSlideshowIsRunning = false;
       mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_CHOICE_WORDS_SETTING);
-      mContentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.GONE);
+      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.GONE);
       mContentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.VISIBLE);
       mContentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.VISIBLE);
       ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setText(R.string.string_choose2word);
@@ -610,17 +645,7 @@ public class SlideshowFragment extends Fragment {
     delayedHide(100);
   }
 
-  @Override
-  public void onPause() {
-    super.onPause();
-    if (getActivity() != null && getActivity().getWindow() != null) {
-      getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
-      // Clear the systemUiVisibility flag
-      getActivity().getWindow().getDecorView().setSystemUiVisibility(0);
-    }
-    show();
-  }
 
   @Override
   public void onDestroy() {
@@ -639,6 +664,8 @@ public class SlideshowFragment extends Fragment {
 
   private void hide() {
     // Hide UI first
+    Log.d(TAG,"Fragment.hide()");
+
     ActionBar actionBar = getSupportActionBar();
     if (actionBar != null) {
       actionBar.hide();
@@ -651,13 +678,12 @@ public class SlideshowFragment extends Fragment {
     mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
   }
 
-  @SuppressLint("InlinedApi")
   private void show() {
     // Show the system bar
-    mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+    mParentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
     mVisible = true;
-
+Log.d(TAG,"Fragment.show()");
     // Schedule a runnable to display UI elements after a delay
     mHideHandler.removeCallbacks(mHidePart2Runnable);
     mHideHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);

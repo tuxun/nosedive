@@ -6,110 +6,36 @@
     android:layout_height="match_parent"
     tools:context=".SlideshowActivity"
     android:id="@+id/motherLayout"
-android:gravity="center"
+android:gravity="top"
     >
-
     <LinearLayout
+        android:id="@+id/ui_centralLinearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:id="@+id/buttons"
-        android:gravity="center"
-
         >
+
         <ImageView
+            android:id="@+id/imageView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:scaleType="fitStart"
             android:src="@drawable/default_background"
-            />
-        <Button
-            android:id="@+id/checkFilesButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Vérifier les fichiers"
-            android:background="@drawable/ic_bouttonoff"
-
-            android:layout_margin="7dp"
-
-            />
-        <Button
-            android:id="@+id/button2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:clickable="false"
-            android:text="Réparer les fichiers*"
-            android:visibility="gone"
-            android:layout_margin="7dp"
-            android:background="@drawable/ic_bouttonoff"
-
+            android:contentDescription="Photo de Julia au hasard"
             />
 
 
 
-        <TextView
-            android:id="@+id/ui_dl_progressTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="patientez"
-            android:textSize="30sp"
-            />
-        <ProgressBar
-            android:id="@+id/ui_missing_ProgressBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_margin="7dp"
-            android:progressTint="@color/OurPink"
 
-            />
-        <ProgressBar
-            android:id="@+id/ui_dl_ProgressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:indeterminateOnly="false"
-            android:max="132"
-            android:maxHeight="120dp"
-            android:maxWidth="60dp"
-            android:minHeight="120dp"
-            android:minWidth="60dp"
-
-            android:soundEffectsEnabled="false"
-            android:progressDrawable="@drawable/ringprogressbar"
-            android:visibility="visible"
-
-            />
-        <LinearLayout
-
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            >
-            <ImageButton
-                android:id="@+id/settingsImageButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:maxHeight="120dp"
-                android:maxWidth="60dp"
-                android:minHeight="120dp"
-                android:minWidth="60dp"
-
-                android:src="@drawable/ic_iconfinder_42_web_essential_3401860"
-
-                />
-            <ImageButton
-            android:id="@+id/aboutImageButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:maxHeight="120dp"
-            android:maxWidth="60dp"
-            android:minHeight="120dp"
-            android:minWidth="60dp"
-android:gravity="right"
-            android:src="@drawable/ic_iconfinder_v_31_3162614"
-
-            />
-        </LinearLayout>
     </LinearLayout>
+    <LinearLayout
+        android:id="@+id/startupScreenLinearSourceLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        >
 
+</LinearLayout>
 
 </LinearLayout>
