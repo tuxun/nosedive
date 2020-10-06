@@ -1,10 +1,8 @@
 package org.tflsh.nosedive;
 
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -14,14 +12,15 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.JsonReader;
 import android.util.Log;
-import android.app.Fragment;
-import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -63,6 +62,8 @@ public class StartupFragment extends Fragment {
     private String M_SERVER_DIRECTORY_URL;
     private ArrayList<String> missingFilesNames;
     private File mCacheDirPath;
+    private ViewGroup mParentViewGroup;
+    private View mParentView;
 
     public StartupFragment() {
         // Required empty public constructor
@@ -94,27 +95,28 @@ public class StartupFragment extends Fragment {
             missingFilesNames = getArguments().getStringArrayList(ARG_PARAM2);
         }
     }
+    private static Context mContext;
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mContext=context;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
         Bundle savedInstanceState) {
-        mContext=container.getContext();
+       // mContext=container.getContext();
+
         mCacheDirPath=mContext.getCacheDir();
         executor = Executors.newFixedThreadPool(1);
         Log.d("startupfragment","onCreateView start grabjson with "+M_SERVER_DIRECTORY_URL);
 
-        new Thread(new Runnable() {
-            @Override public void run() {
-//                grabJson(M_SERVER_DIRECTORY_URL);
-exec(M_SERVER_DIRECTORY_URL);
-            }
-        }).start();
 
 
-
-Log.d("startupfragment"," added to "+container.toString());
+//Log.d("startupfragment"," added to "+container.toString());
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_startup, container, false);
+        return inflater.inflate(R.layout.fragment_startup, null, false);
     }
 
     private static final String CLASSNAME = "startupfragment";
@@ -135,7 +137,7 @@ Log.d("startupfragment"," added to "+container.toString());
             public void run() {
 
                 try {
-                    File localJsonFile = new File(mContext.getCacheDir().getAbsolutePath(), FILELIST_JSON);
+                    File localJsonFile = new File(mCacheDirPath.getAbsolutePath(), FILELIST_JSON);
 
                     if (localJsonFile == null) {
 
@@ -169,7 +171,6 @@ Log.d("startupfragment"," added to "+container.toString());
             }
         };
     }
-    public static Context mContext;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -215,20 +216,31 @@ Log.d("startupfragment"," added to "+container.toString());
                 return true;
             }
         });
-        //////////
-        // The cache size will be measured in kilobytes rather than
-        // number of items.
+
+        new Thread(new Runnable() {
+            @Override public void run() {
+//                grabJson(M_SERVER_DIRECTORY_URL);
+exec(M_SERVER_DIRECTORY_URL);
+            }
+        }).start();
+
     }
 
     private void loadSettingFragment() {
 
         Log.d(TAG, "loadSettingFragment()");
-        //Bundle args = new Bundle();
-        //args.putStringArrayList("SlideshowFilenames", mSlideshowFilesName);
-        //mSlideshowFragment.setArguments(args);
+
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
-        transaction.add(R.id.motherLayout, new SettingsFragment(), "MULTIFACETTE_Settings");
+
+
+        //transaction1.remove(this).commit();
+SettingsFragment FS=new SettingsFragment();
+        Bundle args = new Bundle();
+args.putString("SlideshowFilenames", "plop");
+        FS.setArguments(args);
+        //mParentView.findViewById(R.id.motherLayout).setVisibility(View.GONE);
+transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings");
         transaction.addToBackStack(null);
         transaction.commit();
 
@@ -328,7 +340,7 @@ Log.d("startupfragment"," added to "+container.toString());
         for (String name : names) {
             Log.e("repairfiles", "grab missing or broken " + name + " files");
 
-            getFile(urlSource, mContext.getCacheDir().getAbsolutePath(), name);
+            getFile(urlSource, mCacheDirPath.getAbsolutePath(), name);
         }
 
         sendMessage("dlComplete");
@@ -351,7 +363,7 @@ Log.d("startupfragment"," added to "+container.toString());
                 String newIn = reader.nextString();
                 everyImagesNames.add(newIn);
 
-                File file = new File(mContext.getCacheDir(), newIn);
+                File file = new File(mCacheDirPath, newIn);
                 if (file.exists()) {
                     reader.nextName();
                     reader.nextString();
@@ -359,7 +371,7 @@ Log.d("startupfragment"," added to "+container.toString());
 
                     String sum = reader.nextString();
 
-                    if (!checkSum(mContext.getCacheDir() + "/" + everyImagesNames.get(everyImagesNames.size() - 1),
+                    if (!checkSum(mCacheDirPath + "/" + everyImagesNames.get(everyImagesNames.size() - 1),
                         sum)) {
                         Log.e(CLASSNAME, "on dl le file, il etait corrompu");
 
@@ -569,26 +581,26 @@ Log.d("startupfragment"," added to "+container.toString());
 
         Log.d(CLASSNAME, "grabJson update forced");
         if (!isInternetOk()) {
-            if (!checkFile(mContext.getCacheDir().getAbsolutePath(), FILELIST_JSON)) {
+            if (!checkFile(mCacheDirPath.getAbsolutePath(), FILELIST_JSON)) {
                 Log.d(CLASSNAME,
                     "grabJson update forced was canceled cause not internet");
                 sendMessage("noJson");
                 return null;
             } else {
                 sendMessage("JSONlocalonly");
-                return new File(mContext.getCacheDir().getAbsolutePath(), FILELIST_JSON);
+                return new File(mCacheDirPath.getAbsolutePath(), FILELIST_JSON);
             }
         } else {
             Log.d(CLASSNAME, "grabJson update forced think we have internet");
 
-            File file = getFile(urlSource, mContext.getCacheDir().getAbsolutePath(),
+            File file = getFile(urlSource, mCacheDirPath.getAbsolutePath(),
                 FILELIST_JSON);
 
             if (checkFile(mContext.getCacheDir().getAbsolutePath(), FILELIST_JSON)) {
                 Log.d(CLASSNAME,
                     "grabJson got local file after update");
                 sendMessage("JSONok");
-                return new File(mContext.getCacheDir().getAbsolutePath(), FILELIST_JSON);
+                return new File(mCacheDirPath.getAbsolutePath(), FILELIST_JSON);
             } else {
                 Log.d(CLASSNAME,
                     "grabJson got no local file and was unable to dl the update");

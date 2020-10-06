@@ -1,8 +1,8 @@
 package org.tflsh.nosedive;
 
-import android.annotation.SuppressLint;
 
-import android.app.Fragment;
+import android.app.ActionBar;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -17,10 +17,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -28,8 +24,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import androidx.appcompat.widget.AppCompatButton;
-import androidx.core.content.res.ResourcesCompat;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -68,7 +64,6 @@ public class SlideshowFragment extends Fragment {
   private static final int UI_ANIMATION_DELAY = 300;
   private final Handler mHideHandler = new Handler();
   private final Runnable mHidePart2Runnable = new Runnable() {
-    @SuppressLint("InlinedApi")
     @Override
     public void run() {
       // Delayed removal of status and navigation bar
@@ -126,7 +121,7 @@ public class SlideshowFragment extends Fragment {
       if (actionBar != null) {
         actionBar.show();
       }
-      mParentView.setVisibility(View.VISIBLE);
+//!!!      mParentView.setVisibility(View.VISIBLE);
     }
   };
 
@@ -157,9 +152,10 @@ public class SlideshowFragment extends Fragment {
   public View onCreateView(@NonNull LayoutInflater inflater,
       @Nullable ViewGroup container,
       @Nullable Bundle savedInstanceState) {
-    mContext=container.getContext();
+    mContext=getContext();
     mCacheDirPath=mContext.getCacheDir();
-    mParentView = container.findViewById(R.id.motherLayout);
+if(container!=null)
+{mParentView = container.findViewById(R.id.motherLayout);}
 
     return inflater.inflate(R.layout.fragment_slideshow, container, false);
   }
@@ -181,29 +177,32 @@ public class SlideshowFragment extends Fragment {
         return bitmap.getByteCount() / 1024;
       }
     };
-
-    mSlideshowFilesName=getArguments().getStringArrayList("SlideshowFilenames");
+if (savedInstanceState!=null) {
+  mSlideshowFilesName = savedInstanceState.getStringArrayList("SlideshowFilenames");
+}
+else {mSlideshowFilesName=new ArrayList<>();}
     mVisible = true;
     initScreenMetrics();
     executor = Executors.newFixedThreadPool(1);
     mBackgroundImageDecoder =
         new BackgroundImageDecoder(mContext, screenWidth, screenHeight, memoryCache,
             executor);
-    mControlsView = view.findViewById(R.id.fullscreen_content_controls);
-    mContentView = view.findViewById(R.id.fullscreen_content);
+    mContentView = view.findViewById(R.id.fullscreen_content_controls);
+    mControlsView = view.findViewById(R.id.fullscreen_content);
 
     // Set up the user interaction to manually show or hide the system UI.
-    mParentView.setOnLongClickListener(new View.OnLongClickListener() {
+/*    mParentView.setOnLongClickListener(new View.OnLongClickListener() {
       @Override
       public boolean onLongClick(View view) {
         toggle();
         return false;
       }
     });
-    Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
-    View iframe = mParentView.findViewById(R.id.startupScreenLinearLayout);
+  */
+Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
+/*    View iframe = mParentView.findViewById(R.id.startupScreenLinearLayout);
     ViewGroup parent = (ViewGroup) iframe.getParent();
-    parent.removeView(iframe);
+    parent.removeView(iframe);*/
     // Upon interacting with UI controls, delay any scheduled hide()
     // operations to prevent the jarring behavior of controls going away
     // while interacting with the UI.
@@ -211,8 +210,12 @@ public class SlideshowFragment extends Fragment {
     makeButtons();
     makeImageClickable();
 
-    mSlideshowHandler.post(mStartSlideshowRunnable);
 
+
+  }
+  public void startSlideshow(ArrayList<String> arg){
+    mSlideshowFilesName=arg;
+     mSlideshowHandler.post(mStartSlideshowRunnable);
 
   }
 
@@ -244,17 +247,19 @@ public class SlideshowFragment extends Fragment {
 
     for (String buttonName : buttonNames) {
 
-      Button tempButton = new AppCompatButton(mContext) {
+      Button tempButton = new Button(mContext) {
         @Override public boolean performClick() {
           super.performClick();
           return true;
         }
       };
       tempButton.setBackground(
-          ResourcesCompat.getDrawable(getResources(), R.drawable.ic_bouttonoff, null));
+          getResources().getDrawable( R.drawable.ic_bouttonoff, null));
       tempButton.setText(buttonName);
       tempButton.setStateListAnimator(null);
-      tempButton.setTypeface(ResourcesCompat.getFont(mContext, R.font.alef));
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        tempButton.setTypeface(getResources().getFont( R.font.alef));
+      }
 
       tempButton.setTextSize(TypedValue.COMPLEX_UNIT_PX, buttonTextSize);
       tempButton.setAllCaps(true);
@@ -336,7 +341,7 @@ public class SlideshowFragment extends Fragment {
     //for the first 8 button, set in the left menu layout
     for (j = 0; j < buttonNames.length / 2; j++) {
 
-      ((LinearLayout) mContentView.findViewById(R.id.leftMenuLinearLayout)).addView(
+      ((LinearLayout) mControlsView.findViewById(R.id.leftMenuLinearLayout)).addView(
           mToggleButtonsArrayList.get(j));
     }
 
@@ -344,7 +349,7 @@ public class SlideshowFragment extends Fragment {
 
     for (; j < buttonNames.length; j++) {
 
-      ((LinearLayout) mContentView.findViewById(R.id.rightMenuLinearLayout)).addView(
+      ((LinearLayout) mControlsView.findViewById(R.id.rightMenuLinearLayout)).addView(
           mToggleButtonsArrayList.get(j));
     }
   }
@@ -353,7 +358,8 @@ public class SlideshowFragment extends Fragment {
 
   private void makeImageClickable() {
     Log.d(TAG, "makeImageClickable(): image is now clickable");
-    mParentView.findViewById(R.id.imageView).setOnClickListener(new View.OnClickListener() {
+    /*
+    getView().findViewById(R.id.imageView).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
 
@@ -362,7 +368,7 @@ public class SlideshowFragment extends Fragment {
       }
     });
     mParentView.findViewById(R.id.imageView).setClickable(true);
-
+*/
 
 
   }
@@ -406,20 +412,20 @@ public class SlideshowFragment extends Fragment {
 
           executor.execute(
               mBackgroundImageDecoder.new ShowImageTask(
-                  (ImageView) mParentView.findViewById(R.id.imageView),
+                  (ImageView) getView().findViewById(R.id.imageView),
                   DELAY_INTER_FRAME_SETTING,
                   mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
           );
-          ((TextView)mContentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurWhite));
+          ((TextView)mControlsView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurWhite));
         } else {
 
           executor.execute(
               mBackgroundImageDecoder.new ShowImageTask(
-                  ((ImageView)mParentView.findViewById(R.id.imageView)),
+                  ((ImageView)getView().findViewById(R.id.imageView)),
                   DELAY_INTER_FRAME_SETTING,
                   mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
           );
-          ((TextView)mContentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurPink));
+          ((TextView)mControlsView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurPink));
         }
 
         pwa++;
@@ -522,10 +528,10 @@ public class SlideshowFragment extends Fragment {
     public void run() {
 
       Log.d(TAG, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesName.size());
-      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
+//      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
 
-      mContentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
-      mContentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+      mControlsView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+      mControlsView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
 
       if ((!mSlideshowFilesName.isEmpty())) {
         mSlideshowHandler.removeCallbacks(showNextRunnable);
@@ -535,10 +541,10 @@ public class SlideshowFragment extends Fragment {
         //hummm
         mHideHandler.post(cleanButtonRunnable);
 
-        ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setText(
+        ((TextView) mControlsView.findViewById(R.id.ui_press_meTextView)).setText(
             getResources().getString(R.string.string_press_me));
 
-        ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP,
+        ((TextView) mControlsView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP,
             pressMeTextSize);
 
 
@@ -554,7 +560,7 @@ public class SlideshowFragment extends Fragment {
           mSlideshowIsRunning = false;
         }
       } else {
-        Log.e(TAG, "isInternetOk" + missingFilesNames.size());
+        Log.e(TAG, "mSlideshowFilesName is empty" + mSlideshowFilesName.size());
 
       }
     }
@@ -562,11 +568,8 @@ public class SlideshowFragment extends Fragment {
   void initScreenMetrics() {
     screenMetrics = new DisplayMetrics();
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      Objects.requireNonNull(getView().getDisplay()).getRealMetrics(screenMetrics);
-    } else {
       getActivity().getWindowManager().getDefaultDisplay().getMetrics(screenMetrics);
-    }
+
 
     //en dp
     pressMeTextSize = 50;
@@ -670,7 +673,7 @@ public class SlideshowFragment extends Fragment {
     if (actionBar != null) {
       actionBar.hide();
     }
-    mControlsView.setVisibility(View.GONE);
+    //mControlsView.setVisibility(View.GONE);
     mVisible = false;
 
     // Schedule a runnable to remove the status and navigation bar after a delay
@@ -680,8 +683,10 @@ public class SlideshowFragment extends Fragment {
 
   private void show() {
     // Show the system bar
-    mParentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+/*    mParentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+
+ */
     mVisible = true;
 Log.d(TAG,"Fragment.show()");
     // Schedule a runnable to display UI elements after a delay
@@ -705,9 +710,9 @@ Log.d(TAG,"Fragment.show()");
   @Nullable
   private ActionBar getSupportActionBar() {
     ActionBar actionBar = null;
-    if (getActivity() instanceof AppCompatActivity) {
-      AppCompatActivity activity = (AppCompatActivity) getActivity();
-      actionBar = activity.getSupportActionBar();
+    if (getActivity() instanceof Activity) {
+      Activity activity = (Activity) getActivity();
+      actionBar = activity.getActionBar();
     }
     return actionBar;
   }

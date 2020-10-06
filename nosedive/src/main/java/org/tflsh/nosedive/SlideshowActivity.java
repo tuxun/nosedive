@@ -1,34 +1,28 @@
 package org.tflsh.nosedive;
 
+import android.app.ActionBar;
 import android.app.Activity;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.LruCache;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.AppCompatActivity;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 
 public class SlideshowActivity extends Activity {
@@ -83,7 +77,7 @@ public class SlideshowActivity extends Activity {
   boolean fileschecked = false;
   private ProgressBar mDlProgressBar;
   private ArrayList<String> mSlideshowFilesName;
-  private org.tflsh.nosedive.SlideshowFragment mSlideshowFragment;
+  private SlideshowFragment mSlideshowFragment;
   private StartupFragment mStartupFragment;
   private SettingsFragment mSettingsFragment;
 
@@ -177,7 +171,7 @@ public class SlideshowActivity extends Activity {
         case "filesFound":
           String max = intent.getStringExtra(EXTRA_MESSAGE);
           mSlideshowFilesName.add(max);
-          Log.d(TAG, "intentReceiver got action files found " + max);
+          Log.d(TAG, "intentReceiver got action files found " + mSlideshowFilesName.size() +" " +max);
           findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
 
           ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setProgress(
@@ -205,7 +199,12 @@ public class SlideshowActivity extends Activity {
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                   fileschecked = true;
                   view.performClick();
-                  loadSlideshowFragment();
+                  ((View)findViewById(R.id.startupScreenLinearSourceLayout)).setVisibility(View.GONE);
+
+
+                  mSlideshowFragment =
+                      (SlideshowFragment) getFragmentManager().findFragmentByTag("SlideshowFragment");//new org.tflsh.nosedive.SlideshowFragment();
+mSlideshowFragment.startSlideshow(mSlideshowFilesName);
                 }
                 return true;
               }
@@ -305,8 +304,6 @@ public class SlideshowActivity extends Activity {
 
     //end try lru
 
-
-  mSlideshowFragment = new org.tflsh.nosedive.SlideshowFragment();
   //baseurl,projectcode, todo
   mStartupFragment =  StartupFragment.newInstance(M_SERVER_DIRECTORY_URL,missingFilesNames);
   mSettingsFragment =  new SettingsFragment();
@@ -335,7 +332,7 @@ public class SlideshowActivity extends Activity {
 
 
 
-      android.app.ActionBar actionBar = getActionBar();
+      ActionBar actionBar = getActionBar();
 
       if (actionBar != null) {
         actionBar.hide();
@@ -344,7 +341,7 @@ public class SlideshowActivity extends Activity {
 
       Log.d(TAG,
           "ListImageTask missing file after 5second and an intent? = " + missingFilesNames.size());
-      loadStartupFragment();
+    //!!!  loadStartupFragment();
 
 fileschecked=true;
 
@@ -355,7 +352,7 @@ fileschecked=true;
 
       if (findViewById(R.id.imageView) == null) {
         Log.e("onResume", "loading fragment");
-        loadSlideshowFragment();
+      //!!!  loadSlideshowFragment();
       }
       else {
         Log.e("onResume", "loading startup screen");
@@ -387,6 +384,8 @@ fileschecked=true;
     transaction.addToBackStack(null);
     transaction.commit();
 
+    ((View)findViewById(R.id.startupScreenLinearSourceLayout)).setVisibility(View.GONE);
+
   }
 
   private void loadStartupFragment() {
@@ -395,7 +394,7 @@ fileschecked=true;
     Bundle args = new Bundle();
     args.putString("M_SERVER_DIRECTORY_URL", M_SERVER_DIRECTORY_URL);
     args.putStringArrayList("SlideshowFilenames", mSlideshowFilesName);
-    mSlideshowFragment.setArguments(args);
+    mStartupFragment.setArguments(args);
     FragmentManager manager = getFragmentManager();
     FragmentTransaction transaction = manager.beginTransaction();
     transaction.add(R.id.startupScreenLinearSourceLayout, mStartupFragment, "MULTIFACETTE_LOADING");

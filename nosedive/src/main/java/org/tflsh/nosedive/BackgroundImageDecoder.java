@@ -1,46 +1,20 @@
 package org.tflsh.nosedive;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
-import android.os.Build;
 import android.os.SystemClock;
-import android.util.JsonReader;
 import android.util.Log;
 import android.util.LruCache;
 import android.widget.ImageView;
-import java.io.BufferedInputStream;
+import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.lang.ref.WeakReference;
-import java.math.BigInteger;
-import java.net.ConnectException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.System.currentTimeMillis;
 
-public class BackgroundImageDecoder extends Activity {
+public class BackgroundImageDecoder extends AppCompatActivity {
     static final String CLASSNAME = "BackgroundImageDecoder";
     private final LruCache<String, Bitmap> memoryCache;
 
