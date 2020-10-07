@@ -67,13 +67,24 @@ public class BackgroundImageDecoder extends AppCompatActivity {
         BitmapFactory.decodeFile(res, options);
         options.inJustDecodeBounds = false;
         // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, (int) (reqWidth / 1.5),
-            (int) (reqHeight / 1.5));
-        options.inSampleSize = calculateInSampleSize(options, reqWidth / 2,
-            reqHeight / 2);
-        options.inPreferQualityOverSpeed = true;
-        return BitmapFactory.decodeFile(res, options);
+        int quality= (int) 1.8;
+
+
+        //  options.inPreferQualityOverSpeed = true;
+       options.inSampleSize = calculateInSampleSize(options, (int) (options.outWidth)/quality,
+          (int) (options.outHeight)/quality);
+
+
+        Log.d(CLASSNAME,"image size"+options.outHeight/quality+" w: "+options.outWidth/quality+ "==>"+options.inSampleSize);
+
+        return BitmapFactory.decodeFile(res,options);
+//return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res,
+  //  optionsOut),options.outWidth/quality,options.outHeight/quality,false);
     }
+
+
+
+
     public static int calculateInSampleSize(
         BitmapFactory.Options options, int reqWidth, int reqHeight) {
         // Raw height and width of image

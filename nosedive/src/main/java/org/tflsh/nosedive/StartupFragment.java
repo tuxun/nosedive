@@ -1,6 +1,5 @@
 package org.tflsh.nosedive;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -37,6 +36,7 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -51,6 +51,7 @@ import static org.tflsh.nosedive.BackgroundImageDecoder.executor;
  * create an instance of this fragment.
  */
 public class StartupFragment extends Fragment {
+    static final String M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "julia/";
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -59,11 +60,31 @@ public class StartupFragment extends Fragment {
     private static final String TAG = "StartupFragment" ;
 
     // TODO: Rename and change types of parameters
-    private String M_SERVER_DIRECTORY_URL;
-    private ArrayList<String> missingFilesNames;
+//    private String M_SERVER_DIRECTORY_URL;
+ //   private ArrayList<String> missingImagesNames;
     private File mCacheDirPath;
     private ViewGroup mParentViewGroup;
     private View mParentView;
+    public void setBaseUrl(String url)
+    {
+        //M_SERVER_DIRECTORY_URL=new String(url);
+
+        new Thread(new Runnable() {
+            @Override public void run() {
+                //                grabJson(M_SERVER_DIRECTORY_URL);
+                Log.d(TAG, "M_SERVER_DIRECTORY_URL"+M_SERVER_DIRECTORY_URL);
+
+
+                new Thread(new Runnable() {
+                    @Override public void run() {
+                        //                grabJson(M_SERVER_DIRECTORY_URL);
+                        Log.d(TAG, "M_SERVER_DIRECTORY_URL"+M_SERVER_DIRECTORY_URL);
+
+                        grabJson(M_SERVER_DIRECTORY_URL);
+                    }
+                }).start();            }
+        }).start();
+    }
 
     public StartupFragment() {
         // Required empty public constructor
@@ -78,6 +99,7 @@ public class StartupFragment extends Fragment {
      * @return A new instance of fragment StartupFragment.
      */
     // TODO: Rename and change types and number of parameters
+    /*
     public static StartupFragment newInstance(String param1, ArrayList<String> param2) {
         StartupFragment fragment = new StartupFragment();
         Bundle args = new Bundle();
@@ -86,14 +108,17 @@ public class StartupFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
-
+*/
+     ArrayList<String> everyImagesNames ;
+     ArrayList<String>missingImagesNames ;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            M_SERVER_DIRECTORY_URL = getArguments().getString(ARG_PARAM1);
-            missingFilesNames = getArguments().getStringArrayList(ARG_PARAM2);
+         //   M_SERVER_DIRECTORY_URL = getArguments().getString(ARG_PARAM1);
+           // missingImagesNames = getArguments().getStringArrayList(ARG_PARAM2);
         }
+
     }
     private static Context mContext;
 
@@ -122,9 +147,9 @@ public class StartupFragment extends Fragment {
     private static final String CLASSNAME = "startupfragment";
     // static List<String> name;
     //static String urlSource;
-    static List<String> missingImagesNames;
+    //static List<String> missingImagesNames;
 
-    private static List<String> everyImagesNames;
+   // private static List<String> everyImagesNames;
     private static int currentFile;
 
     // private ListImageTask() {
@@ -132,7 +157,7 @@ public class StartupFragment extends Fragment {
     //}
 
     {
-        mRunnable = new Runnable() {
+        mGrabJsonRunnable = new Runnable() {
             @Override
             public void run() {
 
@@ -151,7 +176,7 @@ public class StartupFragment extends Fragment {
                         + localJsonFile.length());
 
                     //if the images list file is not empty, we can parse its json content
-                    List<String> result = parseJson(localJsonFile, M_SERVER_DIRECTORY_URL);
+                    List<String> result = parseJson(localJsonFile, M_SERVER_DIRECTORY_URL+FILELIST_JSON);
                     if (result.isEmpty()) {
 
                         Log.e(CLASSNAME, "EMPTY json file!!!");
@@ -160,9 +185,9 @@ public class StartupFragment extends Fragment {
                             "no results: unable to get json from internet or to create files");
                     } else {
                         Log.d(CLASSNAME, "found this total number of images :"
-                            + everyImagesNames.size()
-                            + " (missing:) "
-                            + missingImagesNames.size());
+                            + result.size()
+                           /* + " (missing:) "
+                            + missingImagesNames.size()*/);
                         //sendMessageWithString("filesMissing", localJsonFile.getAbsolutePath());
                     }
                 } catch (Exception ex) {
@@ -177,7 +202,8 @@ public class StartupFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024);
         // Use maximum available memory for this memory cache.
-        Log.d(TAG, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
+        Log.d(TAG, " onViewCreated()");
+
         view.findViewById(R.id.settingsImageButton).setOnTouchListener(new View.OnTouchListener() {
 
             @Override
@@ -190,9 +216,6 @@ public class StartupFragment extends Fragment {
                 return true;
             }
         });
-
-
-
         /*repair files button*/
         view.findViewById(R.id.button2).setOnTouchListener(new View.OnTouchListener() {
 
@@ -202,14 +225,14 @@ public class StartupFragment extends Fragment {
                     view.findViewById(R.id.button2).setBackgroundColor(
                         getResources().getColor(R.color.OurWhite, null));
                     view.performClick();
-                    (view.findViewById(R.id.checkFilesButton)).setBackgroundColor(
+/*                    (view.findViewById(R.id.checkFilesButton)).setBackgroundColor(
                         getResources().getColor(R.color.OurWhite, null));
-
+*/
                     new Thread(new Runnable() {
                         @Override public void run() {
 
                             repairfiles(
-                                M_SERVER_DIRECTORY_URL, missingFilesNames);
+                                M_SERVER_DIRECTORY_URL);
                         }
                     }).start();
                 }
@@ -217,12 +240,18 @@ public class StartupFragment extends Fragment {
             }
         });
 
+
+
+        everyImagesNames = new ArrayList<String>();
+        missingImagesNames = new ArrayList<String>();
         new Thread(new Runnable() {
             @Override public void run() {
-//                grabJson(M_SERVER_DIRECTORY_URL);
-exec(M_SERVER_DIRECTORY_URL);
+
+                grabJson(  M_SERVER_DIRECTORY_URL );
+                exec(M_SERVER_DIRECTORY_URL);
             }
         }).start();
+      //  sendMessage("StartupViewOk");
 
     }
 
@@ -324,8 +353,8 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
      * @param name name of the file to check
      * @return return true if file is looking fine, else return false
      */
-    protected void repairfiles(String urlSource, List<String> names) {
-        Log.e("repairfiles", "missing or broken " + names.size() + " files");
+    public void repairfiles(String urlSource) {
+        Log.e("repairfiles", "missing or broken " + missingImagesNames.size() + " files");
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -337,7 +366,7 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        for (String name : names) {
+        for (String name : missingImagesNames) {
             Log.e("repairfiles", "grab missing or broken " + name + " files");
 
             getFile(urlSource, mCacheDirPath.getAbsolutePath(), name);
@@ -353,8 +382,7 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
                 new InputStreamReader(new FileInputStream(jsonFile.getAbsolutePath())))
 
         ) {
-            everyImagesNames = new ArrayList<String>();
-            missingImagesNames = new ArrayList<String>();
+
             reader.beginArray();
 
             while (reader.hasNext()) {
@@ -402,6 +430,15 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
                 }
                 reader.endObject();
             }
+            Log.d(CLASSNAME, "ok synchronizing "
+                    + currentFile
+               /* + " of "
+                + missingImagesNames.size()*/
+            );
+            if ((!everyImagesNames.isEmpty()) /*&& (missingImagesNames.isEmpty())*/) {
+                Log.d(CLASSNAME, "last file, starting slideshow");
+                sendMessage("filesAllOk");
+            }
             return everyImagesNames;
         } catch (FileNotFoundException e) {
             Log.e(CLASSNAME, "local json file not found");
@@ -420,19 +457,11 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
             Log.e(CLASSNAME, Objects.requireNonNull(e.getMessage()));
             e.printStackTrace();
         } finally {
-            Log.d(CLASSNAME, "ok synchronizing "
-                + currentFile
-                + " of "
-                + missingImagesNames.size()
-            );
-            if ((!everyImagesNames.isEmpty()) && (missingImagesNames.isEmpty())) {
-                Log.d(CLASSNAME, "last file, starting slideshow");
-                sendMessage("filesAllOk");
-            }
+
             Log.d(CLASSNAME,
                 "Finished all threads (WARING: not really, we just removed the test)");
         }
-        return everyImagesNames;
+        return Collections.emptyList();
     }
 
     /*return a array of string, naming the files downloaded, or found in the cache dir
@@ -542,7 +571,7 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
       //  urlSource = urlSourceArg;
 
         FutureTask<String>
-            futureTask1 = new FutureTask<>(mRunnable,
+            futureTask1 = new FutureTask<>(mGrabJsonRunnable,
             "FutureTask1 is complete");
 
         executor.submit(futureTask1);
@@ -572,12 +601,12 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
      * @param objects
      * oldeprecated
      */
-    protected  final Runnable mRunnable;
+    protected  final Runnable mGrabJsonRunnable;
 
     public static final String FILELIST_JSON = "filelist.json";
 
     public  File grabJson(String urlSource) {
-        Log.d("startupfragment","onCreateView start grabjson with "+M_SERVER_DIRECTORY_URL+urlSource);
+        Log.d("startupfragment","start grabjson with "+M_SERVER_DIRECTORY_URL+urlSource);
 
         Log.d(CLASSNAME, "grabJson update forced");
         if (!isInternetOk()) {
@@ -591,7 +620,7 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
                 return new File(mCacheDirPath.getAbsolutePath(), FILELIST_JSON);
             }
         } else {
-            Log.d(CLASSNAME, "grabJson update forced think we have internet");
+            Log.d(CLASSNAME, "grabJson update forced think we have internet,urlsource="+urlSource);
 
             File file = getFile(urlSource, mCacheDirPath.getAbsolutePath(),
                 FILELIST_JSON);

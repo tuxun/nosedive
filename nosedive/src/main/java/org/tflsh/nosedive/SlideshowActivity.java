@@ -13,8 +13,10 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,13 +28,13 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public class SlideshowActivity extends Activity {
+  static final String M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "julia/";
 
   public static final String EXTRA_MESSAGE = "EXTRA_MESSAGE";
   //temps unitaire (base de temps), sert a définir le delai entre deux images
   static final int DELAY_INTER_FRAME_SETTING = 750;
   //temps durant lequel on regarde une image proposé apres le menu (en multiple d'interframedelay)
   static final int DELAY_GUESSING_SETTING = 5000;
-  static final String M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "julia/";
   //temps durant lequel on peut choisir deux mots (en multiple d'interframedelay)
   static final int DELAY_CHOICE_WORDS_SETTING = 10000;
   private static final String TAG = "SlideshowActivity";
@@ -78,7 +80,6 @@ public class SlideshowActivity extends Activity {
   private ProgressBar mDlProgressBar;
   private ArrayList<String> mSlideshowFilesName;
   private SlideshowFragment mSlideshowFragment;
-  private StartupFragment mStartupFragment;
   private SettingsFragment mSettingsFragment;
 
   public final BroadcastReceiver intentReceiver = new BroadcastReceiver() {
@@ -95,25 +96,18 @@ public class SlideshowActivity extends Activity {
 
           break;
         //todo: we now also receive filename as string
-        case "dlReceived":
-          Log.d(TAG, "intentReceiver got action dl received");
-          ((Button) findViewById(R.id.checkFilesButton)).setText("Téléchargement en cours de  "
-              + ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
-              + getString(R.string.files));
 
-          ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).incrementProgressBy(-1);
-          ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
-          break;
         case "dlComplete":
           Log.d(TAG, "intentReceiver got action dl complete");
-          (findViewById(R.id.button2)).setBackgroundColor(
-              getResources().getColor(R.color.OurPink, null));
-
+         /* (findViewById(R.id.button2)).setBackgroundColor(
+              getResources().getColor(R.color.OurPink, null));*/
+          ((Button)(findViewById(R.id.button2))).setClickable(false);
           fileschecked = true;
-          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
+          ((TextView) findViewById(R.id.button2)).setText(
               "Tous les fichiers sont OK!");
           findViewById(R.id.ui_dl_ProgressBar).setBackground(
               getDrawable(R.drawable.ic_not_started_black));
+          findViewById(R.id.ui_dl_ProgressBar).setClickable(true);
           findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
 
           break;
@@ -125,10 +119,19 @@ public class SlideshowActivity extends Activity {
           Log.d(TAG, "intentReceiver got action no json");
 
           break;
+        case "StartupViewOk":
+          Log.d(TAG, "intentReceiver got action StartupViewOk,startting startup fragment");
+
+         //!!! ((SlideshowFragment)  getFragmentManager().findFragmentByTag("SlideshowFragment")).setBaseUrl(M_SERVER_DIRECTORY_URL);
+
+          break;
+
+
+
         case "JSONok":
-          Log.d(TAG, "intentReceiver got action jsonOK");
 
           (findViewById(R.id.checkFilesButton)).setEnabled(true);
+          Log.d(TAG, "intentReceiver got JSONok");
           /*check files button*/
           findViewById(R.id.checkFilesButton).setOnTouchListener(new OnTouchListener() {
 
@@ -136,10 +139,12 @@ public class SlideshowActivity extends Activity {
             public boolean onTouch(View view, MotionEvent event) {
               if (event.getAction() == MotionEvent.ACTION_UP) {
                 view.performClick();
-                view.setClickable(false);
-                view.setEnabled(false);
+                //view.setClickable(false);
+                //view.setEnabled(false);
+
                 ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setProgress(0);
-                findViewById(R.id.button2).setVisibility(View.GONE);
+               //!!! pour checkfiles=missinf findViewById(R.id.button2).setVisibility(View.VISIBLE);
+                getFragmentManager().executePendingTransactions();
 
                 new Thread(new Runnable() {
                   @Override public void run() {
@@ -151,14 +156,38 @@ public class SlideshowActivity extends Activity {
                     missingFilesNames.clear();
 
                     mSlideshowFilesName.clear();
-                   //!!! mBackgroundFilesGrabber.exec(M_SERVER_DIRECTORY_URL);
+                    Log.d(TAG, "StartupFragment.exec()");
+if(((SlideshowFragment)  getFragmentManager().findFragmentByTag("SlideshowFragment"))==null)
+
+{
+  Log.d(TAG, "SlideshowFragment.void()");
+
+}
+else {
+
+
+}
+                    if(((StartupFragment)getFragmentManager().findFragmentByTag("StartupFragment"))==null)
+
+                    {
+                      Log.d(TAG, "StartupFragment.void()");
+
+                    }
+                    else {
+
+
+                    }
+
+
+
+                    ((SlideshowFragment)  getFragmentManager().findFragmentByTag("SlideshowFragment")).exec(
+                        M_SERVER_DIRECTORY_URL);
                   }
                 }).start();
               }
               return true;
             }
           });
-          Log.d(TAG, "intentReceiver got JSONok");
           ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(R.string.updatedJsonOK);
 
           break;
@@ -200,11 +229,15 @@ public class SlideshowActivity extends Activity {
                   fileschecked = true;
                   view.performClick();
                   ((View)findViewById(R.id.startupScreenLinearSourceLayout)).setVisibility(View.GONE);
+                  ((View)findViewById(R.id.ui_press_meTextView)).setVisibility(View.VISIBLE);
+//getFragmentManager().findFragmentByTag("StartupFragment").onDestroy();
 
 
-                  mSlideshowFragment =
-                      (SlideshowFragment) getFragmentManager().findFragmentByTag("SlideshowFragment");//new org.tflsh.nosedive.SlideshowFragment();
-mSlideshowFragment.startSlideshow(mSlideshowFilesName);
+
+                  mSlideshowFragment.toggle();
+                  mSlideshowFragment.startSlideshow(mSlideshowFilesName);
+
+
                 }
                 return true;
               }
@@ -216,6 +249,19 @@ mSlideshowFragment.startSlideshow(mSlideshowFilesName);
             findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
           }
 
+          break;
+        case "dlReceived":
+          Log.d(TAG, "intentReceiver got action dl received");
+
+
+          ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).incrementProgressBy(-1);
+          ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
+          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
+            "il manque " + (missingFilesNames.size()-((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
+            ) + " fichiers");
+          ((Button) findViewById(R.id.checkFilesButton)).setText("Téléchargement en cours de  "
+              + ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
+              + getString(R.string.files));
           break;
         case "filesMissing":
           Log.d(TAG, "intentReceiver got action files missing");
@@ -265,13 +311,21 @@ mSlideshowFragment.startSlideshow(mSlideshowFilesName);
   }
 
 
+  @Override
+  public void onPostCreate(Bundle savedInstanceState) {
+    super.onPostCreate(savedInstanceState);
+
+    mSlideshowFragment =
+        (SlideshowFragment) getFragmentManager().findFragmentByTag("SlideshowFragment");//new org.tflsh.nosedive.SlideshowFragment();
+
+
+  }
 @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024);
     // Use maximum available memory for this memory cache.
     Log.d(TAG, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
-    setContentView(R.layout.activity_fullscreen);
     if (savedInstanceState != null) {
 
       fileschecked = savedInstanceState.getBoolean("allfileschecked");
@@ -298,14 +352,19 @@ mSlideshowFragment.startSlideshow(mSlideshowFilesName);
     filter.addAction("filesFound");
     filter.addAction("filesAllOk");
     filter.addAction("filesMissing");
+    filter.addAction("StartupViewOk");
+
     filter.addAction("noJson");
     filter.addAction("JSONok");
+    filter.addAction("ACTION_BOOT_COMPLETED");
     filter.addAction("JSONlocalonly");
+  setContentView(R.layout.activity_fullscreen);
 
     //end try lru
 
   //baseurl,projectcode, todo
-  mStartupFragment =  StartupFragment.newInstance(M_SERVER_DIRECTORY_URL,missingFilesNames);
+
+
   mSettingsFragment =  new SettingsFragment();
   Log.d("activity", "onCreate" + getIntent());
 }
@@ -321,7 +380,11 @@ mSlideshowFragment.startSlideshow(mSlideshowFilesName);
   protected void onResume() {
     super.onResume();
     registerReceiver(intentReceiver, filter);
-    mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
+   //!!! mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
+
+    ;   // mSlideshowFragment.setBaseUrl(M_SERVER_DIRECTORY_URL);
+
+    //!!!StartupFragment.newInstance(M_SERVER_DIRECTORY_URL,missingFilesNames);
 
     if (!fileschecked) {
       Log.d(TAG, "onResume: no bundle" + getIntent());
@@ -342,7 +405,6 @@ mSlideshowFragment.startSlideshow(mSlideshowFilesName);
       Log.d(TAG,
           "ListImageTask missing file after 5second and an intent? = " + missingFilesNames.size());
     //!!!  loadStartupFragment();
-
 fileschecked=true;
 
 
@@ -388,19 +450,5 @@ fileschecked=true;
 
   }
 
-  private void loadStartupFragment() {
-
-    Log.d(TAG, "loadStartupFragment()");
-    Bundle args = new Bundle();
-    args.putString("M_SERVER_DIRECTORY_URL", M_SERVER_DIRECTORY_URL);
-    args.putStringArrayList("SlideshowFilenames", mSlideshowFilesName);
-    mStartupFragment.setArguments(args);
-    FragmentManager manager = getFragmentManager();
-    FragmentTransaction transaction = manager.beginTransaction();
-    transaction.add(R.id.startupScreenLinearSourceLayout, mStartupFragment, "MULTIFACETTE_LOADING");
-    transaction.addToBackStack(null);
-    transaction.commit();
-
-  }
 
 }

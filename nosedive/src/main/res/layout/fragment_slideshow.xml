@@ -1,86 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".SlideshowFragment"
     android:id="@+id/SlideshowFragment"
 android:background="@color/OurWhite"
+    android:orientation="vertical"
     >
 
   <!-- The primary full-screen view. This can be replaced with whatever view
          is needed to present your content, e.g. VideoView, SurfaceView,
          TextureView, etc. -->
-  <FrameLayout
+
+
+  <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      android:fitsSystemWindows="true"
+      android:gravity="top"
+      android:orientation="vertical"
+      android:id="@+id/SlideshowLayout"
+
       >
 
-    <LinearLayout
-        android:id="@+id/fullscreen_content_controls"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:background="@color/black_overlay"
-        android:orientation="horizontal"
-        tools:ignore="UselessParent"
-        style="?android:attr/buttonBarStyle"
-        >
-      <LinearLayout
-          android:id="@+id/ui_centralLinearLayout"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:orientation="vertical"
-          >
-
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:adjustViewBounds="true"
-            android:scaleType="fitStart"
-            android:src="@drawable/default_background"
-            android:contentDescription="Photo de Julia au hasard"
-            />
 
 
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:gravity="top"
+      android:orientation="horizontal"
+      >
 
 
-      </LinearLayout>
-
-
-    </LinearLayout>
-  </FrameLayout>
 
   <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
 
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:orientation="vertical"
-  android:id="@+id/fullscreen_content"
-      >
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:baselineAligned="false" android:orientation="horizontal"
-      android:background="@color/OurWhite"
-
-      >
     <LinearLayout
         android:id="@+id/leftMenuLinearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:layout_weight="1"
+
         android:gravity="top"
         android:orientation="vertical"
         android:visibility="gone">
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/ui_centralLinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
 
+        >
+
+      <ImageView
+          android:id="@+id/imageView"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:adjustViewBounds="true"
+          android:scaleType="fitStart"
+          android:src="@drawable/default_background"
+          android:contentDescription="Photo de Julia au hasard"
+          />
+
+
+
+
+    </LinearLayout>
     <LinearLayout
         android:id="@+id/rightMenuLinearLayout"
         android:layout_width="match_parent"
@@ -92,30 +82,38 @@ android:background="@color/OurWhite"
         android:visibility="gone">
 
     </LinearLayout>
-
-
   </LinearLayout>
 
 
 
   <LinearLayout
       android:layout_width="match_parent"
-      android:layout_height="wrap_content"
+      android:layout_height="match_parent"
       android:orientation="vertical"
-android:background="@color/OurWhite"
+      android:gravity="center"
+      android:layout_gravity="center"
+
       >
     <TextView
         android:id="@+id/ui_press_meTextView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:layout_gravity="center"
-
-        android:textColor="@color/OurPink"
-        android:textSize="75px"
+        android:layout_height="wrap_content"
         android:fontFamily="@font/alef"
+        android:text="@string/string_press_me"
+        android:gravity="center"
+        android:textSize="75sp"
+        android:visibility="gone"
         />
-  </LinearLayout>
+    <LinearLayout
+        android:id="@+id/startupScreenLinearSourceLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        >
+
+    </LinearLayout> </LinearLayout>
+
   </LinearLayout>
 
-</FrameLayout>
+
+</LinearLayout>

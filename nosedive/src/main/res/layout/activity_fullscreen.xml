@@ -16,39 +16,27 @@
     <LinearLayout
         android:id="@+id/slideshowScreenLinearSourceLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
         >
         <fragment
             android:tag="SlideshowFragment"
             android:id="@+id/fragment"
             android:name="org.tflsh.nosedive.SlideshowFragment"
+            tools:layout="@layout/fragment_slideshow"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             />
-    </LinearLayout>
-    <LinearLayout
-    android:id="@+id/startupScreenLinearSourceLayout"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    >
-        <fragment
-            android:tag="StartupFragment"
 
-            android:id="@+id/fragment1"
-            android:name="org.tflsh.nosedive.StartupFragment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            />
-    </LinearLayout>
-    <LinearLayout
+</LinearLayout>
+<LinearLayout
         android:id="@+id/setupScreenLinearSourceLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
 
-        android:visibility="gone">
+        android:visibility="gone"
+    >
 
         <fragment
             android:tag="SettingsFragment"
@@ -56,6 +44,8 @@
             android:name="org.tflsh.nosedive.SettingsFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            tools:layout="@layout/fragment_slideshow"
+
             />
 
     </LinearLayout>

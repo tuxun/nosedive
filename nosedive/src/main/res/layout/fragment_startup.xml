@@ -23,6 +23,7 @@
             android:background="@drawable/ic_bouttonoff"
             android:clickable="false"
             android:enabled="false"
+            android:visibility="gone"
             android:layout_margin="10sp"
 
             />

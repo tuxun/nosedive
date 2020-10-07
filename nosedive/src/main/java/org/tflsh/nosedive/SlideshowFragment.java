@@ -3,6 +3,7 @@ package org.tflsh.nosedive;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -26,6 +27,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import androidx.annotation.RequiresApi;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -38,6 +40,7 @@ import java.util.concurrent.Executors;
  * status bar and navigation/system bar) with user interaction.
  */
 public class SlideshowFragment extends Fragment {
+  static String SLIDESHOW_M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "julia/";
 
   private View mParentView;
 
@@ -111,8 +114,6 @@ public class SlideshowFragment extends Fragment {
       return false;
     }
   };
-  private View mContentView;
-  private View mControlsView;
   private final Runnable mShowPart2Runnable = new Runnable() {
     @Override
     public void run() {
@@ -154,19 +155,68 @@ public class SlideshowFragment extends Fragment {
       @Nullable Bundle savedInstanceState) {
     mContext=getContext();
     mCacheDirPath=mContext.getCacheDir();
-if(container!=null)
-{mParentView = container.findViewById(R.id.motherLayout);}
 
     return inflater.inflate(R.layout.fragment_slideshow, container, false);
   }
-//quand on crée le fragment, on commence forcemment par une image du slideshow
+  private StartupFragment mStartupFragment;
+
+
+  void exec(final String arg){
+    new Thread(new Runnable() {
+      @Override public void run() {
+        if (mStartupFragment!= null) {
+          //strtpfrgmnt.exec(arg);
+          Log.d("sldshowexec", " exec() mStartupFragment OOOK"+arg);
+
+        } else {
+          Log.d("sldshowexec", " exec() mStartupFragment=void");
+        }
+      }
+    }).start();
+
+}
+
+
+
+
+@RequiresApi(api = Build.VERSION_CODES.O) @Override
+  public void onAttach(Context context) {
+  Log.d("sldshow", " onAttach()");
+
+  super.onAttach(context);
+    mContext=context;
+  if ((getFragmentManager().getFragments()!=null)) {
+    Log.d("sldshowexec", " onCreate() mStartupFragment=ok");
+  } else {
+    Log.d("sldshowexec", " onCreate() mStartupFragment=void");
+  }
+  }
+
+
+
+
+
+
+
+  //quand on crée le fragment, on commence forcemment par une image du slideshow
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024);
     // Use maximum available memory for this memory cache.
     Log.d(TAG, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
+    mParentView = getView();
 
+
+    mParentView.setOnLongClickListener(new View.OnLongClickListener() {
+      @Override
+      public boolean onLongClick(View view) {
+        Log.d(TAG, "slidefragment toggle fscreen");
+
+        toggle();
+        return false;
+      }
+    });
     // The cache size will be measured in kilobytes rather than
     // number of items.
     LruCache<String, Bitmap> memoryCache = new LruCache<String, Bitmap>(cacheSize) {
@@ -187,19 +237,12 @@ else {mSlideshowFilesName=new ArrayList<>();}
     mBackgroundImageDecoder =
         new BackgroundImageDecoder(mContext, screenWidth, screenHeight, memoryCache,
             executor);
-    mContentView = view.findViewById(R.id.fullscreen_content_controls);
-    mControlsView = view.findViewById(R.id.fullscreen_content);
+//    mParentView = view.findViewById(R.id.fullscreen_content_controls);
+    //mControlsView = view.findViewById(R.id.SlideshowFragment);
 
     // Set up the user interaction to manually show or hide the system UI.
-/*    mParentView.setOnLongClickListener(new View.OnLongClickListener() {
-      @Override
-      public boolean onLongClick(View view) {
-        toggle();
-        return false;
-      }
-    });
-  */
-Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
+
+
 /*    View iframe = mParentView.findViewById(R.id.startupScreenLinearLayout);
     ViewGroup parent = (ViewGroup) iframe.getParent();
     parent.removeView(iframe);*/
@@ -208,17 +251,24 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
     // while interacting with the UI.
     //!parent.findViewById(R.id.motherLayout).setOnTouchListener(mDelayHideTouchListener);
     makeButtons();
-    makeImageClickable();
 
 
 
   }
   public void startSlideshow(ArrayList<String> arg){
     mSlideshowFilesName=arg;
+    Log.d(TAG, "startSlideshow()");
+
      mSlideshowHandler.post(mStartSlideshowRunnable);
 
   }
 
+
+  public void setBaseUrl(String arg){
+
+    SLIDESHOW_M_SERVER_DIRECTORY_URL=arg;
+
+  }
   int screenWidth;
   int screenHeight;
   DisplayMetrics screenMetrics;
@@ -267,8 +317,9 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
           new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
               ViewGroup.LayoutParams.WRAP_CONTENT);
       if (screenOrientationNormal) {
-        layoutParams.setMargins(buttonVerticalMargin, buttonHorizontalMargin, buttonVerticalMargin,
-            buttonHorizontalMargin);
+
+        layoutParams.setMargins(buttonHorizontalMargin, buttonVerticalMargin, buttonHorizontalMargin,
+            buttonVerticalMargin);
         tempButton.setPadding(buttonHorizontalPadding, buttonVerticalPadding, buttonHorizontalPadding,
             buttonVerticalPadding);
       } else {
@@ -341,7 +392,7 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
     //for the first 8 button, set in the left menu layout
     for (j = 0; j < buttonNames.length / 2; j++) {
 
-      ((LinearLayout) mControlsView.findViewById(R.id.leftMenuLinearLayout)).addView(
+      ((LinearLayout) mParentView.findViewById(R.id.leftMenuLinearLayout)).addView(
           mToggleButtonsArrayList.get(j));
     }
 
@@ -349,17 +400,20 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
 
     for (; j < buttonNames.length; j++) {
 
-      ((LinearLayout) mControlsView.findViewById(R.id.rightMenuLinearLayout)).addView(
+      ((LinearLayout) mParentView.findViewById(R.id.rightMenuLinearLayout)).addView(
           mToggleButtonsArrayList.get(j));
     }
   }
   ArrayList<Button> mToggleButtonsArrayList = new ArrayList<>();
   private final Handler mSlideshowHandler = new Handler();
-
+  private void makeImageNotClickable() {
+    mParentView.findViewById(R.id.SlideshowLayout).setClickable(false);
+    }
   private void makeImageClickable() {
     Log.d(TAG, "makeImageClickable(): image is now clickable");
-    /*
-    getView().findViewById(R.id.imageView).setOnClickListener(new View.OnClickListener() {
+
+
+    mParentView.findViewById(R.id.SlideshowLayout).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
 
@@ -367,8 +421,8 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
         mHideHandler.postDelayed(showMenuRunnable, UI_ANIMATION_DELAY);
       }
     });
-    mParentView.findViewById(R.id.imageView).setClickable(true);
-*/
+    getActivity().getWindow().findViewById(R.id.slideshowScreenLinearSourceLayout).setClickable(true);
+
 
 
   }
@@ -377,7 +431,6 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
   static final int DELAY_INTER_FRAME_SETTING = 750;
   //temps durant lequel on regarde une image proposé apres le menu (en multiple d'interframedelay)
   static final int DELAY_GUESSING_SETTING = 5000;
-  static final String M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "julia/";
   //temps durant lequel on peut choisir deux mots (en multiple d'interframedelay)
   static final int DELAY_CHOICE_WORDS_SETTING = 10000;
   private static final String TAG = "SlideshowActivity";
@@ -412,20 +465,20 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
 
           executor.execute(
               mBackgroundImageDecoder.new ShowImageTask(
-                  (ImageView) getView().findViewById(R.id.imageView),
+                  (ImageView) mParentView.findViewById(R.id.imageView),
                   DELAY_INTER_FRAME_SETTING,
                   mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
           );
-          ((TextView)mControlsView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurWhite));
+          ((TextView)mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurWhite));
         } else {
 
           executor.execute(
               mBackgroundImageDecoder.new ShowImageTask(
-                  ((ImageView)getView().findViewById(R.id.imageView)),
+                  ((ImageView)mParentView.findViewById(R.id.imageView)),
                   DELAY_INTER_FRAME_SETTING,
                   mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
           );
-          ((TextView)mControlsView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurPink));
+          ((TextView)mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurPink));
         }
 
         pwa++;
@@ -456,8 +509,8 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
         mSlideshowIsRunning = false;
       }
 
-      mContentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
-      mContentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
       mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
     }
   };
@@ -497,7 +550,7 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
     @Override
     public void run() {
       Log.d(TAG, "mShowImageAfterTwoWordsRunnable");
-      ((TextView)mContentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurWhite));
+      ((TextView)mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurWhite));
       mSlideshowHandler.postDelayed(cleanButtonRunnable, UI_ANIMATION_DELAY);
       mSlideshowHandler.postDelayed(mHideMenuRunnable, DELAY_INTER_FRAME_SETTING);
       mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
@@ -526,12 +579,13 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
 
     @Override
     public void run() {
-
+makeImageClickable();
       Log.d(TAG, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesName.size());
-//      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
-
-      mControlsView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
-      mControlsView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+getView().findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
+//      ((LinearLayout)mParentView.findViewById(R.id.slideshowScreenLinearSourceLayout)).setLayoutMode(
+    //      LinearLayout.LayoutParams.MATCH_PARENT);
+      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
 
       if ((!mSlideshowFilesName.isEmpty())) {
         mSlideshowHandler.removeCallbacks(showNextRunnable);
@@ -541,10 +595,10 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
         //hummm
         mHideHandler.post(cleanButtonRunnable);
 
-        ((TextView) mControlsView.findViewById(R.id.ui_press_meTextView)).setText(
+        ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(
             getResources().getString(R.string.string_press_me));
 
-        ((TextView) mControlsView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_SP,
+        ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_PX,
             pressMeTextSize);
 
 
@@ -573,13 +627,13 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
 
     //en dp
     pressMeTextSize = 50;
-    pressTwoWordsTextSize = 32;
-    buttonTextSize = 38;
+    pressTwoWordsTextSize = 38;
+    buttonTextSize = 32;
     //marge intérieure: entre le texte et la bordure du cadre (inversé si tablette en paysage)
-    buttonVerticalPadding = 18;
+    buttonVerticalPadding = 12;
     buttonHorizontalPadding = 20;
 
-    buttonVerticalMargin = 18;
+    buttonVerticalMargin = 30;
     buttonHorizontalMargin = 20;
 
     float screenDPI = screenMetrics.densityDpi;
@@ -615,24 +669,23 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
     @Override
     public void run() {
 
-      Log.d(TAG, "makeImageNotClickable(): image isshowMenuRunnable not clickable anymore");
-      mParentView.findViewById(R.id.imageView).setClickable(false);
-
+makeImageNotClickable();
       Log.d(TAG, "showMenuRunnable");
-      ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_PX,
+      mSlideshowHandler.removeCallbacks(showNextRunnable);
+
+      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_PX,
           pressTwoWordsTextSize);
-      ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
+      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
 
       // mSlideshowHandler.post(cleanButtonRunnable);
-      mSlideshowHandler.removeCallbacks(showNextRunnable);
       mSlideshowHandler.removeCallbacks(cleanButtonRunnable);
       mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
       mSlideshowIsRunning = false;
       mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_CHOICE_WORDS_SETTING);
       mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.GONE);
-      mContentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.VISIBLE);
-      mContentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.VISIBLE);
-      ((TextView) mContentView.findViewById(R.id.ui_press_meTextView)).setText(R.string.string_choose2word);
+      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.VISIBLE);
+      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.VISIBLE);
+      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(R.string.string_choose2word);
     }
   };
   @Override
@@ -642,6 +695,16 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
       getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
     }
 
+    loadStartupFragment();
+    mStartupFragment =(StartupFragment)          getFragmentManager().findFragmentByTag("StartupFragment");
+
+    Log.d("sldshow", " onResume()");
+
+    if ((getFragmentManager().findFragmentByTag("StartupFragment")) != null) {
+      //! strtpfrgmnt.exec(arg);
+    } else {
+      Log.d("sldshowexec", " onCreate() mStartupFragment=void");
+    }
     // Trigger the initial hide() shortly after the activity has been
     // created, to briefly hint to the user that UI controls
     // are available.
@@ -653,11 +716,10 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
   @Override
   public void onDestroy() {
     super.onDestroy();
-    mContentView = null;
-    mControlsView = null;
+    mParentView = null;
   }
 
-  private void toggle() {
+  void toggle() {
     if (mVisible) {
       hide();
     } else {
@@ -665,7 +727,7 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
     }
   }
 
-  private void hide() {
+  protected void hide() {
     // Hide UI first
     Log.d(TAG,"Fragment.hide()");
 
@@ -683,10 +745,10 @@ Log.d(TAG, "loadSlideshowFragment() removing startup screen layout");
 
   private void show() {
     // Show the system bar
-/*    mParentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+    getView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
 
- */
+
     mVisible = true;
 Log.d(TAG,"Fragment.show()");
     // Schedule a runnable to display UI elements after a delay
@@ -715,5 +777,22 @@ Log.d(TAG,"Fragment.show()");
       actionBar = activity.getActionBar();
     }
     return actionBar;
+  }
+
+  private void loadStartupFragment() {
+
+    Log.d(TAG, "loadStartupFragment()");
+    //Bundle args = new Bundle();
+    //args.putString("M_SERVER_DIRECTORY_URL", M_SERVER_DIRECTORY_URL);
+    //args.putStringArrayList("SlideshowFilenames", mSlideshowFilesName);
+    //mStartupFragment.setArguments(args);
+    FragmentManager manager = getFragmentManager();
+    mStartupFragment=new StartupFragment();
+
+    FragmentTransaction transaction = manager.beginTransaction();
+    transaction.add(R.id.startupScreenLinearSourceLayout, mStartupFragment, "MULTIFACETTE_LOADING");
+    transaction.addToBackStack(null);
+    transaction.commit();
+
   }
 }
