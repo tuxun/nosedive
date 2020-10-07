@@ -80,7 +80,7 @@ public class StartupFragment extends Fragment {
                         //                grabJson(M_SERVER_DIRECTORY_URL);
                         Log.d(TAG, "M_SERVER_DIRECTORY_URL"+M_SERVER_DIRECTORY_URL);
 
-                        grabJson(M_SERVER_DIRECTORY_URL);
+                        grabJson(M_SERVER_DIRECTORY_URL,false);
                     }
                 }).start();            }
         }).start();
@@ -164,9 +164,10 @@ public class StartupFragment extends Fragment {
                 try {
                     File localJsonFile = new File(mCacheDirPath.getAbsolutePath(), FILELIST_JSON);
 
-                    if (localJsonFile == null) {
+                    if (!localJsonFile.exists()) {
 
                         Log.d(CLASSNAME, "unable to create json");
+                        grabJson(M_SERVER_DIRECTORY_URL,true);
                         return;
                     }
 
@@ -217,12 +218,12 @@ public class StartupFragment extends Fragment {
             }
         });
         /*repair files button*/
-        view.findViewById(R.id.button2).setOnTouchListener(new View.OnTouchListener() {
+        view.findViewById(R.id.repairFilesButton).setOnTouchListener(new View.OnTouchListener() {
 
             @Override
             public boolean onTouch(View view, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_UP) {
-                    view.findViewById(R.id.button2).setBackgroundColor(
+                    view.findViewById(R.id.repairFilesButton).setBackgroundColor(
                         getResources().getColor(R.color.OurWhite, null));
                     view.performClick();
 /*                    (view.findViewById(R.id.checkFilesButton)).setBackgroundColor(
@@ -247,7 +248,7 @@ public class StartupFragment extends Fragment {
         new Thread(new Runnable() {
             @Override public void run() {
 
-                grabJson(  M_SERVER_DIRECTORY_URL );
+                grabJson(  M_SERVER_DIRECTORY_URL,false );
                 exec(M_SERVER_DIRECTORY_URL);
             }
         }).start();
@@ -605,14 +606,14 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
 
     public static final String FILELIST_JSON = "filelist.json";
 
-    public  File grabJson(String urlSource) {
+    public  File grabJson(String urlSource,boolean forced) {
         Log.d("startupfragment","start grabjson with "+M_SERVER_DIRECTORY_URL+urlSource);
 
         Log.d(CLASSNAME, "grabJson update forced");
-        if (!isInternetOk()) {
+        if (!forced) {
             if (!checkFile(mCacheDirPath.getAbsolutePath(), FILELIST_JSON)) {
                 Log.d(CLASSNAME,
-                    "grabJson update forced was canceled cause not internet");
+                    "grabJson update forced was canceled and wed had no local json");
                 sendMessage("noJson");
                 return null;
             } else {

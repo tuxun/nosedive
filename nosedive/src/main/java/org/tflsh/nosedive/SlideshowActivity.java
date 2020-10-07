@@ -101,13 +101,32 @@ public class SlideshowActivity extends Activity {
           Log.d(TAG, "intentReceiver got action dl complete");
          /* (findViewById(R.id.button2)).setBackgroundColor(
               getResources().getColor(R.color.OurPink, null));*/
-          ((Button)(findViewById(R.id.button2))).setClickable(false);
+          ((Button)(findViewById(R.id.repairFilesButton))).setClickable(false);
           fileschecked = true;
-          ((TextView) findViewById(R.id.button2)).setText(
-              "Tous les fichiers sont OK!");
+          ((TextView) findViewById(R.id.repairFilesButton)).setVisibility(View.GONE);
           findViewById(R.id.ui_dl_ProgressBar).setBackground(
               getDrawable(R.drawable.ic_not_started_black));
-          findViewById(R.id.ui_dl_ProgressBar).setClickable(true);
+          (findViewById(R.id.ui_dl_ProgressBar)).setOnTouchListener(new OnTouchListener() {
+
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+              if (event.getAction() == MotionEvent.ACTION_UP) {
+                fileschecked = true;
+                view.performClick();
+                ((View)findViewById(R.id.startupScreenLinearSourceLayout)).setVisibility(View.GONE);
+                ((View)findViewById(R.id.ui_press_meTextView)).setVisibility(View.VISIBLE);
+                //getFragmentManager().findFragmentByTag("StartupFragment").onDestroy();
+
+
+
+                mSlideshowFragment.toggle();
+                mSlideshowFragment.startSlideshow(mSlideshowFilesName);
+
+
+              }
+              return true;
+            }
+          });
           findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
 
           break;
@@ -189,6 +208,7 @@ else {
             }
           });
           ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(R.string.updatedJsonOK);
+          findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
 
           break;
         case "JSONlocalonly":
@@ -215,8 +235,9 @@ else {
              // getResources().getColor(R.color.OurPink, null));
           if (missingFilesNames.isEmpty()) {
             fileschecked = true;
-            ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-                "Tous les fichiers sont OK!");
+
+
+            ((Button) findViewById(R.id.checkFilesButton)).setVisibility(View.GONE);
             findViewById(R.id.ui_dl_ProgressBar).setBackground(
                 getDrawable(R.drawable.ic_not_started_black));
             findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
@@ -243,10 +264,6 @@ else {
               }
             });
             //////////
-          } else {
-            ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-                "il manque " + missingFilesNames.size() + " fichiers");
-            findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
           }
 
           break;
@@ -256,26 +273,34 @@ else {
 
           ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).incrementProgressBy(-1);
           ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
-          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-            "il manque " + (missingFilesNames.size()-((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
-            ) + " fichiers");
+          /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
+           "il manque " + (missingFilesNames.size()-((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
+            ) + " fichiers");*/
           ((Button) findViewById(R.id.checkFilesButton)).setText("Téléchargement en cours de  "
-              + ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
+              + ((missingFilesNames.size()-((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()))
               + getString(R.string.files));
           break;
         case "filesMissing":
-          Log.d(TAG, "intentReceiver got action files missing");
+
+
+         Log.d(TAG, "intentReceiver got action files missing");
           String max5 = intent.getStringExtra(EXTRA_MESSAGE);
           missingFilesNames.add(max5);
+          ((Button) findViewById(R.id.repairFilesButton)).setText(
+            "Récupérer les "+(missingFilesNames.size())
+                +" photos manquantes");
           findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
-          findViewById(R.id.button2).setVisibility(View.VISIBLE);
+          findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
           ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).setProgress(
               missingFilesNames.size());
           ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setSecondaryProgress(
               missingFilesNames.size());
           Log.d(TAG, "intentReceiver set progress bar " + missingFilesNames.size() + max5);
+         /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
+              "il manque " + missingFilesNames.size() + " fichiers");
           ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
               "il manque " + missingFilesNames.size() + " fichiers");
+          findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);*/
 
           break;
 

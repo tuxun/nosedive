@@ -626,7 +626,7 @@ getView().findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
 
 
     //en dp
-    pressMeTextSize = 50;
+    pressMeTextSize = 75;
     pressTwoWordsTextSize = 38;
     buttonTextSize = 32;
     //marge intérieure: entre le texte et la bordure du cadre (inversé si tablette en paysage)

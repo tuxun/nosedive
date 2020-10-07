@@ -63,23 +63,56 @@ public class BackgroundImageDecoder extends AppCompatActivity {
 
         // First decode with inJustDecodeBounds=true to check dimensions
         BitmapFactory.Options options = new BitmapFactory.Options();
+        BitmapFactory.Options optionsOut = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(res, options);
         options.inJustDecodeBounds = false;
         // Calculate inSampleSize
-        int quality= (int) 1.8;
+        int quality= (int) 11;
+int ratio=0;
+
+        if(options.outHeight>options.outWidth)
+        {
+            ratio=options.outHeight/options.outHeight;
+
+        int screenScaling=100;
+        int screenScaledByRatio=screenScaling*ratio;
+            Log.d(CLASSNAME,"image ratio"+ratio);
+            int hcrop=screenScaling*quality;
+            int vcrop=screenScaledByRatio*quality;
+
+            Log.d(CLASSNAME,"image h crop"+hcrop);
+            Log.d(CLASSNAME,"image w crop"+vcrop);
+
+            optionsOut.outHeight=options.outHeight-hcrop;
+        optionsOut.outWidth=screenWidth-vcrop;
+            optionsOut.inSampleSize = calculateInSampleSize(options,
+                screenWidth-screenScaledByRatio*quality,
+                screenHeight-screenScaledByRatio*quality);
+            Log.d(CLASSNAME,"image size h:"+optionsOut.outHeight+" w: "+optionsOut.outWidth+ "==>"+optionsOut.inSampleSize);
 
 
-        //  options.inPreferQualityOverSpeed = true;
-       options.inSampleSize = calculateInSampleSize(options, (int) (options.outWidth)/quality,
-          (int) (options.outHeight)/quality);
+        }
+        else       {
+            ratio=screenWidth/screenHeight;
+            int screenScaling=100;
+            int screenScaledByRatio=screenScaling*ratio;
+            optionsOut.outWidth=screenHeight-screenScaling*quality;
+            optionsOut.outHeight=screenWidth-screenScaledByRatio*quality;
+            optionsOut.inSampleSize = calculateInSampleSize(options,
+                screenWidth-screenScaledByRatio*quality,
+                screenHeight-screenScaledByRatio*quality);
 
 
-        Log.d(CLASSNAME,"image size"+options.outHeight/quality+" w: "+options.outWidth/quality+ "==>"+options.inSampleSize);
+        }
 
-        return BitmapFactory.decodeFile(res,options);
-//return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res,
-  //  optionsOut),options.outWidth/quality,options.outHeight/quality,false);
+     //   Log.d(CLASSNAME,"sample size from h: "+reqHeight+" w: "+reqWidth+ "==>"+optionsOut.inSampleSize);
+
+
+
+       // return BitmapFactory.decodeFile(res,options);
+return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res,
+    optionsOut),optionsOut.outWidth,optionsOut.outHeight,false);
     }
 
 
@@ -104,7 +137,6 @@ public class BackgroundImageDecoder extends AppCompatActivity {
                 inSampleSize *= 2;
             }
         }
-        Log.d(CLASSNAME,"sample size from h: "+reqHeight+" w: "+reqWidth+ "==>"+inSampleSize);
 
         return inSampleSize;
     }
