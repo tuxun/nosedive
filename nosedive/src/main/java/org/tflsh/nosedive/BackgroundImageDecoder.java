@@ -145,13 +145,8 @@ return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res,
     public Bitmap getOrAddBitmapToMemoryCache(String filePath) {
 
 
-            // First decode with inJustDecodeBounds=true to check dimensions
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
-            BitmapFactory.decodeFile(filePath, options);
-            options.inJustDecodeBounds = false;
 
-        return     decodeSampledBitmapFromFilepath(filePath ,   options.outWidth/2, options.outHeight/2) ;
+        return     nudecodeSampledBitmapFromFilepath(filePath);
         //§decBitmapFactory.decodeFile(filePath,options);
 
         /**
@@ -213,8 +208,7 @@ Log.e(CLASSNAME,"cache is full, loading image from disk");}
     /**
      * scope: package-private
      */
-    public static Bitmap decodeSampledBitmapFromFilepath(String res, int resId,
-        int reqWidth, int reqHeight) {
+    public static Bitmap nudecodeSampledBitmapFromFilepath(String res) {
 
         // First decode with inJustDecodeBounds=true to check dimensions
         final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -222,7 +216,7 @@ Log.e(CLASSNAME,"cache is full, loading image from disk");}
         BitmapFactory.decodeFile(res,    options);
 
         // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+        options.inSampleSize = calculateInSampleSize(options, options.outWidth, options.outHeight);
 
         // Decode bitmap with inSampleSize set
         options.inJustDecodeBounds = false;
