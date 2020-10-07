@@ -143,6 +143,19 @@ return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res,
 
     //return the bitmap from cache or from file. idea from https://developer.android.com/topic/performance/graphics/cache-bitmap
     public Bitmap getOrAddBitmapToMemoryCache(String filePath) {
+
+
+            // First decode with inJustDecodeBounds=true to check dimensions
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(filePath, options);
+            options.inJustDecodeBounds = false;
+        options.inSampleSize = calculateInSampleSize(options,
+            options.outWidth/2 ,       options.outHeight/2);
+            // Calculate inSampleSize
+        return BitmapFactory^.^(filePath,options);
+
+        /**
         synchronized (memoryCache) {
             Bitmap cachedResult = memoryCache.get(filePath);
 
@@ -186,7 +199,7 @@ Log.e(CLASSNAME,"cache is full, loading image from disk");}
             }
 
             return cachedResult;
-        }
+        }*/
     }
 
     //asynchronous thread  which should:

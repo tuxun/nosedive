@@ -104,7 +104,7 @@ public class SlideshowFragment extends Fragment {
    * system UI. This is to prevent the jarring behavior of controls going away
    * while interacting with activity UI.
    */
-  private final View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
+  /*private final View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
       if (AUTO_HIDE) {
@@ -114,6 +114,7 @@ public class SlideshowFragment extends Fragment {
       return false;
     }
   };
+  */
   private final Runnable mShowPart2Runnable = new Runnable() {
     @Override
     public void run() {
@@ -418,7 +419,7 @@ else {mSlideshowFilesName=new ArrayList<>();}
       public void onClick(View view) {
 
         mSlideshowHandler.removeCallbacks(showNextRunnable);
-        mHideHandler.postDelayed(showMenuRunnable, UI_ANIMATION_DELAY);
+        mHideHandler.post(showMenuRunnable);
       }
     });
     getActivity().getWindow().findViewById(R.id.slideshowScreenLinearSourceLayout).setClickable(true);
@@ -594,6 +595,7 @@ getView().findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
         makeImageClickable();
         //hummm
         mHideHandler.post(cleanButtonRunnable);
+        ((TextView)mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurWhite));
 
         ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(
             getResources().getString(R.string.string_press_me));
