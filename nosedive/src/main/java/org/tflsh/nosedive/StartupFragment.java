@@ -1,5 +1,8 @@
 package org.tflsh.nosedive;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -17,9 +20,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -233,7 +233,7 @@ public class StartupFragment extends Fragment {
                         @Override public void run() {
 
                             repairfiles(
-                                M_SERVER_DIRECTORY_URL);
+                                M_SERVER_DIRECTORY_URL, missingImagesNames);
                         }
                     }).start();
                 }
@@ -354,8 +354,8 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
      * @param name name of the file to check
      * @return return true if file is looking fine, else return false
      */
-    public void repairfiles(String urlSource) {
-        Log.e("repairfiles", "missing or broken " + missingImagesNames.size() + " files");
+    public void repairfiles(String urlSource, ArrayList<String> missingsArg) {
+        Log.e("repairfiles", "missing or broken " + missingsArg.size() + " files");
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -367,7 +367,7 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        for (String name : missingImagesNames) {
+        for (String name : missingsArg) {
             Log.e("repairfiles", "grab missing or broken " + name + " files");
 
             getFile(urlSource, mCacheDirPath.getAbsolutePath(), name);

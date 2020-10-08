@@ -2,6 +2,8 @@ package org.tflsh.nosedive;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -13,16 +15,10 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import androidx.appcompat.app.AppCompatActivity;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import java.util.ArrayList;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -82,6 +78,7 @@ public class SlideshowActivity extends Activity {
   private SlideshowFragment mSlideshowFragment;
   private SettingsFragment mSettingsFragment;
 
+  private int downloadedFilesNumber;
   public final BroadcastReceiver intentReceiver = new BroadcastReceiver() {
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -158,11 +155,11 @@ public class SlideshowActivity extends Activity {
             public boolean onTouch(View view, MotionEvent event) {
               if (event.getAction() == MotionEvent.ACTION_UP) {
                 view.performClick();
-                //view.setClickable(false);
-                //view.setEnabled(false);
+                view.setClickable(false);
+                view.setSelected(true);
 
                 ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setProgress(0);
-               //!!! pour checkfiles=missinf findViewById(R.id.button2).setVisibility(View.VISIBLE);
+                //!!! pour checkfiles=missinf findViewById(R.id.button2).setVisibility(View.VISIBLE);
                 getFragmentManager().executePendingTransactions();
 
                 new Thread(new Runnable() {
@@ -214,7 +211,7 @@ else {
         case "JSONlocalonly":
           Log.d(TAG, "intentReceiver got JSONlocalonly");
           ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-              "Pas internet mais liste fichiers ok");
+              "Liste des photos ok");
 
           break;
         case "filesFound":
@@ -270,24 +267,23 @@ else {
         case "dlReceived":
           Log.d(TAG, "intentReceiver got action dl received");
 
-
+          downloadedFilesNumber++;
           ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).incrementProgressBy(-1);
           ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
           /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
            "il manque " + (missingFilesNames.size()-((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
             ) + " fichiers");*/
-          ((Button) findViewById(R.id.checkFilesButton)).setText("Téléchargement en cours de  "
-              + ((missingFilesNames.size()-((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()))
+          ((Button) findViewById(R.id.repairFilesButton)).setText("Téléchargement en cours de  "
+              + ((missingFilesNames.size() - downloadedFilesNumber))
               + getString(R.string.files));
           break;
         case "filesMissing":
 
-
-         Log.d(TAG, "intentReceiver got action files missing");
+          Log.d(TAG, "intentReceiver got action files missing");
           String max5 = intent.getStringExtra(EXTRA_MESSAGE);
           missingFilesNames.add(max5);
           ((Button) findViewById(R.id.repairFilesButton)).setText(
-            "Récupérer les "+(missingFilesNames.size())
+              "Récupérer les " + (missingFilesNames.size())
                 +" photos manquantes");
           findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
           findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
@@ -407,7 +403,7 @@ else {
     registerReceiver(intentReceiver, filter);
    //!!! mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
 
-    ;   // mSlideshowFragment.setBaseUrl(M_SERVER_DIRECTORY_URL);
+    // mSlideshowFragment.setBaseUrl(M_SERVER_DIRECTORY_URL);
 
     //!!!StartupFragment.newInstance(M_SERVER_DIRECTORY_URL,missingFilesNames);
 
