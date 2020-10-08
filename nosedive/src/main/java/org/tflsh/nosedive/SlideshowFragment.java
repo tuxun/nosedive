@@ -568,7 +568,8 @@ else {mSlideshowFilesName=new ArrayList<>();}
             if (mCheckedToggleButtonsArrayList.size() > 2) {
               Log.d("mCheckedToggle", "3 Button pressed");
               mHideHandler.post(cleanButtonRunnable);
-              mSlideshowHandler.post(mStartSlideshowRunnable);
+              mSlideshowHandler.postDelayed(mStartSlideshowRunnable,
+                  DELAY_INTER_FRAME_SETTING * 2);
             }
             Log.d("Pressed", "Button pressed");
           } else if (mCheckedToggleButtonsArrayList.size() == 1) {
@@ -594,9 +595,14 @@ else {mSlideshowFilesName=new ArrayList<>();}
 
             Log.d("toggleClick", "toggle 2 buttons ok");
             mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
-            mSlideshowHandler.postDelayed(mShowImageAfterTwoWordsRunnable,
-                DELAY_INTER_FRAME_SETTING * 2);
-            view.performClick();
+            /*try {
+              Thread.sleep(1000);
+            } catch (InterruptedException e) {
+              e.printStackTrace();
+            }*/
+            mSlideshowHandler.post(mShowImageAfterTwoWordsRunnable);
+
+            return true;
           }
 
           return false;
@@ -729,8 +735,11 @@ getView().findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
 makeImageNotClickable();
       Log.d(TAG, "showMenuRunnable");
       mSlideshowHandler.removeCallbacks(showNextRunnable);
+new Thread(new Runnable() {
+  @Override public void run() {
 
-      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_PX,
+  }
+}).start();     ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_PX,
           pressTwoWordsTextSize);
       ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
 
@@ -743,6 +752,10 @@ makeImageNotClickable();
       mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.VISIBLE);
       mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.VISIBLE);
       ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(R.string.string_choose2word);
+      ((ImageView) mParentView.findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.whitebackground));
+
+
+
     }
   };
   @Override

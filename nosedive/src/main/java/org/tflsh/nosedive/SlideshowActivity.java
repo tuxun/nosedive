@@ -219,6 +219,7 @@ else {
           mSlideshowFilesName.add(max);
           Log.d(TAG, "intentReceiver got action files found " + mSlideshowFilesName.size() +" " +max);
           findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
+          ((TextView)findViewById(R.id.ui_dl_progressTextView)).setText(mSlideshowFilesName.size()+" photos Ok");
 
           ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setProgress(
               mSlideshowFilesName.size());

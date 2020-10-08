@@ -7,6 +7,7 @@
     tools:context=".StartupFragment"
     android:id="@+id/settingScreenLinearLayout"
     android:gravity="center"
+    android:visibility="gone"
     android:orientation="vertical"
     >
 <LinearLayout
