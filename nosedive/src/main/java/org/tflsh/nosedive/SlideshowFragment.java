@@ -1,36 +1,33 @@
 package org.tflsh.nosedive;
 
-
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.LruCache;
 import android.util.TypedValue;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.os.Bundle;
-import android.os.Handler;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
-import androidx.annotation.RequiresApi;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -174,24 +171,28 @@ public class SlideshowFragment extends Fragment {
         }
       }
     }).start();
-
-}
-
-
-
-
-@RequiresApi(api = Build.VERSION_CODES.O) @Override
-  public void onAttach(Context context) {
-  Log.d("sldshow", " onAttach()");
-
-  super.onAttach(context);
-    mContext=context;
-  if ((getFragmentManager().getFragments()!=null)) {
-    Log.d("sldshowexec", " onCreate() mStartupFragment=ok");
-  } else {
-    Log.d("sldshowexec", " onCreate() mStartupFragment=void");
   }
-  }
+
+  private final Runnable cleanButtonRunnable = new Runnable() {
+    @Override
+    public void run() {
+      int clickedButtons = mToggleButtonsArrayList.size() - 1;
+      Log.d(TAG, "cleanButtonRunnable:" + clickedButtons + " cleaned buttons");
+      for (int i = clickedButtons; i >= 0; i--) {
+        mToggleButtonsArrayList.get(i).setEnabled(true);
+        mToggleButtonsArrayList.get(i).setClickable(true);
+        //?  mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(i));
+      }
+      clickedButtons = mCheckedToggleButtonsArrayList.size();
+      if (clickedButtons > 0) {
+        for (int i = clickedButtons - 1; i >= 0; i--) {
+
+          mCheckedToggleButtonsArrayList.get(i).setEnabled(true);
+          mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(i));
+        }
+      }
+    }
+  };
 
 
 
@@ -264,15 +265,183 @@ else {mSlideshowFilesName=new ArrayList<>();}
 
   }
 
+  public void setBaseUrl(String arg) {
 
-  public void setBaseUrl(String arg){
-
-    SLIDESHOW_M_SERVER_DIRECTORY_URL=arg;
-
+    SLIDESHOW_M_SERVER_DIRECTORY_URL = arg;
   }
+
   int screenWidth;
   int screenHeight;
   DisplayMetrics screenMetrics;
+  private final Runnable mShowImageAfterTwoWordsRunnable = new Runnable() {
+    @Override
+    public void run() {
+      Log.d(TAG, "mShowImageAfterTwoWordsRunnable");
+      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
+          getResources().getColor(R.color.OurWhite));
+      mSlideshowHandler.postDelayed(mHideMenuRunnable, DELAY_INTER_FRAME_SETTING);
+      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+      mSlideshowHandler.removeCallbacks(showNextRunnable);
+/*
+      mImageView.setImageDrawable(
+          ResourcesCompat.getDrawable(getResources(), R.drawable.whitebackground, null));
+*/
+      mSlideshowHandler.post(
+          mBackgroundImageDecoder.new ShowImageTask(
+              ((ImageView) mParentView.findViewById(R.id.imageView)), DELAY_INTER_FRAME_SETTING,
+              mCacheDirPath + "/" + mSlideshowFilesName.get(
+                  new Random().nextInt(mSlideshowFilesName.size()))));
+      mSlideshowHandler.postDelayed(cleanButtonRunnable, UI_ANIMATION_DELAY * 2);
+
+      //  mHideHandler.post(cleanButtonRunnable);
+
+      mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_GUESSING_SETTING);
+    }
+  };
+  ArrayList<Button> mToggleButtonsArrayList = new ArrayList<>();
+  private final Handler mSlideshowHandler = new Handler();
+
+  private void makeImageNotClickable() {
+    mParentView.findViewById(R.id.SlideshowLayout).setClickable(false);
+  }
+
+  private void makeImageClickable() {
+    Log.d(TAG, "makeImageClickable(): image is now clickable");
+
+    mParentView.findViewById(R.id.SlideshowLayout).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+
+        mSlideshowHandler.removeCallbacks(showNextRunnable);
+        mHideHandler.post(showMenuRunnable);
+      }
+    });
+    getActivity().getWindow()
+        .findViewById(R.id.slideshowScreenLinearSourceLayout)
+        .setClickable(true);
+  }
+
+  static final int DELAY_INTER_FRAME_SETTING = 750;
+  //temps durant lequel on regarde une image proposé apres le menu (en multiple d'interframedelay)
+  static final int DELAY_GUESSING_SETTING = 5000;
+  //temps durant lequel on peut choisir deux mots (en multiple d'interframedelay)
+  static final int DELAY_CHOICE_WORDS_SETTING = 10000;
+  private static final String TAG = "SlideshowActivity";
+  final ArrayList<Button> mCheckedToggleButtonsArrayList = new ArrayList<>();
+  private ExecutorService executor;
+  private boolean mSlideshowIsRunning = false;
+  private final Runnable blockmenu = new Runnable() {
+    @Override
+    public void run() {
+      Log.e("blockmenu", "visible ?");
+
+      //a chaque button cliqué, si on est perdu, on decheck les bouttons
+      //should only  happen when 2 DIFFERENT buttons are pressed
+      mSlideshowIsRunning = false;
+      int clickedButtons = mToggleButtonsArrayList.size() - 1;
+      Log.d(TAG, "blockmenu:" + clickedButtons + " blockmenu buttons");
+      for (int i = clickedButtons; i >= 0; i--) {
+        mToggleButtonsArrayList.get(i).setEnabled(false);
+        mToggleButtonsArrayList.get(i).setClickable(false);
+        //?  mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(i));
+      }
+      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
+    }
+  };
+  private final Runnable showNextRunnable = new Runnable() {
+    @Override
+    public void run() {
+      //antibounce
+
+      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+
+      int nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
+      if (pwa < mSlideshowFilesName.size()) {
+        if ((pwa % 2) == 0) {
+
+          executor.execute(
+              mBackgroundImageDecoder.new ShowImageTask(
+                  (ImageView) mParentView.findViewById(R.id.imageView),
+                  DELAY_INTER_FRAME_SETTING,
+                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
+          );
+          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
+              getResources().getColor(R.color.OurWhite));
+        } else {
+
+          executor.execute(
+              mBackgroundImageDecoder.new ShowImageTask(
+                  ((ImageView) mParentView.findViewById(R.id.imageView)),
+                  DELAY_INTER_FRAME_SETTING,
+                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
+          );
+          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
+              getResources().getColor(R.color.OurPink));
+        }
+
+        pwa++;
+      } else {
+        Log.d(TAG, "mShowNextRunnable: no more images, restarting slideshow");
+        pwa = 0;
+        mSlideshowIsRunning = false;
+        mSlideshowHandler.post(mStartSlideshowRunnable); //end handlepostdelay
+      }
+    }
+
+    // Code here will run in UI thread
+  };
+  private final Runnable mHideMenuRunnable = new Runnable() {
+    @Override
+    public void run() {
+      Log.e("mHideMenuRunnable", "visible ?");
+
+      //a chaque button cliqué, si on est perdu, on decheck les bouttons
+      //should only  happen when 2 DIFFERENT buttons are pressed
+      mSlideshowIsRunning = false;
+
+      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
+    }
+  };
+
+  @Override
+  public void onAttach(Context context) {
+    Log.d("sldshow", " onAttach()");
+
+    super.onAttach(context);
+    mContext = context;
+  }
+
+  @Override
+  public void onStop() {
+    super.onStop();
+    mSlideshowIsRunning = false;
+    mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+    Log.d(TAG, "Fragment.onStop()");
+    //done in pause    unregisterReceiver(intentReceiver);
+  }
+
+  @Override
+  public void onPause() {
+    super.onPause();
+    mHideHandler.removeCallbacks(mShowPart2Runnable);
+
+    mSlideshowHandler.removeCallbacks(showNextRunnable);
+    mSlideshowIsRunning = false;
+
+    if (getActivity() != null && getActivity().getWindow() != null) {
+      getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
+      Log.d(TAG, "Fragment.onPause()");
+      // Clear the systemUiVisibility flag
+      getActivity().getWindow().getDecorView().setSystemUiVisibility(0);
+    }
+    show();
+  }
+
   void makeButtons() {
     String[] buttonNames = {
         getResources().getString(R.string.buttonLabel_smart)
@@ -333,9 +502,8 @@ else {mSlideshowFilesName=new ArrayList<>();}
       }
 
       tempButton.setLayoutParams(layoutParams);
-
-      ////////////////////////////////CRITICAL//////////////////////////////////////
-      tempButton.setOnTouchListener(new View.OnTouchListener() {
+/* save!!!
+   tempButton.setOnTouchListener(new View.OnTouchListener() {
 
         @Override
         public boolean onTouch(View view, MotionEvent event) {
@@ -382,6 +550,58 @@ else {mSlideshowFilesName=new ArrayList<>();}
           return false;
         }
       });
+ */
+      ////////////////////////////////CRITICAL//////////////////////////////////////
+      tempButton.setOnTouchListener(new View.OnTouchListener() {
+
+        @Override
+        public boolean onTouch(View view, MotionEvent event) {
+          mSlideshowHandler.removeCallbacks(mShowImageAfterTwoWordsRunnable);
+          mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+          mSlideshowHandler.removeCallbacks(showNextRunnable);
+          mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_CHOICE_WORDS_SETTING);
+          mSlideshowIsRunning = false;
+
+          if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            mCheckedToggleButtonsArrayList.add(((Button) view));
+            //ne doit arriver que si vous avez des gros doigts ;)
+            if (mCheckedToggleButtonsArrayList.size() > 2) {
+              Log.d("mCheckedToggle", "3 Button pressed");
+              mHideHandler.post(cleanButtonRunnable);
+              mSlideshowHandler.post(mStartSlideshowRunnable);
+            }
+            Log.d("Pressed", "Button pressed");
+          } else if (mCheckedToggleButtonsArrayList.size() == 1) {
+            // view.setPressed(true);
+            ((Button) view).setTextColor(Color.BLACK);
+            view.setEnabled(false);
+            view.setSelected(true);
+
+            Log.d("toggleClick", "toggle 1 buttons ok");
+            view.performClick();
+          } else if (mCheckedToggleButtonsArrayList.size() == 2) {
+            mSlideshowHandler.post(blockmenu);
+            //deux boutons sont préssés
+            view.performClick();
+
+            ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
+                getResources().getColor(R.color.OurWhite));
+            view.setEnabled(false);
+            view.setSelected(true);
+
+            //mCheckedToggleButtonsArrayList.add(((Button) view));
+            ((Button) view).setTextColor(Color.BLACK);
+
+            Log.d("toggleClick", "toggle 2 buttons ok");
+            mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+            mSlideshowHandler.postDelayed(mShowImageAfterTwoWordsRunnable,
+                DELAY_INTER_FRAME_SETTING * 2);
+            view.performClick();
+          }
+
+          return false;
+        }
+      });
 
       //avoid a glitch reloading button
       tempButton.setClickable(true);
@@ -405,171 +625,6 @@ else {mSlideshowFilesName=new ArrayList<>();}
           mToggleButtonsArrayList.get(j));
     }
   }
-  ArrayList<Button> mToggleButtonsArrayList = new ArrayList<>();
-  private final Handler mSlideshowHandler = new Handler();
-  private void makeImageNotClickable() {
-    mParentView.findViewById(R.id.SlideshowLayout).setClickable(false);
-    }
-  private void makeImageClickable() {
-    Log.d(TAG, "makeImageClickable(): image is now clickable");
-
-
-    mParentView.findViewById(R.id.SlideshowLayout).setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-
-        mSlideshowHandler.removeCallbacks(showNextRunnable);
-        mHideHandler.post(showMenuRunnable);
-      }
-    });
-    getActivity().getWindow().findViewById(R.id.slideshowScreenLinearSourceLayout).setClickable(true);
-
-
-
-  }
-
-
-  static final int DELAY_INTER_FRAME_SETTING = 750;
-  //temps durant lequel on regarde une image proposé apres le menu (en multiple d'interframedelay)
-  static final int DELAY_GUESSING_SETTING = 5000;
-  //temps durant lequel on peut choisir deux mots (en multiple d'interframedelay)
-  static final int DELAY_CHOICE_WORDS_SETTING = 10000;
-  private static final String TAG = "SlideshowActivity";
-  final ArrayList<Button> mCheckedToggleButtonsArrayList = new ArrayList<>();
-
-
-  private final Runnable cleanButtonRunnable = new Runnable() {
-    @Override
-    public void run() {
-      int clickedButtons = mCheckedToggleButtonsArrayList.size();
-      Log.d(TAG, "cleanButtonRunnable:" + clickedButtons + " cleaned buttons");
-      for (int i = clickedButtons - 1; i >= 0; i--) {
-        mCheckedToggleButtonsArrayList.get(i).setEnabled(true);
-        mCheckedToggleButtonsArrayList.get(i).setClickable(true);
-        mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(i));
-      }
-    }
-  };
-  private ExecutorService executor;
-
-
-  private final Runnable showNextRunnable = new Runnable() {
-    @Override
-    public void run() {
-      //antibounce
-
-      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
-
-      int nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
-      if (pwa < mSlideshowFilesName.size()) {
-        if ((pwa % 2) ==0) {
-
-          executor.execute(
-              mBackgroundImageDecoder.new ShowImageTask(
-                  (ImageView) mParentView.findViewById(R.id.imageView),
-                  DELAY_INTER_FRAME_SETTING,
-                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
-          );
-          ((TextView)mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurWhite));
-        } else {
-
-          executor.execute(
-              mBackgroundImageDecoder.new ShowImageTask(
-                  ((ImageView)mParentView.findViewById(R.id.imageView)),
-                  DELAY_INTER_FRAME_SETTING,
-                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
-          );
-          ((TextView)mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurPink));
-        }
-
-        pwa++;
-      } else {
-        Log.d(TAG, "mShowNextRunnable: no more images, restarting slideshow");
-        pwa = 0;
-        mSlideshowIsRunning = false;
-        mSlideshowHandler.post(mStartSlideshowRunnable); //end handlepostdelay
-      }
-    }
-
-    // Code here will run in UI thread
-  };
-  private boolean mSlideshowIsRunning = false;
-  private final Runnable mHideMenuRunnable = new Runnable() {
-    @Override
-    public void run() {
-      Log.e("mHideMenuRunnable", "visible ?");
-      int clickedButtons = mCheckedToggleButtonsArrayList.size();
-      if (clickedButtons > 0) {
-        for (int i = clickedButtons - 1; i >= 0; i--) {
-
-          mCheckedToggleButtonsArrayList.get(i).setEnabled(true);
-          mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(i));
-        }
-        //a chaque button cliqué, si on est perdu, on decheck les bouttons
-        //should only  happen when 2 DIFFERENT buttons are pressed
-        mSlideshowIsRunning = false;
-      }
-
-      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
-      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
-      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
-    }
-  };
-
-
-  @Override
-  public void onStop() {
-    super.onStop();
-    mSlideshowIsRunning = false;
-    mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
-    Log.d(TAG, "Fragment.onStop()");
-    //done in pause    unregisterReceiver(intentReceiver);
-  }
-
-
-
-  @Override
-  public void onPause() {
-    super.onPause();
-    mHideHandler.removeCallbacks(mShowPart2Runnable);
-
-    mSlideshowHandler.removeCallbacks(showNextRunnable);
-    mSlideshowIsRunning = false;
-
-    if (getActivity() != null && getActivity().getWindow() != null) {
-      getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-
-      Log.d(TAG, "Fragment.onPause()");
-      // Clear the systemUiVisibility flag
-      getActivity().getWindow().getDecorView().setSystemUiVisibility(0);
-    }
-    show();
-  }
-
-
-  private final Runnable mShowImageAfterTwoWordsRunnable = new Runnable() {
-    @Override
-    public void run() {
-      Log.d(TAG, "mShowImageAfterTwoWordsRunnable");
-      ((TextView)mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurWhite));
-      mSlideshowHandler.postDelayed(cleanButtonRunnable, UI_ANIMATION_DELAY);
-      mSlideshowHandler.postDelayed(mHideMenuRunnable, DELAY_INTER_FRAME_SETTING);
-      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
-      mSlideshowHandler.removeCallbacks(showNextRunnable);
-/*
-      mImageView.setImageDrawable(
-          ResourcesCompat.getDrawable(getResources(), R.drawable.whitebackground, null));
-*/
-      mSlideshowHandler.post(
-          mBackgroundImageDecoder.new ShowImageTask(((ImageView)mParentView.findViewById(R.id.imageView)), DELAY_INTER_FRAME_SETTING,
-              mCacheDirPath + "/" + mSlideshowFilesName.get(
-                  new Random().nextInt(mSlideshowFilesName.size()))));
-
-      mHideHandler.post(cleanButtonRunnable);
-
-      mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_GUESSING_SETTING);
-    }
-  };
 
 
   private ArrayList<String> mSlideshowFilesName;
