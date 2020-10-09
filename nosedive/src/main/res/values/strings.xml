@@ -3,7 +3,7 @@
   <string name="string_press_me">TOUCHEZ MOI</string>
   <string name="string_wait4dl">Téléchargement en cours</string>
 
-  <string name="string_choose2word">Pressez deux mots</string>
+  <string name="string_choose2word">Pressez deux boutons</string>
   <string name="buttonLabel_smart">intelligente</string>
   <string name="buttonLabel_lovely">affectueuse</string>
   <string name="buttonLabel_fun">drôle</string>

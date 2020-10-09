@@ -11,12 +11,12 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.LruCache;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -40,6 +40,7 @@ public class SlideshowFragment extends Fragment {
   static String SLIDESHOW_M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "julia/";
 
   private View mParentView;
+  private int nextImageToShowIndex;
 
   public SlideshowFragment ()
   {
@@ -187,7 +188,7 @@ public class SlideshowFragment extends Fragment {
       if (clickedButtons > 0) {
         for (int i = clickedButtons - 1; i >= 0; i--) {
 
-          mCheckedToggleButtonsArrayList.get(i).setEnabled(true);
+          //mCheckedToggleButtonsArrayList.get(i).setEnabled(true);
           mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(i));
         }
       }
@@ -272,26 +273,41 @@ else {mSlideshowFilesName=new ArrayList<>();}
 
   int screenWidth;
   int screenHeight;
+  Thread lastSlideLaunched;
   DisplayMetrics screenMetrics;
   private final Runnable mShowImageAfterTwoWordsRunnable = new Runnable() {
+
     @Override
     public void run() {
       Log.d(TAG, "mShowImageAfterTwoWordsRunnable");
+      lastSlideLaunched.interrupt();
+      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.WHITE);
+
+//      ((ImageView)mParentView.findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.whitebackground));
+ /*  mSlideshowHandler.post(mBackgroundImageDecoder.new ShowImageTask(
+          (ImageView) mParentView.findViewById(R.id.imageView),
+          "",0));
+
       ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
           getResources().getColor(R.color.OurWhite));
-      mSlideshowHandler.postDelayed(mHideMenuRunnable, DELAY_INTER_FRAME_SETTING);
+
+*/
       mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
       mSlideshowHandler.removeCallbacks(showNextRunnable);
 /*
-      mImageView.setImageDrawable(
-          ResourcesCompat.getDrawable(getResources(), R.drawable.whitebackground, null));
+      ((ImageView) mParentView.findViewById(R.id.imageView)).setImageDrawable(
+          getResources().getDrawable(R.drawable.whitebackground, null));
 */
       mSlideshowHandler.post(
-          mBackgroundImageDecoder.new ShowImageTask(
-              ((ImageView) mParentView.findViewById(R.id.imageView)), DELAY_INTER_FRAME_SETTING,
+          lastSlideLaunched = mBackgroundImageDecoder.new ShowImageTask(
+              ((ImageView) mParentView.findViewById(R.id.imageView)),
               mCacheDirPath + "/" + mSlideshowFilesName.get(
-                  new Random().nextInt(mSlideshowFilesName.size()))));
-      mSlideshowHandler.postDelayed(cleanButtonRunnable, UI_ANIMATION_DELAY * 2);
+                  new Random().nextInt(mSlideshowFilesName.size()))
+              , 0
+          ));
+
+      mSlideshowHandler.postDelayed(mHideMenuRunnable, UI_ANIMATION_DELAY * 2);
+      //  mSlideshowHandler.post(mHideMenuRunnable);
 
       //  mHideHandler.post(cleanButtonRunnable);
 
@@ -311,9 +327,13 @@ else {mSlideshowFilesName=new ArrayList<>();}
     mParentView.findViewById(R.id.SlideshowLayout).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
+        mSlideshowHandler.removeCallbacks(showMenuRunnable);
 
-        mSlideshowHandler.removeCallbacks(showNextRunnable);
-        mHideHandler.post(showMenuRunnable);
+        makeImageNotClickable();
+((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.WHITE);
+
+        lastSlideLaunched.interrupt();
+        showMenuRunnable.run();
       }
     });
     getActivity().getWindow()
@@ -341,13 +361,13 @@ else {mSlideshowFilesName=new ArrayList<>();}
       int clickedButtons = mToggleButtonsArrayList.size() - 1;
       Log.d(TAG, "blockmenu:" + clickedButtons + " blockmenu buttons");
       for (int i = clickedButtons; i >= 0; i--) {
-        mToggleButtonsArrayList.get(i).setEnabled(false);
+       // mToggleButtonsArrayList.get(i).setEnabled(false);
         mToggleButtonsArrayList.get(i).setClickable(false);
         //?  mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(i));
       }
-      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
-      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
-      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
+     // mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+      //mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+      //mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
     }
   };
   private final Runnable showNextRunnable = new Runnable() {
@@ -357,28 +377,34 @@ else {mSlideshowFilesName=new ArrayList<>();}
 
       mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
 
-      int nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
+      int lastIndex=nextImageToShowIndex;
+       nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
+       if(lastIndex==nextImageToShowIndex)
+{         nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
+  Log.e(TAG, "mShowNextRunnable: avoiding to show same image twice");
+
+}
       if (pwa < mSlideshowFilesName.size()) {
         if ((pwa % 2) == 0) {
 
           executor.execute(
-              mBackgroundImageDecoder.new ShowImageTask(
+              lastSlideLaunched= mBackgroundImageDecoder.new ShowImageTask(
                   (ImageView) mParentView.findViewById(R.id.imageView),
-                  DELAY_INTER_FRAME_SETTING,
-                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
+                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
+                  DELAY_INTER_FRAME_SETTING)
           );
           ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
-              getResources().getColor(R.color.OurWhite));
+              getResources().getColor(R.color.OurWhite,null));
         } else {
 
           executor.execute(
-              mBackgroundImageDecoder.new ShowImageTask(
+              lastSlideLaunched=mBackgroundImageDecoder.new ShowImageTask(
                   ((ImageView) mParentView.findViewById(R.id.imageView)),
-                  DELAY_INTER_FRAME_SETTING,
-                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex))
+                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
+                  DELAY_INTER_FRAME_SETTING)
           );
           ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
-              getResources().getColor(R.color.OurPink));
+              getResources().getColor(R.color.OurPink,null));
         }
 
         pwa++;
@@ -396,52 +422,17 @@ else {mSlideshowFilesName=new ArrayList<>();}
     @Override
     public void run() {
       Log.e("mHideMenuRunnable", "visible ?");
-
       //a chaque button cliqué, si on est perdu, on decheck les bouttons
       //should only  happen when 2 DIFFERENT buttons are pressed
       mSlideshowIsRunning = false;
+      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
 
       mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
       mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
-      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
+      mSlideshowHandler.post(cleanButtonRunnable);
     }
   };
-
-  @Override
-  public void onAttach(Context context) {
-    Log.d("sldshow", " onAttach()");
-
-    super.onAttach(context);
-    mContext = context;
-  }
-
-  @Override
-  public void onStop() {
-    super.onStop();
-    mSlideshowIsRunning = false;
-    mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
-    Log.d(TAG, "Fragment.onStop()");
-    //done in pause    unregisterReceiver(intentReceiver);
-  }
-
-  @Override
-  public void onPause() {
-    super.onPause();
-    mHideHandler.removeCallbacks(mShowPart2Runnable);
-
-    mSlideshowHandler.removeCallbacks(showNextRunnable);
-    mSlideshowIsRunning = false;
-
-    if (getActivity() != null && getActivity().getWindow() != null) {
-      getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-
-      Log.d(TAG, "Fragment.onPause()");
-      // Clear the systemUiVisibility flag
-      getActivity().getWindow().getDecorView().setSystemUiVisibility(0);
-    }
-    show();
-  }
-
+  private long mLastClickTime = 0;
   void makeButtons() {
     String[] buttonNames = {
         getResources().getString(R.string.buttonLabel_smart)
@@ -552,47 +543,48 @@ else {mSlideshowFilesName=new ArrayList<>();}
       });
  */
       ////////////////////////////////CRITICAL//////////////////////////////////////
-      tempButton.setOnTouchListener(new View.OnTouchListener() {
+      /*urgent
+       */
+      tempButton.setOnClickListener(new View.OnClickListener() {
 
         @Override
-        public boolean onTouch(View view, MotionEvent event) {
+        public void onClick(View view) {
           mSlideshowHandler.removeCallbacks(mShowImageAfterTwoWordsRunnable);
-          mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
           mSlideshowHandler.removeCallbacks(showNextRunnable);
-          mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_CHOICE_WORDS_SETTING);
           mSlideshowIsRunning = false;
+          if (SystemClock.elapsedRealtime() - mLastClickTime < 1000) {
+            return;
+          }
+          mLastClickTime = SystemClock.elapsedRealtime();
 
-          if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            mCheckedToggleButtonsArrayList.add(((Button) view));
-            //ne doit arriver que si vous avez des gros doigts ;)
-            if (mCheckedToggleButtonsArrayList.size() > 2) {
-              Log.d("mCheckedToggle", "3 Button pressed");
-              mHideHandler.post(cleanButtonRunnable);
-              mSlideshowHandler.postDelayed(mStartSlideshowRunnable,
-                  DELAY_INTER_FRAME_SETTING * 2);
-            }
-            Log.d("Pressed", "Button pressed");
+          mCheckedToggleButtonsArrayList.add(((Button) view));
+          //ne doit arriver que si vous avez des gros doigts ;)
+          if (mCheckedToggleButtonsArrayList.size() > 2) {
+            Log.d("mCheckedToggle", "3 Button pressed");
+            mSlideshowHandler.post(blockmenu);
+            mHideHandler.post(cleanButtonRunnable);
+            mSlideshowHandler.post(mStartSlideshowRunnable);
           } else if (mCheckedToggleButtonsArrayList.size() == 1) {
-            // view.setPressed(true);
-            ((Button) view).setTextColor(Color.BLACK);
-            view.setEnabled(false);
-            view.setSelected(true);
 
-            Log.d("toggleClick", "toggle 1 buttons ok");
+            ((Button) view).setTextColor(Color.BLACK);
             view.performClick();
+            view.setPressed(true);
+            view.setEnabled(false);
+            Log.d("toggleClick", "toggle 1 buttons ok");
+            ((Button) view).setTextColor(Color.BLACK);
           } else if (mCheckedToggleButtonsArrayList.size() == 2) {
+
+
             mSlideshowHandler.post(blockmenu);
             //deux boutons sont préssés
-            view.performClick();
-
-            ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
+          /*  ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
                 getResources().getColor(R.color.OurWhite));
+           */
+          ((Button) view).setTextColor(Color.BLACK);
+            view.performClick();
+            //deux boutons sont préssés
+            view.setPressed(true);
             view.setEnabled(false);
-            view.setSelected(true);
-
-            //mCheckedToggleButtonsArrayList.add(((Button) view));
-            ((Button) view).setTextColor(Color.BLACK);
-
             Log.d("toggleClick", "toggle 2 buttons ok");
             mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
             /*try {
@@ -600,19 +592,24 @@ else {mSlideshowFilesName=new ArrayList<>();}
             } catch (InterruptedException e) {
               e.printStackTrace();
             }*/
+
             mSlideshowHandler.post(mShowImageAfterTwoWordsRunnable);
 
-            return true;
           }
 
-          return false;
+          return;
         }
       });
 
-      //avoid a glitch reloading button
+      //avoid a glitch reloading button7
+
+
       tempButton.setClickable(true);
 
       mToggleButtonsArrayList.add(tempButton);
+
+
+
     }
 
     int j;
@@ -632,6 +629,41 @@ else {mSlideshowFilesName=new ArrayList<>();}
     }
   }
 
+  @Override
+  public void onAttach(Context context) {
+    Log.d("sldshow", " onAttach()");
+
+    super.onAttach(context);
+    mContext = context;
+  }
+
+  @Override
+  public void onStop() {
+    super.onStop();
+    mSlideshowIsRunning = false;
+    mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+    Log.d(TAG, "Fragment.onStop()");
+    //done in pause    unregisterReceiver(intentReceiver);
+  }
+
+  @Override
+  public void onPause() {
+    super.onPause();
+    mHideHandler.removeCallbacks(mShowPart2Runnable);
+
+    mSlideshowHandler.removeCallbacks(showNextRunnable);
+    mSlideshowIsRunning = false;
+
+    if (getActivity() != null && getActivity().getWindow() != null) {
+      getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
+      Log.d(TAG, "Fragment.onPause()");
+      // Clear the systemUiVisibility flag
+      getActivity().getWindow().getDecorView().setSystemUiVisibility(0);
+    }
+    show();
+  }
+
 
   private ArrayList<String> mSlideshowFilesName;
   private ArrayList<String> missingFilesNames;
@@ -641,32 +673,29 @@ else {mSlideshowFilesName=new ArrayList<>();}
 
     @Override
     public void run() {
-makeImageClickable();
+
       Log.d(TAG, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesName.size());
-getView().findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
-//      ((LinearLayout)mParentView.findViewById(R.id.slideshowScreenLinearSourceLayout)).setLayoutMode(
-    //      LinearLayout.LayoutParams.MATCH_PARENT);
-      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
-      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+      //mHideHandler.post(cleanButtonRunnable);
+
+      makeImageClickable();
+
 
       if ((!mSlideshowFilesName.isEmpty())) {
         mSlideshowHandler.removeCallbacks(showNextRunnable);
         //      mSlideshowHandler.removeCallbacks(mShowImageAfterTwoWordsRunnable);
 
-        makeImageClickable();
         //hummm
-        mHideHandler.post(cleanButtonRunnable);
-        ((TextView)mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurWhite));
 
-        ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(
-            getResources().getString(R.string.string_press_me));
-
-        ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_PX,
-            pressMeTextSize);
 
 
         if (!mSlideshowIsRunning) {
+          ((TextView)mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(getResources().getColor(R.color.OurWhite));
 
+          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(
+              getResources().getString(R.string.string_press_me));
+
+          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_PX,
+              pressMeTextSize);
           mSlideshowIsRunning = true;
 
           for (long i = 0; i < mSlideshowFilesName.size() + 1; i++) {
@@ -680,6 +709,13 @@ getView().findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
         Log.e(TAG, "mSlideshowFilesName is empty" + mSlideshowFilesName.size());
 
       }
+
+      mSlideshowHandler.post(mHideMenuRunnable);
+      getView().findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
+      //      ((LinearLayout)mParentView.findViewById(R.id.slideshowScreenLinearSourceLayout)).setLayoutMode(
+      //      LinearLayout.LayoutParams.MATCH_PARENT);
+      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
     }
   };
   void initScreenMetrics() {
@@ -731,17 +767,23 @@ getView().findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
   private final Runnable showMenuRunnable = new Runnable() {
     @Override
     public void run() {
+      mSlideshowHandler.removeCallbacks(showMenuRunnable);
+      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+      mSlideshowHandler.removeCallbacks(showNextRunnable);
 
-makeImageNotClickable();
+      lastSlideLaunched.interrupt();
       Log.d(TAG, "showMenuRunnable");
       mSlideshowHandler.removeCallbacks(showNextRunnable);
 new Thread(new Runnable() {
   @Override public void run() {
 
   }
-}).start();     ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_PX,
+}).start();
+
+
+
+((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_PX,
           pressTwoWordsTextSize);
-      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
 
       // mSlideshowHandler.post(cleanButtonRunnable);
       mSlideshowHandler.removeCallbacks(cleanButtonRunnable);
@@ -752,7 +794,8 @@ new Thread(new Runnable() {
       mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.VISIBLE);
       mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.VISIBLE);
       ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(R.string.string_choose2word);
-      ((ImageView) mParentView.findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.whitebackground));
+      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
+     //!!!? ((ImageView) mParentView.findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.whitebackground,mContext.getTheme()));
 
 
 
@@ -843,7 +886,7 @@ Log.d(TAG,"Fragment.show()");
   private ActionBar getSupportActionBar() {
     ActionBar actionBar = null;
     if (getActivity() instanceof Activity) {
-      Activity activity = (Activity) getActivity();
+      Activity activity = getActivity();
       actionBar = activity.getActionBar();
     }
     return actionBar;

@@ -1,24 +1,28 @@
 package org.tflsh.nosedive;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.SystemClock;
 import android.util.Log;
 import android.util.LruCache;
+import android.view.View;
 import android.widget.ImageView;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static java.lang.System.currentTimeMillis;
 
-public class BackgroundImageDecoder extends AppCompatActivity {
+public class BackgroundImageDecoder extends Activity {
     static final String CLASSNAME = "BackgroundImageDecoder";
     private final LruCache<String, Bitmap> memoryCache;
 
-    static ExecutorService executor;// = Executors.newFixedThreadPool(1);
+    static ExecutorService executor = Executors.newFixedThreadPool(1);
 
     /**
      * Called when the user taps the Send button
@@ -34,7 +38,7 @@ public class BackgroundImageDecoder extends AppCompatActivity {
 
     //constructor: save the context for later uses
     public BackgroundImageDecoder(Context ctx, int width, int height,LruCache<String, Bitmap> memoryCacheArg,ExecutorService executorArg) {
-        executor=executorArg;
+    //    executor=executorArg;
         Log.d("asyncTaskManager", "starting helper with context");
         this.memoryCache=memoryCacheArg;
         mContext = ctx;
@@ -47,7 +51,9 @@ public class BackgroundImageDecoder extends AppCompatActivity {
         screenWidth = width;
         screenHeight = height;
     }
-
+void killtask(){
+        //if()
+}
 
     ////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////@ListImageTask////////////////////////////////
@@ -225,6 +231,8 @@ Log.e(CLASSNAME,"cache is full, loading image from disk");}
 
     @Override protected void onStop() {
         super.onStop();
+        Log.d(CLASSNAME, "onstop");
+
         executor.shutdown();
         while (!executor.isTerminated()) {
             executor.shutdown();
@@ -234,53 +242,69 @@ Log.e(CLASSNAME,"cache is full, loading image from disk");}
         }
     }
 
-    public class ShowImageTask implements Runnable {
+    public class ShowImageTask extends Thread {
         static final String CLASSNAME = "showImageFileTask";
         final WeakReference<ImageView> bmImage;
         final int maxDelay;
         final String srcString;
         final long startTime;
-
-        public ShowImageTask(ImageView bbmImage,
-            int maxDelayParam, String urlSource) {
+        public ShowImageTask(ImageView bbmImage, @Nullable String urlSource,
+            int maxDelayParam) {
             this.bmImage = new WeakReference<>(bbmImage);
             this.maxDelay = maxDelayParam;
             this.srcString = urlSource;
             startTime = currentTimeMillis();
+
         }
 
         protected boolean doInBackground() {
             try {
                 //
 
-                final Bitmap result = getOrAddBitmapToMemoryCache(srcString);
+if(srcString.isEmpty())
+{
+    bmImage.get().setImageDrawable(mContext.getResources().getDrawable(R.drawable.default_background,mContext.getTheme()));
+    Log.d(CLASSNAME, " DEFAULTIMAGE  took " +  (currentTimeMillis() -startTime) + "ms");
+
+    return true;
+}
+final Bitmap result = getOrAddBitmapToMemoryCache(srcString);
 
                 Runnable r = new Runnable() {
                     public void run() {
                         long timer = currentTimeMillis() - startTime;
                         long delay = maxDelay - timer;
-                        if(delay>0)
-                        {
-                            try {
-                                Thread.sleep(delay);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
+                        if(maxDelay!=0) {
+                            if (delay > 0) {
+                                try {
+                                    Thread.sleep(delay);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
                         if(bmImage!=null) {
-                            bmImage.get().setAdjustViewBounds(true);
-                            bmImage.get().setImageBitmap(result);
+                            if(bmImage.get().isShown()) {
+                                bmImage.get().setImageBitmap(result);
+                                bmImage.get().setAdjustViewBounds(true);
 
-                            if (screenHeight > screenWidth) {
-                                bmImage.get().setScaleType(ImageView.ScaleType.FIT_START);
-                            } else {
-                                bmImage.get().setScaleType(ImageView.ScaleType.FIT_CENTER);
+                                if (screenHeight > screenWidth) {
+                                    bmImage.get().setScaleType(ImageView.ScaleType.FIT_START);
+                                } else {
+                                    bmImage.get().setScaleType(ImageView.ScaleType.FIT_CENTER);
+                                }
+                            }
+                            else
+                            {
+                                Log.e(CLASSNAME, "tentative d'affichage d'une image sur un composant caché");
+                              //  bmImage.get().setImageDrawable(mContext.getResources().getDrawable(R.drawable.whitebackground,mContext.getTheme()));
 
                             }
                         }
-                        Log.d(CLASSNAME, " took " + timer + "ms , waited " + delay + "ms");
+                        Log.d(CLASSNAME, " took " + timer + "ms for decode "+srcString+ " , waited " + delay + "ms");
                     }
                 };
+                //executor.execute(r);
                 runOnUiThread(r);
                 return true;
             } catch (Exception e) {

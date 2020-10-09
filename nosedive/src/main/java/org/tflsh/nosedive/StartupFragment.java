@@ -134,7 +134,7 @@ public class StartupFragment extends Fragment {
        // mContext=container.getContext();
 
         mCacheDirPath=mContext.getCacheDir();
-        executor = Executors.newFixedThreadPool(1);
+        executor = Executors.newFixedThreadPool(2);
         Log.d("startupfragment","onCreateView start grabjson with "+M_SERVER_DIRECTORY_URL);
 
 
@@ -573,7 +573,7 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
 
         FutureTask<String>
             futureTask1 = new FutureTask<>(mGrabJsonRunnable,
-            "FutureTask1 is complete");
+            "mGrabJsonRunnable is complete");
 
         executor.submit(futureTask1);
         try {
@@ -582,7 +582,7 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
 
                 // wait indefinitely for future
                 // task to complete
-                Log.d(CLASSNAME, "FutureTask1 output = "
+                Log.d(CLASSNAME, "mGrabJsonRunnable output = "
                     + futureTask1.get());
             }
 
@@ -591,7 +591,7 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
             String s = futureTask1.get(250, TimeUnit.MILLISECONDS);
 
             if (s != null) {
-                Log.d(CLASSNAME, "FutureTask2 output=" + s);
+                Log.d(CLASSNAME, "mGrabJsonRunnable output=" + s);
             }
         } catch (Exception e) {
             Log.d(CLASSNAME, "Exception: " + e);
