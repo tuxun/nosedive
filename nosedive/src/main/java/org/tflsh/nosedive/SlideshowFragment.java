@@ -469,25 +469,28 @@ else {mSlideshowFilesName=new ArrayList<>();}
       tempButton.setText(buttonName);
       tempButton.setStateListAnimator(null);
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        tempButton.setTypeface(getResources().getFont( R.font.alef));
+       //!!! tempButton.setTypeface(getResources().getFont( R.font.alef));
       }
 
-      tempButton.setTextSize(TypedValue.COMPLEX_UNIT_PX, buttonTextSize);
+      tempButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, buttonTextSize);
       tempButton.setAllCaps(true);
       LinearLayout.LayoutParams layoutParams =
           new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
               ViewGroup.LayoutParams.WRAP_CONTENT);
       if (screenOrientationNormal) {
+        Log.d("screenOrientationNormal", "portrait");
 
         layoutParams.setMargins(buttonHorizontalMargin, buttonVerticalMargin, buttonHorizontalMargin,
             buttonVerticalMargin);
         tempButton.setPadding(buttonHorizontalPadding, buttonVerticalPadding, buttonHorizontalPadding,
             buttonVerticalPadding);
       } else {
-        layoutParams.setMargins(buttonHorizontalMargin, buttonVerticalMargin
+        Log.e("screenOrientationNormal", "paysage");
+
+        layoutParams.setMargins(buttonVerticalMargin, buttonHorizontalMargin
             ,
-            buttonHorizontalMargin,
-            buttonVerticalMargin );
+            buttonVerticalMargin,
+            buttonHorizontalMargin );
         tempButton.setPadding(buttonVerticalPadding, buttonHorizontalPadding, buttonVerticalPadding,
             buttonHorizontalPadding);
       }
@@ -694,7 +697,7 @@ else {mSlideshowFilesName=new ArrayList<>();}
           ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(
               getResources().getString(R.string.string_press_me));
 
-          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_PX,
+          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_DIP,
               pressMeTextSize);
           mSlideshowIsRunning = true;
 
@@ -723,23 +726,23 @@ else {mSlideshowFilesName=new ArrayList<>();}
 
       getActivity().getWindowManager().getDefaultDisplay().getMetrics(screenMetrics);
 
-
+// DPI 240.0 density 1.5
     //en dp
-    pressMeTextSize = 75;
-    pressTwoWordsTextSize = 38;
-    buttonTextSize = 32;
+    pressMeTextSize = 78;
+    pressTwoWordsTextSize = 32;
+    buttonTextSize = 40;
     //marge intérieure: entre le texte et la bordure du cadre (inversé si tablette en paysage)
-    buttonVerticalPadding = 12;
+    buttonVerticalPadding = 20;
     buttonHorizontalPadding = 20;
 
-    buttonVerticalMargin = 30;
+    buttonVerticalMargin = 34;
     buttonHorizontalMargin = 20;
 
     float screenDPI = screenMetrics.densityDpi;
     float screenDensity = screenMetrics.scaledDensity;
 
     //in pixel
-
+/*
     buttonVerticalPadding *= screenDPI/160;
     buttonHorizontalPadding *= screenDPI/160;
 
@@ -750,6 +753,7 @@ else {mSlideshowFilesName=new ArrayList<>();}
     pressMeTextSize *= screenDPI/160;
 
     pressTwoWordsTextSize *=screenDPI/160;
+  */
     Log.d("dpi", "metrics returned DPI " + screenDPI  + " density " + screenDensity+ " textsize " +pressMeTextSize);
 
     screenOrientationNormal = false;
@@ -759,6 +763,12 @@ else {mSlideshowFilesName=new ArrayList<>();}
     //en dp
     if (screenHeight > screenWidth) {
       screenOrientationNormal = true;
+      Log.d("screenOrientationNormal", "portrait");
+
+    }
+    else {
+      Log.e("screenOrientationNormal", "paysage");
+
     }
     Log.d(TAG, "default screen width= " + screenWidth);
     Log.d(TAG, "default screen height= " + screenHeight);
@@ -782,7 +792,7 @@ new Thread(new Runnable() {
 
 
 
-((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_PX,
+((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_DIP,
           pressTwoWordsTextSize);
 
       // mSlideshowHandler.post(cleanButtonRunnable);
