@@ -7,6 +7,7 @@
         <item name="colorPrimaryDark">@color/OurPink</item>
         <item name="colorAccent">@color/colorAccent</item> -->
 
+
         <item name="windowActionBarOverlay">true</item>
         <item name="android:windowBackground">@null</item>
         <item name="metaButtonBarStyle">?attr/buttonBarStyle</item>
@@ -19,5 +20,21 @@
         <item name="android:windowContentOverlay">@null</item>
         <item name="background">@color/OurWhite</item>
     </style>
+    <style name="AppTheme.WhiteAccent">
+        <item name="metaButtonBarStyle">?attr/buttonBarStyle</item>
+        <item name="metaButtonBarButtonStyle">?attr/buttonBarButtonStyle</item>
+        <item name="colorAccent">@color/OurWhite</item> <!-- Whatever color you want-->
+        <item name="android:solidColor">@color/OurWhite</item> <!-- Whatever color you want-->
+        <item name="buttonStyle">?attr/borderlessButtonStyle</item> <!-- Whatever color you want-->
+        <item name="android:shadowColor">@color/OurWhite</item> <!-- Whatever color you want-->
+        <item name="android:textColor">@color/OurBlack</item> <!-- Whatever color you want-->
+        <item name="android:color">@color/OurWhite</item> <!-- Whatever color you want-->
 
+
+    </style>
+    <style name="AppTheme.Borderless">
+    <item name="buttonStyle">?attr/borderlessButtonStyle</item> <!-- Whatever color you want-->
+    <item name="android:shadowColor">@color/OurWhite</item> <!-- Whatever color you want-->
+
+</style>
 </resources>

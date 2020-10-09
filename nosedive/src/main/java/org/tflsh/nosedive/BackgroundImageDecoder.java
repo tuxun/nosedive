@@ -151,8 +151,10 @@ return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res,
     public Bitmap getOrAddBitmapToMemoryCache(String filePath) {
 
 
-
-        return     nudecodeSampledBitmapFromFilepath(filePath);
+        Bitmap cachedResult = nudecodeSampledBitmapFromFilepath(filePath);
+        Log.d("LRU:","decodeimagesizeis:"+ cachedResult.getByteCount() / 1024 / 1024
+            + "Mo");
+        return     cachedResult;
         //§decBitmapFactory.decodeFile(filePath,options);
 
         /**
@@ -226,7 +228,10 @@ Log.e(CLASSNAME,"cache is full, loading image from disk");}
 
         // Decode bitmap with inSampleSize set
         options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeFile(res,   options);
+return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res,   options),options.outWidth,options.outHeight,true);
+        //! return BitmapFactory.decodeFile(res,   options);
+
+        //! return BitmapFactory.decodeFile(res,   options);
     }
 
     @Override protected void onStop() {

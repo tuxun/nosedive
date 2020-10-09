@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import java.io.BufferedInputStream;
@@ -42,6 +43,7 @@ import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import javax.net.ssl.SSLException;
 
 import static org.tflsh.nosedive.BackgroundImageDecoder.executor;
 
@@ -134,7 +136,7 @@ public class StartupFragment extends Fragment {
        // mContext=container.getContext();
 
         mCacheDirPath=mContext.getCacheDir();
-        executor = Executors.newFixedThreadPool(2);
+        executor = Executors.newFixedThreadPool(4);
         Log.d("startupfragment","onCreateView start grabjson with "+M_SERVER_DIRECTORY_URL);
 
 
@@ -166,12 +168,17 @@ public class StartupFragment extends Fragment {
 
                     if (!localJsonFile.exists()) {
 
-                        Log.d(CLASSNAME, "unable to create json");
+                        Log.d(CLASSNAME, "mGrabJsonRunnable unable to find json, trying to grab it");
                         grabJson(M_SERVER_DIRECTORY_URL,true);
+
+                    }
+                    if (!localJsonFile.exists()) {
+
+                        Log.d(CLASSNAME, "mGrabJsonRunnable unable to create json, we gave up");
+                        sendMessage(NO_JSON);
                         return;
                     }
-
-                    Log.d(CLASSNAME, "opening"
+                    Log.d(CLASSNAME, "mGrabJsonRunnable opening"
                         + localJsonFile.getAbsolutePath()
                         + " of size "
                         + localJsonFile.length());
@@ -223,8 +230,11 @@ public class StartupFragment extends Fragment {
             @Override
             public boolean onTouch(View view, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_UP) {
-                    view.findViewById(R.id.repairFilesButton).setBackgroundColor(
-                        getResources().getColor(R.color.OurWhite, null));
+                    view.findViewById(R.id.repairFilesButton).setBackground(
+                        getResources().getDrawable(R.color.OurWhite, null));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        view.findViewById(R.id.repairFilesButton).setOutlineAmbientShadowColor(R.color.OurWhite);
+                    }
                     view.performClick();
 /*                    (view.findViewById(R.id.checkFilesButton)).setBackgroundColor(
                         getResources().getColor(R.color.OurWhite, null));
@@ -428,6 +438,7 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
                     reader.nextString();
                     reader.nextName();
                     reader.nextString();
+                    Thread.sleep(50);
                 }
                 reader.endObject();
             }
@@ -468,7 +479,7 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
     /*return a array of string, naming the files downloaded, or found in the cache dir
      * @param: String url: base string to construct files url
      */
-    protected static File getFile(String urlSourceString, String pathDest, String nameDest) {
+    protected File getFile(String urlSourceString, String pathDest, String nameDest) {
         File localFile = new File(pathDest, nameDest);
 
         Log.d(CLASSNAME, "creating ..."
@@ -518,6 +529,12 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
             e.printStackTrace();
             return localFile;
         } catch (
+            SSLException e) {
+            Log.e(CLASSNAME, "SSL exception: vérifier le wifi et relancer l'appli");
+            ((TextView)getView().findViewById(R.id.ui_dl_progressTextView)).setText("Erreur de téléchargement,vérifier le wifi et relancer l'appli");
+            e.printStackTrace();
+            return localFile;
+        } catch (
             MalformedURLException e) {
             Log.e(CLASSNAME, "bad url");
 
@@ -533,7 +550,7 @@ transaction.add(R.id.setupScreenLinearSourceLayout, FS , "MULTIFACETTE_Settings"
             Log.e(CLASSNAME, "Unable to download json file from internet");
             e.printStackTrace();
 
-            //sendMessage(NO_JSON);
+            sendMessage(NO_JSON);
             return localFile;
         }
     }

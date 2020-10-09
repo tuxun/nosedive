@@ -25,7 +25,7 @@
   <string name="pleaseRestartWithInternet">activez le wifi et relancez l\'appli</string>
   <string name="dummy_button">Dummy Button</string>
   <string name="dummy_content">DUMMY\nCONTENT</string>
-  <string name="files">\" fichiers\"</string>
+  <string name="files">fichiers</string>
   <string name="pleaseCheckFiles">Vérifier les photos</string>
   <string name="pleaseRepairFiles">Récupérer les photos manquantes*</string>
   <string name="checkJSONinProgress">Vérification de la liste de fichiers en cours</string>

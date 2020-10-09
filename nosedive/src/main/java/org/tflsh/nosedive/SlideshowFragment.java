@@ -230,12 +230,12 @@ public class SlideshowFragment extends Fragment {
         return bitmap.getByteCount() / 1024;
       }
     };
+    initScreenMetrics();
 if (savedInstanceState!=null) {
   mSlideshowFilesName = savedInstanceState.getStringArrayList("SlideshowFilenames");
 }
 else {mSlideshowFilesName=new ArrayList<>();}
     mVisible = true;
-    initScreenMetrics();
     executor = Executors.newFixedThreadPool(1);
     mBackgroundImageDecoder =
         new BackgroundImageDecoder(mContext, screenWidth, screenHeight, memoryCache,
@@ -332,7 +332,7 @@ else {mSlideshowFilesName=new ArrayList<>();}
         makeImageNotClickable();
 ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.WHITE);
 
-        lastSlideLaunched.interrupt();
+        //lastSlideLaunched.interrupt();
         showMenuRunnable.run();
       }
     });
@@ -728,33 +728,41 @@ else {mSlideshowFilesName=new ArrayList<>();}
 
 // DPI 240.0 density 1.5
     //en dp
-    pressMeTextSize = 78;
-    pressTwoWordsTextSize = 32;
-    buttonTextSize = 40;
+    pressMeTextSize = 55;
+    pressTwoWordsTextSize = 24;
+    buttonTextSize = 22;
     //marge intérieure: entre le texte et la bordure du cadre (inversé si tablette en paysage)
-    buttonVerticalPadding = 20;
-    buttonHorizontalPadding = 20;
+    buttonVerticalPadding = 10;
+    buttonHorizontalPadding = 8;
 
-    buttonVerticalMargin = 34;
-    buttonHorizontalMargin = 20;
+    buttonVerticalMargin = 20;
+    buttonHorizontalMargin = 14;
 
-    float screenDPI = screenMetrics.densityDpi;
-    float screenDensity = screenMetrics.scaledDensity;
+    int screenDPI = screenMetrics.densityDpi;
+    float screenDensity = screenMetrics.density;
 
     //in pixel
-/*
-    buttonVerticalPadding *= screenDPI/160;
-    buttonHorizontalPadding *= screenDPI/160;
 
-    buttonVerticalMargin *= screenDPI/160;
-    buttonHorizontalMargin *= screenDPI/160;
-    buttonTextSize *= screenDPI/160;
+//    buttonVerticalPadding *= screenDensity;
+  //  buttonHorizontalPadding *= screenDensity;
 
-    pressMeTextSize *= screenDPI/160;
+    buttonVerticalMargin *= screenDensity;
+    buttonVerticalMargin=Math.round(buttonVerticalMargin);
+    buttonHorizontalMargin *= screenDensity;
+    buttonHorizontalMargin=Math.round(buttonHorizontalMargin);
 
-    pressTwoWordsTextSize *=screenDPI/160;
-  */
-    Log.d("dpi", "metrics returned DPI " + screenDPI  + " density " + screenDensity+ " textsize " +pressMeTextSize);
+    buttonVerticalPadding *= screenDensity;
+    buttonVerticalPadding=Math.round(buttonVerticalMargin);
+    buttonHorizontalPadding *= screenDensity;
+    buttonHorizontalPadding=Math.round(buttonHorizontalMargin);
+
+    buttonTextSize *= screenDensity;
+
+    pressMeTextSize *= screenDensity;
+
+    pressTwoWordsTextSize *=screenDensity;
+
+    Log.d("dpi", "metrics returned DPI " + screenDPI  + " density " + screenMetrics.density+ " textsize " +pressMeTextSize);
 
     screenOrientationNormal = false;
 
@@ -767,6 +775,11 @@ else {mSlideshowFilesName=new ArrayList<>();}
 
     }
     else {
+      buttonVerticalPadding -= 10;
+      buttonVerticalMargin -= 10;
+      buttonHorizontalPadding -= 10;
+      buttonHorizontalMargin -= 10;
+
       Log.e("screenOrientationNormal", "paysage");
 
     }

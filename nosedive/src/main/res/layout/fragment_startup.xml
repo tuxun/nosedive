@@ -14,6 +14,8 @@
       android:orientation="vertical"
       android:gravity="center"
       >
+
+
         <Button
             android:id="@+id/checkFilesButton"
             android:layout_width="match_parent"
@@ -22,57 +24,69 @@
             android:background="@drawable/ic_bouttonoff"
             android:clickable="false"
             android:enabled="false"
-            android:visibility="gone"
+            android:visibility="invisible"
             android:layout_margin="10sp"
+            android:shadowColor="@color/OurWhite"
 
             />
-        <Button
+   <Button
+            android:shadowColor="@color/OurWhite"
+       android:theme="@style/AppTheme.Borderless"
+
             android:id="@+id/repairFilesButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:clickable="false"
+            android:enabled="false"
             android:text="@string/pleaseRepairFiles"
             android:visibility="gone"
             android:layout_margin="7dp"
             android:background="@drawable/ic_bouttonoff"
-
+       style="?android:attr/borderlessButtonStyle"
             />
 
 
 
-        <TextView
-            android:id="@+id/ui_dl_progressTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/checkJSONinProgress"
-            android:textSize="30sp"
-            />
-        <ProgressBar
-            android:id="@+id/ui_missing_ProgressBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_margin="7dp"
-            android:progressTint="@color/OurPink"
+    <TextView
+      android:gravity="center"
+      android:id="@+id/ui_dl_progressTextView"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+        android:text="@string/string_wait4dl"
+      android:textSize="30dp"
+      />
 
-            />
-        <ProgressBar
-            android:id="@+id/ui_dl_ProgressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:indeterminateOnly="false"
-            android:max="132"
-            android:maxHeight="120dp"
-            android:maxWidth="120dp"
-            android:minHeight="60dp"
-            android:minWidth="60dp"
+    <ProgressBar
+        android:id="@+id/ui_missing_ProgressBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_marginHorizontal="7dp"
+        android:progressTint="@color/OurPink"
+        android:theme="@style/AppTheme.WhiteAccent"
+        android:indeterminateTint="@color/OurWhite"
+        android:outlineAmbientShadowColor="@color/OurWhite"
+        android:outlineSpotShadowColor="@color/OurWhite"
+        android:indeterminateDrawable="@drawable/whitehorizprogressbar"
 
-            android:soundEffectsEnabled="false"
-            android:progressDrawable="@drawable/ringprogressbar"
-            android:visibility="visible"
+        />
+        />
+    <ProgressBar
+        android:id="@+id/ui_dl_ProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateOnly="false"
+        android:max="132"
+        android:maxHeight="120dp"
+        android:maxWidth="120dp"
+        android:minHeight="60dp"
+        android:minWidth="60dp"
 
-            />
-        <LinearLayout
+        android:soundEffectsEnabled="false"
+        android:progressDrawable="@drawable/ringprogressbar"
+        android:visibility="visible"
+
+        />
+    <LinearLayout
 
             android:layout_width="match_parent"
             android:layout_height="match_parent"
