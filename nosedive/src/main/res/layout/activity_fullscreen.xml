@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/motherLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/OurWhite"
+    android:gravity="top"
+    android:orientation="vertical"
+
+    tools:context=".SlideshowActivity"
+    >
+
+
+  <LinearLayout
+      android:id="@+id/slideshowScreenLinearSourceLayout"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical"
+      >
+    <fragment
+        android:id="@+id/fragment"
+        android:name="org.tflsh.multifacette.SlideshowFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:tag="SlideshowFragment"
+        tools:layout="@layout/fragment_slideshow"
+        />
+
+  </LinearLayout>
+  <LinearLayout
+      android:id="@+id/setupScreenLinearSourceLayout"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+
+      android:visibility="gone"
+      >
+
+    <fragment
+        android:id="@+id/fragment2"
+        android:name="org.tflsh.multifacette.SettingsFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:tag="SettingsFragment"
+        tools:layout="@layout/fragment_slideshow"
+
+        />
+
+  </LinearLayout>
+
+</LinearLayout>

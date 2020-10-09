@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/startupScreenLinearLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".StartupFragment"
+    >
+  <LinearLayout
+
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:gravity="center"
+      android:orientation="vertical"
+      >
+
+
+    <Button
+        android:id="@+id/checkFilesButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10sp"
+        android:background="@drawable/ic_button_on_off"
+        android:clickable="false"
+        android:enabled="false"
+        android:shadowColor="@color/OurWhite"
+        android:text="@string/pleaseCheckFiles"
+        android:visibility="invisible"
+
+        />
+    <Button
+        android:id="@+id/repairFilesButton"
+        android:layout_width="match_parent"
+
+        android:layout_height="wrap_content"
+        android:layout_margin="7dp"
+        android:background="@drawable/ic_button_on_off"
+        android:enabled="false"
+        android:shadowColor="@color/OurWhite"
+        android:text="@string/pleaseRepairFiles"
+        android:theme="@style/AppTheme.Borderless"
+        android:visibility="gone"
+        style="?android:attr/borderlessButtonStyle"
+        />
+
+
+    <LinearLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        >
+      <ImageButton
+          android:id="@+id/settingsImageButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:contentDescription="accéder aux réglages de l'appli"
+          android:gravity="start"
+          android:maxHeight="30dp"
+          android:maxWidth="30dp"
+          android:minHeight="20dp"
+
+          android:minWidth="20dp"
+          android:src="@mipmap/ic_settings"
+
+          />
+      <ImageButton
+          android:id="@+id/aboutImageButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:contentDescription="accéder aux informations sur l'appli"
+          android:gravity="end"
+          android:maxHeight="20dp"
+          android:maxWidth="20dp"
+          android:minHeight="10dp"
+          android:minWidth="10dp"
+          android:src="@mipmap/ic_info"
+
+          />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/ui_dl_ProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateOnly="false"
+        android:max="132"
+        android:maxHeight="120dp"
+        android:maxWidth="120dp"
+        android:minHeight="60dp"
+        android:minWidth="60dp"
+
+        android:progressDrawable="@drawable/ring_progress_bar"
+        android:soundEffectsEnabled="false"
+        android:visibility="visible"
+
+        />
+    <ProgressBar
+        android:id="@+id/ui_missing_ProgressBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="7dp"
+        android:indeterminateDrawable="@drawable/white_horizontal_progress_bar"
+        android:indeterminateTint="@color/OurWhite"
+        android:progressTint="@color/OurPink"
+        android:theme="@style/AppTheme.WhiteAccent"
+        style="?android:attr/progressBarStyleHorizontal"
+
+        />
+    <TextView
+        android:id="@+id/ui_dl_progressTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/string_wait4dl"
+        android:textSize="30dp"
+        tools:ignore="SpUsage"
+        />
+  </LinearLayout>
+
+</LinearLayout>
