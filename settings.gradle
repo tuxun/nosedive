@@ -1,2 +1,2 @@
-include ':multifacette'
+include ':nosedive'
 rootProject.name='multifacette'
