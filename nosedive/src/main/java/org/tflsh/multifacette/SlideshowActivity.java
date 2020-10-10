@@ -99,6 +99,8 @@ public class SlideshowActivity extends Activity {
               getResources().getColor(R.color.OurPink, null));*/
           if (!mSlideshowFilesName.isEmpty()) {
             fileschecked = true;
+            findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
+
             findViewById(R.id.repairFilesButton).setVisibility(View.GONE);
             mSlideshowFragment.startSlideshow(mSlideshowFilesName);
 /*
@@ -244,7 +246,6 @@ public class SlideshowActivity extends Activity {
               }
             });
             findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
-            findViewById(R.id.ui_press_meTextView).setVisibility(View.VISIBLE);
             mSlideshowFragment.startSlideshow(mSlideshowFilesName);
             //////////
           } else {
@@ -288,6 +289,8 @@ public class SlideshowActivity extends Activity {
           if (mSlideshowFilesName.size() > 0
               && missingFilesNumber == 0
               && downloadedFilesNumber == 0) {
+            findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
+
             mSlideshowFragment.startSlideshow(mSlideshowFilesName);
           } else if (mSlideshowFilesName.size() > 0) {
             ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(

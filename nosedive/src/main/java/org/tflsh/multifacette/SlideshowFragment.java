@@ -300,6 +300,7 @@ public class SlideshowFragment extends Fragment {
       //      LinearLayout.LayoutParams.MATCH_PARENT);
       mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
       mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+      mParentView.findViewById(R.id.ui_press_meTextView).setVisibility(View.VISIBLE);
     }
   };
   private final Runnable showMenuRunnable = new Runnable() {
@@ -415,7 +416,7 @@ public class SlideshowFragment extends Fragment {
     // Use maximum available memory for this memory cache.
     Log.d(TAG, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
     mParentView = getView();
-
+/*
     mParentView.setOnLongClickListener(new View.OnLongClickListener() {
       @Override
       public boolean onLongClick(View view) {
@@ -425,6 +426,7 @@ public class SlideshowFragment extends Fragment {
         return false;
       }
     });
+  */
     // The cache size will be measured in kilobytes rather than
     // number of items.
     LruCache<String, Bitmap> memoryCache = new LruCache<String, Bitmap>(cacheSize) {

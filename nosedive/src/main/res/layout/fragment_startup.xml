@@ -38,7 +38,7 @@
         android:enabled="false"
         android:shadowColor="@color/OurWhite"
         android:text="@string/pleaseRepairFiles"
-        android:theme="@style/AppTheme.Borderless"
+        android:theme="@style/AppTheme.WhiteAccent"
         android:visibility="gone"
         style="?android:attr/borderlessButtonStyle"
         />
