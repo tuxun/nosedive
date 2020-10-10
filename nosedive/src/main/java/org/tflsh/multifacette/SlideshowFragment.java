@@ -526,7 +526,7 @@ public class SlideshowFragment extends Fragment {
 
     for (String buttonName : buttonNames) {
 
-      Button tempButton = new Button(mContext) {
+      Button tempButton = new androidx.appcompat.widget.AppCompatButton(mContext) {
         @Override public boolean performClick() {
           super.performClick();
           return true;

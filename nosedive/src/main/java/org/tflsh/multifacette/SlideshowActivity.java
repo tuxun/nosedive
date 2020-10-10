@@ -275,8 +275,10 @@ public class SlideshowActivity extends Activity {
 
           break;
         case "dlReceived":
+          String max1 = intent.getStringExtra(EXTRA_MESSAGE);
+
           Log.d(TAG, "intentReceiver got action dl received");
-          //!          mSlideshowFilesName.add(max);
+                    mSlideshowFilesName.add(max1);
           downloadedFilesNumber++;
           ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).incrementProgressBy(-1);
           ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
@@ -305,8 +307,8 @@ public class SlideshowActivity extends Activity {
         case "filesMissing":
 
           Log.d(TAG, "intentReceiver got action files missing");
-          String max5 = intent.getStringExtra(EXTRA_MESSAGE);
-          missingFilesNames.add(max5);
+          String max2 = intent.getStringExtra(EXTRA_MESSAGE);
+          missingFilesNames.add(max2);
           ((Button) findViewById(R.id.repairFilesButton)).setText(
               "Récupérer les " + (missingFilesNames.size())
                   + " photos manquantes");
@@ -327,7 +329,7 @@ public class SlideshowActivity extends Activity {
 
           ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setMax(
               missingFilesNames.size() + mSlideshowFilesName.size());
-          Log.d(TAG, "intentReceiver set progress bar " + missingFilesNames.size() + max5);
+          Log.d(TAG, "intentReceiver set progress bar " + missingFilesNames.size() + max2);
          /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
               "il manque " + missingFilesNames.size() + " fichiers");
           ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
