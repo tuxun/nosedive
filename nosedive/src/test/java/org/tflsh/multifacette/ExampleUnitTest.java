@@ -1,4 +1,4 @@
-package org.tflsh.multifacette
+package org.tflsh.multifacette;
 
 import org.junit.Test;
 

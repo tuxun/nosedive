@@ -66,12 +66,9 @@ public class StartupFragment extends Fragment {
   private static Context mContext;
   // private static List<String> everyImagesNames;
   private static int currentFile;
-  /**
-   * @param objects
-   * oldeprecated
-   */
+
   protected final Runnable mGrabJsonRunnable;
-  /**
+  /*/**
    * Use this factory method to create a new instance of
    * this fragment using the provided parameters.
    *
@@ -80,7 +77,7 @@ public class StartupFragment extends Fragment {
    * @return A new instance of fragment StartupFragment.
    */
   // TODO: Rename and change types and number of parameters
-    /*
+
     public static StartupFragment newInstance(String param1, ArrayList<String> param2) {
         StartupFragment fragment = new StartupFragment();
         Bundle args = new Bundle();
@@ -89,7 +86,7 @@ public class StartupFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
-*/
+
   ArrayList<String> everyImagesNames;
   ArrayList<String> missingImagesNames;
   // TODO: Rename and change types of parameters
@@ -403,9 +400,9 @@ public class StartupFragment extends Fragment {
   /**
    * A function for check is file exists or is empty
    *
-   * @param path path where the file @name should be checked
-   * @param name name of the file to check
-   * @return return true if file is looking fine, else return false
+   * @param urlSource path where the file @name should be checked
+   * @param missingsArg name of the file to check
+   * arobbase return return true if file is looking fine, else return false
    */
   public void repairfiles(String urlSource, ArrayList<String> missingsArg) {
     Log.e("repairfiles", "missing or broken " + missingsArg.size() + " files");

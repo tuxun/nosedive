@@ -170,60 +170,6 @@ public class BackgroundImageDecoder extends Activity {
   // -7 and a list of the missing images names (third arg of constructor)
 
   //return the bitmap from cache or from file. idea from https://developer.android.com/topic/performance/graphics/cache-bitmap
-  public Bitmap getOrAddBitmapToMemoryCache(String filePath) {
-
-    Bitmap cachedResult = nudecodeSampledBitmapFromFilepath(filePath);
-    Log.d("LRU:", "decodeimagesizeis:" + cachedResult.getByteCount() / 1024 / 1024
-        + "Mo");
-    return cachedResult;
-    //§decBitmapFactory.decodeFile(filePath,options);
-
-    /**
-     synchronized (memoryCache) {
-     Bitmap cachedResult = memoryCache.get(filePath);
-
-     if (cachedResult == null) {
-     cachedResult = decodeSampledBitmapFromFilepath(filePath, screenWidth, screenHeight);
-     if(memoryCache.evictionCount()==0)
-     {                memoryCache.put(filePath, cachedResult);
-
-     Log.d("LRU:",
-     "[PUSH] "
-     + filePath
-     + cachedResult.getByteCount() / 1024 / 1024
-     + "Mo ["
-     + memoryCache.hitCount()
-     +
-     "/"
-     + memoryCache.missCount()
-     + "]"
-     + memoryCache.size() / 1024
-     + "Mo eviction= "
-     + memoryCache.evictionCount()
-     );}
-     else{
-     Log.e(CLASSNAME,"cache is full, loading image from disk");}
-
-     } else {
-     Log.d("LRU:",
-     "[GET] "
-     + filePath
-     + cachedResult.getByteCount() / 1024 / 1024
-     + "Mo ["
-     + memoryCache.hitCount()
-     +
-     "/"
-     + memoryCache.missCount()
-     + "]"
-     + memoryCache.size() / 1024
-     + "Mo eviction= "
-     + memoryCache.evictionCount()
-     );
-     }
-
-     return cachedResult;
-     }*/
-  }
 
   @Override protected void onStop() {
     super.onStop();
@@ -265,7 +211,7 @@ public class BackgroundImageDecoder extends Activity {
 
           return true;
         }
-        final Bitmap result = getOrAddBitmapToMemoryCache(srcString);
+        final Bitmap result = nudecodeSampledBitmapFromFilepath(srcString);
 
         Runnable r = new Runnable() {
           public void run() {
@@ -304,7 +250,7 @@ public class BackgroundImageDecoder extends Activity {
         runOnUiThread(r);
         return true;
       } catch (Exception e) {
-        Log.e(CLASSNAME, "Exception in showImageFileTask.getOrAddBitmapToMemoryCache()");
+        Log.e(CLASSNAME, "Exception in showImageFileTask.doinbg()");
         e.printStackTrace();
         return false;
       }

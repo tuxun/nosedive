@@ -482,7 +482,6 @@ public class SlideshowActivity extends Activity {
    * create the slideshow fragment with slideshow filenames as argument
    * TODO: it uses a setArguments()
    *
-   * @Deprecated function
    */
   private void loadSlideshowFragment() {
 
