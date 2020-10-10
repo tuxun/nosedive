@@ -30,9 +30,4 @@
 
   </style>
 
-  <style name="AppTheme.Borderless">
-    <item name="buttonStyle">?attr/borderlessButtonStyle</item> <!-- Whatever color you want-->
-    <item name="android:shadowColor">@color/OurWhite</item> <!-- Whatever color you want-->
-
-  </style>
 </resources>

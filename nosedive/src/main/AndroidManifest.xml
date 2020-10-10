@@ -3,7 +3,11 @@
     android:installLocation="preferExternal"
     package="org.tflsh.multifacette">
 
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.INTERNET" />
   <application
+      android:supportsRtl="true"
       android:allowBackup="true"
       android:fullBackupContent="@xml/backup_descriptor"
       android:icon="@mipmap/ic_launcher_round"
@@ -34,7 +38,4 @@
 
   </application>
 
-  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-  <uses-permission android:name="android.permission.INTERNET" />
 </manifest>

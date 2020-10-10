@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
   <string name="app_name">Multifacette</string>
   <string name="string_press_me">TOUCHEZ MOI</string>
   <string name="string_wait4dl">Téléchargement en cours</string>
@@ -23,22 +23,20 @@
   <string name="portrait_de_julia">portrait de julia</string>
   <string name="dl_progressText">Téléchargement en cours</string>
   <string name="pleaseRestartWithInternet">activez le wifi</string>
-  <string name="dummy_button">Dummy Button</string>
-  <string name="dummy_content">DUMMY\nCONTENT</string>
   <string name="files">fichiers</string>
   <string name="pleaseCheckFiles">Vérifier les photos</string>
   <string name="pleaseRepairFiles">Récupérer les photos manquantes*</string>
-  <string name="checkJSONinProgress">Vérification de la liste de fichiers en cours</string>
+  <string name="checkJSONinProgress" tools:keep="@string/checkJSONinProgress">Vérification de la liste de fichiers en cours</string>
   <string name="updatedJsonOK">Liste de fichiers bien mise à jour</string>
   <!-- TODO: Remove or change this placeholder text -->
-  <string name="hello_blank_fragment">Hello blank fragment</string>
+  <string name="hello_blank_fragment" tools:keep="@string/hello_blank_fragment">Hello blank fragment</string>
   <!-- Preference Titles -->
   <string name="messages_header">Messages</string>
   <string name="sync_header">Sync</string>
 
   <!-- Messages Preferences -->
   <string name="signature_title">Your signature</string>
-  <string name="reply_title">Default reply action</string>
+  <string name="reply_title" tools:keep="@string/reply_title">Default reply action</string>
 
   <!-- Sync Preferences -->
   <string name="sync_title">Sync email periodically</string>
@@ -46,5 +44,9 @@
   <string name="attachment_summary_on">Automatically download attachments for incoming emails
   </string>
   <string name="attachment_summary_off">Only download attachments when manually requested</string>
+  <string name="showsettings">accéder aux réglages de l\'appli</string>
+  <string name="settings1">paramètre 1</string>
+  <string name="settings2">paramètre 2</string>
+  <string name="dlerror">Erreur de téléchargement, vérifier le wifi et relancer l\'appli</string>
 
 </resources>

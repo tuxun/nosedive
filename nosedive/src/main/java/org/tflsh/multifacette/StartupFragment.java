@@ -63,7 +63,7 @@ public class StartupFragment extends Fragment {
   private static final String ARG_PARAM2 = "param2";
   private static final String TAG = "StartupFragment";
   private static final String CLASSNAME = "startupfragment";
-  private static Context mContext;
+  private Context mContext;
   // private static List<String> everyImagesNames;
   private static int currentFile;
 
@@ -149,10 +149,6 @@ public class StartupFragment extends Fragment {
   // Log.d(CLASSNAME, "ListImageTask constructor");
   //}
 
-  public StartupFragment() {
-    // Required empty public constructor
-  }
-
   /**
    * A function for check is file exists or is empty
    *
@@ -206,14 +202,14 @@ public class StartupFragment extends Fragment {
     }
   }
 
-  public static void sendMessage(String message) {
+  public void sendMessage(String message) {
 
     Intent intent = new Intent(message);    //action: "msg"
     intent.setPackage(mContext.getPackageName());
     mContext.sendBroadcast(intent);
   }
 
-  public static void sendMessageWithString(String message, String params) {
+  public void sendMessageWithString(String message, String params) {
 
     Intent intent = new Intent(message);    //action: "msg"
     intent.setPackage(mContext.getPackageName());
@@ -268,7 +264,7 @@ public class StartupFragment extends Fragment {
 
     //Log.d("startupfragment"," added to "+container.toString());
     // Inflate the layout for this fragment
-    return inflater.inflate(R.layout.fragment_startup, null, false);
+    return inflater.inflate(R.layout.fragment_startup, container, false);
   }
   //should never occur
 
@@ -571,8 +567,7 @@ public class StartupFragment extends Fragment {
     } catch (
         SSLException e) {
       Log.e(CLASSNAME, "SSL exception: vérifier le wifi et relancer l'appli");
-      ((TextView) getView().findViewById(R.id.ui_dl_progressTextView)).setText(
-          "Erreur de téléchargement,vérifier le wifi et relancer l'appli");
+      ((TextView) getView().findViewById(R.id.ui_dl_progressTextView)).setText(   R.string.dlerror);
       e.printStackTrace();
       return localFile;
     } catch (

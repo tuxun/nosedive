@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
 
   <color name="OurPink">#FF4081</color>
   <color name="OurWhite">#FFFFFF</color>
-  <color name="testBlue">#005DFF</color>
-  <color name="testRed">#AF4C4C</color>
   <color name="OurBlack">#000</color>
-  <color name="black_overlay">#66000000</color>
-  <color name="testGray">#7C7C7C</color>
+  <color name="black_overlay" tools:keep="@color/black_overlay">#66000000</color>
 </resources>

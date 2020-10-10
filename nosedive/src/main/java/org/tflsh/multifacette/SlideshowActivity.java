@@ -75,7 +75,6 @@ public class SlideshowActivity extends Activity {
   private ProgressBar mDlProgressBar;
   private ArrayList<String> mSlideshowFilesName;
   private SlideshowFragment mSlideshowFragment;
-  private SettingsFragment mSettingsFragment;
 
   private int downloadedFilesNumber;
   public final BroadcastReceiver intentReceiver = new BroadcastReceiver() {
@@ -280,12 +279,20 @@ public class SlideshowActivity extends Activity {
           Log.d(TAG, "intentReceiver got action dl received");
                     mSlideshowFilesName.add(max1);
           downloadedFilesNumber++;
-          ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).incrementProgressBy(-1);
-          ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
+          if( ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar))!=null)
+          {
+            ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).incrementProgressBy(-1);
+
+          }
+          if( ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar))!=null)
+          {
+            ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
+
+          }
           /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
            "il manque " + (missingFilesNames.size()-((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
             ) + " fichiers");*/
-          ((Button) findViewById(R.id.repairFilesButton)).setText("Téléchargement en cours de  "
+          ((Button) findViewById(R.id.repairFilesButton)).setText(R.string.dl_progressText+" de "
               + ((missingFilesNames.size() - downloadedFilesNumber))
               + " " + getString(R.string.files));
           if (mSlideshowFilesName.size() > 0
@@ -421,7 +428,7 @@ public class SlideshowActivity extends Activity {
 
     //baseurl,projectcode, todo
 
-    mSettingsFragment = new SettingsFragment();
+    SettingsFragment mSettingsFragment = new SettingsFragment();
     Log.d("activity", "onCreate" + getIntent());
   }
 
@@ -467,7 +474,7 @@ public class SlideshowActivity extends Activity {
         //!!!  loadSlideshowFragment();
       } else {
         Log.e("onResume", "loading startup screen");
-        View iframe = findViewById(R.id.SlideshowFragment);
+        View iframe = findViewById(R.id.slideshowLayout);
 
 /*        ViewGroup parent = (ViewGroup) iframe.getParent();
         parent.removeView(iframe);*/

@@ -22,21 +22,19 @@ public class BackgroundImageDecoder extends Activity {
   /**
    * Called when the user taps the Send button
    */
-  static Context mContext;
+  private Context mContext;
   private static int currentFile;
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
   private static int missingFilesNumber;
   final int screenWidth;
   final int screenHeight;
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  private final LruCache<String, Bitmap> memoryCache;
 
   //constructor: save the context for later uses
   public BackgroundImageDecoder(Context ctx, int width, int height,
       LruCache<String, Bitmap> memoryCacheArg, ExecutorService executorArg) {
     //    executor=executorArg;
     Log.d("asyncTaskManager", "starting helper with context");
-    this.memoryCache = memoryCacheArg;
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     mContext = ctx;
     File mCacheDir = ctx.getCacheDir();
     //tuxun: try lru cache for large bitmap

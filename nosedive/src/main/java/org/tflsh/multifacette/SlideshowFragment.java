@@ -60,7 +60,7 @@ public class SlideshowFragment extends Fragment {
   private static final String TAG = "SlideshowActivity";
   static String SLIDESHOW_M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "julia/";
   final ArrayList<Button> mCheckedToggleButtonsArrayList = new ArrayList<>();
-  private final Handler mHideHandler = new Handler();
+  private final Handler mSlideshowHandler = new Handler();
   private final Runnable mHidePart2Runnable = new Runnable() {
     @Override
     public void run() {
@@ -121,7 +121,6 @@ public class SlideshowFragment extends Fragment {
       //!!!      mParentView.setVisibility(View.VISIBLE);
     }
   };
-  private final Handler mSlideshowHandler = new Handler();
   BackgroundImageDecoder mBackgroundImageDecoder;
   Context mContext;
   File mCacheDirPath;
@@ -261,7 +260,7 @@ public class SlideshowFragment extends Fragment {
     public void run() {
 
       Log.d(TAG, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesName.size());
-      //mHideHandler.post(cleanButtonRunnable);
+      //mSlideshowHandler.post(cleanButtonRunnable);
 
       makeImageClickable();
 
@@ -273,7 +272,7 @@ public class SlideshowFragment extends Fragment {
 
         if (!mSlideshowIsRunning) {
           ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
-              getResources().getColor(R.color.OurWhite));
+              getResources().getColor(R.color.OurWhite,null));
 
           ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(
               getResources().getString(R.string.string_press_me));
@@ -304,64 +303,66 @@ public class SlideshowFragment extends Fragment {
 
     }
   };
+
+
+
+  /**
+   * @showMenuRunnable
+   * replace the image from the slideshow, with menu
+   */
   private final Runnable showMenuRunnable = new Runnable() {
     @Override
     public void run() {
+      Log.d(TAG, "showMenuRunnable");
+      mSlideshowIsRunning = false;
+
+      //clean pending runnables
       mSlideshowHandler.removeCallbacks(showMenuRunnable);
       mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
       mSlideshowHandler.removeCallbacks(showNextRunnable);
 
-      lastSlideLaunched.interrupt();
-      Log.d(TAG, "showMenuRunnable");
-      mSlideshowHandler.removeCallbacks(showNextRunnable);
-      new Thread(new Runnable() {
-        @Override public void run() {
-
-        }
-      }).start();
-
-      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(
-          TypedValue.COMPLEX_UNIT_DIP,
-          pressTwoWordsTextSize);
-
-      // mSlideshowHandler.post(cleanButtonRunnable);
-      mSlideshowHandler.removeCallbacks(cleanButtonRunnable);
-      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
-      mSlideshowIsRunning = false;
+      //restrating slideshow if no touch on button is detected for "delay" microseconds
       mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_CHOICE_WORDS_SETTING);
+
+      //hide image
       mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.GONE);
+/* replaces it with placehoder?*/
+      ((ImageView) mParentView.findViewById(R.id.imageView)).setImageDrawable(
+          getResources().getDrawable(R.drawable.white_background, null));
+/* */
+
+      //hide text, modify text, then show it again with menu
+      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setVisibility(View.GONE);
+      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(TypedValue.COMPLEX_UNIT_DIP,pressTwoWordsTextSize);
+      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
+      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText( R.string.string_choose2word);
+      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setVisibility(View.VISIBLE);
+      
+      //show menu
       mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.VISIBLE);
       mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.VISIBLE);
-      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(
-          R.string.string_choose2word);
-      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
-      //!!!? ((ImageView) mParentView.findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.whitebackground,mContext.getTheme()));
+
+
+      //trash/hack/glitch/poor fix: (works without)
+      //? ((ImageView) mParentView.findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.whitebackground,mContext.getTheme()));
 
     }
   };
+  /**
+   * @mShowImageAfterTwoWordsRunnable
+   * replace the menu with a random image from the slideshow, wait for "delay", then restart slideshow
+   */
   private final Runnable mShowImageAfterTwoWordsRunnable = new Runnable() {
 
     @Override
     public void run() {
       Log.d(TAG, "mShowImageAfterTwoWordsRunnable");
-      lastSlideLaunched.interrupt();
+     // lastSlideLaunched.interrupt();
       ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.WHITE);
 
-      //      ((ImageView)mParentView.findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.whitebackground));
- /*  mSlideshowHandler.post(mBackgroundImageDecoder.new ShowImageTask(
-          (ImageView) mParentView.findViewById(R.id.imageView),
-          "",0));
-
-      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
-          getResources().getColor(R.color.OurWhite));
-
-*/
       mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
       mSlideshowHandler.removeCallbacks(showNextRunnable);
-/*
-      ((ImageView) mParentView.findViewById(R.id.imageView)).setImageDrawable(
-          getResources().getDrawable(R.drawable.whitebackground, null));
-*/
+
       mSlideshowHandler.post(
           lastSlideLaunched = mBackgroundImageDecoder.new ShowImageTask(
               ((ImageView) mParentView.findViewById(R.id.imageView)),
@@ -373,17 +374,13 @@ public class SlideshowFragment extends Fragment {
       mSlideshowHandler.postDelayed(mHideMenuRunnable, UI_ANIMATION_DELAY * 2);
       //  mSlideshowHandler.post(mHideMenuRunnable);
 
-      //  mHideHandler.post(cleanButtonRunnable);
+      //  mSlideshowHandler.post(cleanButtonRunnable);
 
       mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_GUESSING_SETTING);
     }
   };
   private ArrayList<String> missingFilesNames;
   private boolean screenOrientationNormal;
-
-  public SlideshowFragment() {
-    mSlideshowFilesName = new ArrayList<String>();
-  }
 
   @Nullable
   @Override
@@ -392,6 +389,7 @@ public class SlideshowFragment extends Fragment {
       @Nullable Bundle savedInstanceState) {
     mContext = getContext();
     mCacheDirPath = mContext.getCacheDir();
+    mSlideshowFilesName = new ArrayList<String>();
 
     return inflater.inflate(R.layout.fragment_slideshow, container, false);
   }
@@ -478,13 +476,13 @@ public class SlideshowFragment extends Fragment {
   }
 
   private void makeImageNotClickable() {
-    mParentView.findViewById(R.id.SlideshowLayout).setClickable(false);
+    mParentView.findViewById(R.id.slideshowLayout).setClickable(false);
   }
 
   private void makeImageClickable() {
     Log.d(TAG, "makeImageClickable(): image is now clickable");
 
-    mParentView.findViewById(R.id.SlideshowLayout).setOnClickListener(new View.OnClickListener() {
+    mParentView.findViewById(R.id.slideshowLayout).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         mSlideshowHandler.removeCallbacks(showMenuRunnable);
@@ -582,7 +580,7 @@ public class SlideshowFragment extends Fragment {
             //ne doit arriver que si vous avez des gros doigts ;)
             if (mCheckedToggleButtonsArrayList.size() > 2) {
               Log.d("mCheckedToggle", "3 Button pressed");
-              mHideHandler.post(cleanButtonRunnable);
+              mSlideshowHandler.post(cleanButtonRunnable);
 
               mSlideshowHandler.post(mStartSlideshowRunnable);
             }
@@ -635,7 +633,7 @@ public class SlideshowFragment extends Fragment {
           if (mCheckedToggleButtonsArrayList.size() > 2) {
             Log.d("mCheckedToggle", "3 Button pressed");
             mSlideshowHandler.post(blockmenu);
-            mHideHandler.post(cleanButtonRunnable);
+            mSlideshowHandler.post(cleanButtonRunnable);
             mSlideshowHandler.post(mStartSlideshowRunnable);
           } else if (mCheckedToggleButtonsArrayList.size() == 1) {
 
@@ -716,7 +714,7 @@ public class SlideshowFragment extends Fragment {
   @Override
   public void onPause() {
     super.onPause();
-    mHideHandler.removeCallbacks(mShowPart2Runnable);
+    mSlideshowHandler.removeCallbacks(mShowPart2Runnable);
 
     mSlideshowHandler.removeCallbacks(showNextRunnable);
     mSlideshowIsRunning = false;
@@ -848,8 +846,8 @@ public class SlideshowFragment extends Fragment {
     mVisible = false;
 
     // Schedule a runnable to remove the status and navigation bar after a delay
-    mHideHandler.removeCallbacks(mShowPart2Runnable);
-    mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
+    mSlideshowHandler.removeCallbacks(mShowPart2Runnable);
+    mSlideshowHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
   }
 
   private void show() {
@@ -860,8 +858,8 @@ public class SlideshowFragment extends Fragment {
     mVisible = true;
     Log.d(TAG, "Fragment.show()");
     // Schedule a runnable to display UI elements after a delay
-    mHideHandler.removeCallbacks(mHidePart2Runnable);
-    mHideHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
+    mSlideshowHandler.removeCallbacks(mHidePart2Runnable);
+    mSlideshowHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
     ActionBar actionBar = getSupportActionBar();
     if (actionBar != null) {
       actionBar.show();
@@ -873,8 +871,8 @@ public class SlideshowFragment extends Fragment {
    * previously scheduled calls.
    */
   private void delayedHide(int delayMillis) {
-    mHideHandler.removeCallbacks(mHideRunnable);
-    mHideHandler.postDelayed(mHideRunnable, delayMillis);
+    mSlideshowHandler.removeCallbacks(mHideRunnable);
+    mSlideshowHandler.postDelayed(mHideRunnable, delayMillis);
   }
 
   @Nullable
