@@ -326,10 +326,10 @@ public class SlideshowFragment extends Fragment {
 
       //hide image
       mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.GONE);
-/* replaces it with placehoder?*/
+/* replaces it with placehoder?
       ((ImageView) mParentView.findViewById(R.id.imageView)).setImageDrawable(
           getResources().getDrawable(R.drawable.white_background, null));
-/* */
+*/
 
       //hide text, modify text, then show it again with menu
       ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setVisibility(View.GONE);
