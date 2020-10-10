@@ -288,7 +288,7 @@ public class SlideshowActivity extends Activity {
           {
             ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
 
-          }
+
           /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
            "il manque " + (missingFilesNames.size()-((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
             ) + " fichiers");*/
@@ -310,6 +310,11 @@ public class SlideshowActivity extends Activity {
                 + (missingFilesNames.size() - downloadedFilesNumber)
                 + " manquantes"));
           }
+      }
+          else {          Log.e(TAG, "intentReceiver got action dl received but fragment was hidden");
+          }
+
+
           break;
         case "filesMissing":
 

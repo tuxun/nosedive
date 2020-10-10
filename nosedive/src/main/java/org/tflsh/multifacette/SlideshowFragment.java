@@ -57,7 +57,7 @@ public class SlideshowFragment extends Fragment {
    * and a change of the status and navigation bar.
    */
   private static final int UI_ANIMATION_DELAY = 300;
-  private static final String TAG = "SlideshowActivity";
+  private static final String TAG = "SlideshowFragment";
   static String SLIDESHOW_M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "julia/";
   final ArrayList<Button> mCheckedToggleButtonsArrayList = new ArrayList<>();
   private final Handler mSlideshowHandler = new Handler();

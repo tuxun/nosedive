@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -145,9 +146,14 @@ public class StartupFragment extends Fragment {
     };
   }
 
-  // private ListImageTask() {
-  // Log.d(CLASSNAME, "ListImageTask constructor");
-  //}
+  @Override
+  public void onPause() {
+    super.onPause();
+      Log.d(TAG, "Fragment.onPause()");
+      // Clear the systemUiVisibility flag
+
+  }
+
 
   /**
    * A function for check is file exists or is empty
