@@ -206,43 +206,55 @@ public class SlideshowFragment extends Fragment {
       mSlideshowHandler.post(cleanButtonRunnable);
     }
   };
-  private final Runnable showMenuRunnable = new Runnable() {
-    @Override
-    public void run() {
-      mSlideshowHandler.removeCallbacks(showMenuRunnable);
-      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
-      mSlideshowHandler.removeCallbacks(showNextRunnable);
-
-      lastSlideLaunched.interrupt();
-      Log.d(TAG, "showMenuRunnable");
-      mSlideshowHandler.removeCallbacks(showNextRunnable);
-      new Thread(new Runnable() {
-        @Override public void run() {
-
-        }
-      }).start();
-
-      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(
-          TypedValue.COMPLEX_UNIT_DIP,
-          pressTwoWordsTextSize);
-
-      // mSlideshowHandler.post(cleanButtonRunnable);
-      mSlideshowHandler.removeCallbacks(cleanButtonRunnable);
-      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
-      mSlideshowIsRunning = false;
-      mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_CHOICE_WORDS_SETTING);
-      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.GONE);
-      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.VISIBLE);
-      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.VISIBLE);
-      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(
-          R.string.string_choose2word);
-      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
-      //!!!? ((ImageView) mParentView.findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.whitebackground,mContext.getTheme()));
-
-    }
-  };
   private long mLastClickTime = 0;
   private ArrayList<String> mSlideshowFilesName;
+  private final Runnable showNextRunnable = new Runnable() {
+    @Override
+    public void run() {
+      //antibounce
+
+      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+
+      int lastIndex = nextImageToShowIndex;
+      nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
+      if (lastIndex == nextImageToShowIndex) {
+        nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
+        Log.e(TAG, "mShowNextRunnable: avoiding to show same image twice");
+      }
+      if (pwa < mSlideshowFilesName.size()) {
+        if ((pwa % 2) == 0) {
+
+          executor.execute(
+              lastSlideLaunched = mBackgroundImageDecoder.new ShowImageTask(
+                  (ImageView) mParentView.findViewById(R.id.imageView),
+                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
+                  DELAY_INTER_FRAME_SETTING)
+          );
+          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
+              getResources().getColor(R.color.OurWhite, null));
+        } else {
+
+          executor.execute(
+              lastSlideLaunched = mBackgroundImageDecoder.new ShowImageTask(
+                  ((ImageView) mParentView.findViewById(R.id.imageView)),
+                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
+                  DELAY_INTER_FRAME_SETTING)
+          );
+          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
+              getResources().getColor(R.color.OurPink, null));
+        }
+
+        pwa++;
+      } else {
+        Log.d(TAG, "mShowNextRunnable: no more images, restarting slideshow");
+        pwa = 0;
+        mSlideshowIsRunning = false;
+        mSlideshowHandler.post(mStartSlideshowRunnable); //end handlepostdelay
+      }
+    }
+
+    // Code here will run in UI thread
+  };
   private final Runnable mStartSlideshowRunnable = new Runnable() {
 
     @Override
@@ -290,52 +302,40 @@ public class SlideshowFragment extends Fragment {
       mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
     }
   };
-  private final Runnable showNextRunnable = new Runnable() {
+  private final Runnable showMenuRunnable = new Runnable() {
     @Override
     public void run() {
-      //antibounce
-
+      mSlideshowHandler.removeCallbacks(showMenuRunnable);
       mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+      mSlideshowHandler.removeCallbacks(showNextRunnable);
 
-      int lastIndex = nextImageToShowIndex;
-      nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
-      if (lastIndex == nextImageToShowIndex) {
-        nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
-        Log.e(TAG, "mShowNextRunnable: avoiding to show same image twice");
-      }
-      if (pwa < mSlideshowFilesName.size()) {
-        if ((pwa % 2) == 0) {
+      lastSlideLaunched.interrupt();
+      Log.d(TAG, "showMenuRunnable");
+      mSlideshowHandler.removeCallbacks(showNextRunnable);
+      new Thread(new Runnable() {
+        @Override public void run() {
 
-          executor.execute(
-              lastSlideLaunched = mBackgroundImageDecoder.new ShowImageTask(
-                  (ImageView) mParentView.findViewById(R.id.imageView),
-                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
-                  DELAY_INTER_FRAME_SETTING)
-          );
-          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
-              getResources().getColor(R.color.OurWhite, null));
-        } else {
-
-          executor.execute(
-              lastSlideLaunched = mBackgroundImageDecoder.new ShowImageTask(
-                  ((ImageView) mParentView.findViewById(R.id.imageView)),
-                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
-                  DELAY_INTER_FRAME_SETTING)
-          );
-          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
-              getResources().getColor(R.color.OurPink, null));
         }
+      }).start();
 
-        pwa++;
-      } else {
-        Log.d(TAG, "mShowNextRunnable: no more images, restarting slideshow");
-        pwa = 0;
-        mSlideshowIsRunning = false;
-        mSlideshowHandler.post(mStartSlideshowRunnable); //end handlepostdelay
-      }
+      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(
+          TypedValue.COMPLEX_UNIT_DIP,
+          pressTwoWordsTextSize);
+
+      // mSlideshowHandler.post(cleanButtonRunnable);
+      mSlideshowHandler.removeCallbacks(cleanButtonRunnable);
+      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+      mSlideshowIsRunning = false;
+      mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_CHOICE_WORDS_SETTING);
+      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.GONE);
+      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.VISIBLE);
+      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.VISIBLE);
+      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(
+          R.string.string_choose2word);
+      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
+      //!!!? ((ImageView) mParentView.findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.whitebackground,mContext.getTheme()));
+
     }
-
-    // Code here will run in UI thread
   };
   private final Runnable mShowImageAfterTwoWordsRunnable = new Runnable() {
 
