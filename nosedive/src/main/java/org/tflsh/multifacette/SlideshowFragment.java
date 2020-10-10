@@ -300,7 +300,8 @@ public class SlideshowFragment extends Fragment {
       //      LinearLayout.LayoutParams.MATCH_PARENT);
       mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
       mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
-      mParentView.findViewById(R.id.ui_press_meTextView).setVisibility(View.VISIBLE);
+     mParentView.findViewById(R.id.ui_press_meTextView).setVisibility(View.VISIBLE);
+
     }
   };
   private final Runnable showMenuRunnable = new Runnable() {
@@ -427,7 +428,7 @@ public class SlideshowFragment extends Fragment {
       }
     });
   */
-    // The cache size will be measured in kilobytes rather than
+// The cache size will be measured in kilobytes rather than
     // number of items.
     LruCache<String, Bitmap> memoryCache = new LruCache<String, Bitmap>(cacheSize) {
       @Override

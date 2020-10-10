@@ -40,12 +40,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 
-import static org.tflsh.multifacette.BackgroundImageDecoder.executor;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -330,10 +330,10 @@ public class StartupFragment extends Fragment {
         if (event.getAction() == MotionEvent.ACTION_UP) {
           view.findViewById(R.id.repairFilesButton).setBackground(
               getResources().getDrawable(R.color.OurWhite, null));
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+       /*   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             view.findViewById(R.id.repairFilesButton)
                 .setOutlineAmbientShadowColor(R.color.OurWhite);
-          }
+          }*/
           view.performClick();
 /*                    (view.findViewById(R.id.checkFilesButton)).setBackgroundColor(
                         getResources().getColor(R.color.OurWhite, null));
@@ -598,6 +598,7 @@ public class StartupFragment extends Fragment {
       return localFile;
     }
   }
+  private ExecutorService executor;
 
   public void exec(String urlSourceArg) {
 
