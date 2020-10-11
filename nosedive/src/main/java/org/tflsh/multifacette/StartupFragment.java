@@ -14,7 +14,6 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.JsonReader;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -439,6 +438,7 @@ active=true;
           getFile(urlSource, mCacheDirPath.getAbsolutePath(), name);
         }
       });
+      lastThread.run();
     }
 
 

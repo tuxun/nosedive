@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".StartupFragment"
 
-    android:gravity="center"
+    android:gravity="center|top"
     android:orientation="vertical" >
 
 
@@ -20,7 +20,7 @@
         android:enabled="false"
         android:shadowColor="@color/OurWhite"
         android:text="@string/pleaseCheckFiles"
-        android:visibility="invisible"
+        android:visibility="gone"
 
         />
     <Button

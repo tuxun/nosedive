@@ -287,10 +287,10 @@ public class SlideshowActivity extends Activity {
           mSlideshowFilesName.add(max1);
           mSlideshowDownloadedFilesName.add(max1);
           downloadedFilesNumber++;
-          if (((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)) != null) {
+          if (findViewById(R.id.ui_missing_ProgressBar) != null) {
             ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).incrementProgressBy(-1);
           }
-          if (((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)) != null) {
+          if (findViewById(R.id.ui_dl_ProgressBar) != null) {
             ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
 
 
@@ -468,15 +468,16 @@ public class SlideshowActivity extends Activity {
     onResume();
   }
 @Override
-  public boolean onKeyDown(int keycode, KeyEvent event)
-  {
-    if(keycode==KeyEvent.KEYCODE_BACK)
-    {
-      return true;
-    }
+  public boolean onKeyDown(int keycode, KeyEvent event) {
+  Log.d(TAG, "onKeyDown" + keycode);
 
-    return super.onKeyDown(keycode,event);
+  if (keycode == KeyEvent.KEYCODE_BACK) {
+    onResume();
+    return true;
   }
+
+  return super.onKeyDown(keycode, event);
+}
   @Override
   protected void onResume() {
     super.onResume();
