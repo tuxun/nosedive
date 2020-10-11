@@ -292,6 +292,11 @@ public class SlideshowActivity extends Activity {
           Log.d(TAG, "intentReceiver got action dl received" + max1);
           mSlideshowFilesName.add(max1);
           mSlideshowDownloadedFilesName.add(max1);
+          //!!! ((SlideshowFragment)  getFragmentManager().findFragmentByTag("SlideshowFragment")).setBaseUrl(M_SERVER_DIRECTORY_URL);
+          findViewById(R.id.repairFilesButton).setEnabled(false);
+          findViewById(R.id.repairFilesButton).setClickable(false);
+          findViewById(R.id.repairFilesButton).setBackground(
+              getResources().getDrawable(R.drawable.white_background, null));
           downloadedFilesNumber++;
           if (findViewById(R.id.ui_verticalmissing_ProgressBar) != null) {
             ((ProgressBar) findViewById(R.id.ui_verticalmissing_ProgressBar)).incrementProgressBy(
@@ -316,6 +321,10 @@ public class SlideshowActivity extends Activity {
                   + mSlideshowFilesName.size());
              // startSlideshow("dlReceived");
             } else if (mSlideshowFilesName.size() > 0) {
+              Log.e(TAG,
+                  "(missingFilesNames.size()-downloadedFilesNumber" + (missingFilesNames.size()
+                      - downloadedFilesNumber));
+
               ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
                   (mSlideshowFilesName.size()) + " photos ok, " + (missingFilesNames.size()
                       - downloadedFilesNumber) + " manquantes");
