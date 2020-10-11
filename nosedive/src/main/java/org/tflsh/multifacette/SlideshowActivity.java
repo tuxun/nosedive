@@ -96,10 +96,11 @@ public class SlideshowActivity extends Activity {
 
         case "dlComplete":
           Log.d(TAG, "intentReceiver got action dl complete");
-         /* (findViewById(R.id.button2)).setBackgroundColor(
+          fileschecked = true;
+
+  /* (findViewById(R.id.button2)).setBackgroundColor(
               getResources().getColor(R.color.OurPink, null));*/
           if (!mSlideshowFilesName.isEmpty()) {
-            fileschecked = true;
             findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
 
             findViewById(R.id.repairFilesButton).setVisibility(View.GONE);
@@ -485,10 +486,7 @@ public class SlideshowActivity extends Activity {
     mSlideshowFilesName.clear();
     registerReceiver(intentReceiver, filter);
 
-
-
-
-  //!!! mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
+    //!!! mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
 
     // mSlideshowFragment.setBaseUrl(M_SERVER_DIRECTORY_URL);
 
@@ -521,7 +519,7 @@ public class SlideshowActivity extends Activity {
       fileschecked = true;
     } else {
       Log.e("onResume", "files were already ALLOK");
-
+/*
       if (findViewById(R.id.imageView) == null) {
         Log.e("onResume", "loading fragment");
         //!!!  loadSlideshowFragment();
@@ -529,12 +527,13 @@ public class SlideshowActivity extends Activity {
         Log.e("onResume", "loading startup screen");
         View iframe = findViewById(R.id.slideshowLayout);
 
-/*        ViewGroup parent = (ViewGroup) iframe.getParent();
-        parent.removeView(iframe);*/
+     ViewGroup parent = (ViewGroup) iframe.getParent();
+        parent.removeView(iframe);
         //grgr.setContentView(R.layout.activity_fullscreen);
         ((ImageView) findViewById(R.id.imageView)).setImageDrawable(
             getResources().getDrawable(R.drawable.default_background, null));
-      }
+        */
+      startSlideshow("onresume");
     }
   }
 

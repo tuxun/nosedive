@@ -344,6 +344,9 @@ active=true;
         if (event.getAction() == MotionEvent.ACTION_UP) {
           view.findViewById(R.id.repairFilesButton).setBackground(
               getResources().getDrawable(R.color.OurWhite, null));
+          view.setClickable(false);
+          view.setEnabled(false);
+
        /*   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             view.findViewById(R.id.repairFilesButton)
                 .setOutlineAmbientShadowColor(R.color.OurWhite);
