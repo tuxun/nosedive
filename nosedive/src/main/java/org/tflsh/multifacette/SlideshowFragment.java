@@ -60,7 +60,7 @@ public class SlideshowFragment extends Fragment {
   private static final String TAG = "SlideshowFragment";
   static String SLIDESHOW_M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "julia/";
   final ArrayList<Button> mCheckedToggleButtonsArrayList = new ArrayList<>();
-  private final Handler mSlideshowHandler = new Handler();
+  protected final Handler mSlideshowHandler = new Handler();
   private final Runnable mHidePart2Runnable = new Runnable() {
     @Override
     public void run() {
@@ -207,7 +207,7 @@ public class SlideshowFragment extends Fragment {
   };
   private long mLastClickTime = 0;
   private ArrayList<String> mSlideshowFilesName;
-  private final Runnable showNextRunnable = new Runnable() {
+  public final Runnable showNextRunnable = new Runnable() {
     @Override
     public void run() {
       //antibounce
@@ -254,6 +254,10 @@ public class SlideshowFragment extends Fragment {
 
     // Code here will run in UI thread
   };
+  public void cleanNext()
+  {
+    mSlideshowHandler.removeCallbacks(showNextRunnable);
+  }
   private final Runnable mStartSlideshowRunnable = new Runnable() {
 
     @Override

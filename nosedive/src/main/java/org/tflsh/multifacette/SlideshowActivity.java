@@ -471,7 +471,7 @@ public class SlideshowActivity extends Activity {
 @Override
   public boolean onKeyDown(int keycode, KeyEvent event) {
   Log.d(TAG, "onKeyDown" + keycode);
-
+  mSlideshowFragment.cleanNext();
   if (keycode == KeyEvent.KEYCODE_BACK) {
     onResume();
     return true;
