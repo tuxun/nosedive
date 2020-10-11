@@ -101,6 +101,8 @@ public class StartupFragment extends Fragment {
   //static String urlSource;
   //static List<String> missingImagesNames;
 
+  List<String> result;
+
   {
     mGrabJsonRunnable = new Runnable() {
       @Override
@@ -126,7 +128,7 @@ public class StartupFragment extends Fragment {
               + localJsonFile.length());
 
           //if the images list file is not empty, we can parse its json content
-          List<String> result = parseJson(localJsonFile, M_SERVER_DIRECTORY_URL + FILELIST_JSON);
+          result = parseJson(localJsonFile, M_SERVER_DIRECTORY_URL + FILELIST_JSON);
           if (result.isEmpty()) {
 
             Log.e(CLASSNAME, "EMPTY json file!!!");
@@ -147,7 +149,6 @@ public class StartupFragment extends Fragment {
       }
     };
   }
-
   @Override
   public void onPause() {
     active=false;
@@ -371,11 +372,13 @@ active=true;
     view.findViewById(R.id.repairFilesButton).setClickable(false);
     everyImagesNames = new ArrayList<String>();
     missingImagesNames = new ArrayList<String>();
+
     lastThread=new Thread(new Runnable() {
       @Override public void run() {
 
         grabJson(M_SERVER_DIRECTORY_URL, false);
-        exec(M_SERVER_DIRECTORY_URL);
+        checkFiles(M_SERVER_DIRECTORY_URL);
+        repairfiles(M_SERVER_DIRECTORY_URL, missingImagesNames);
       }
     });
     lastThread.start();
@@ -431,7 +434,7 @@ active=true;
   public void repairfiles(final String urlSource, ArrayList<String> missingsArg) {
     Log.e("repairfiles", "missing or broken " + missingsArg.size() + " files");
 
-    //   exec( urlSource);
+    //   checkFiles( urlSource);
 
     for (final String name : missingsArg) {
       Log.e("repairfiles", "grab missing or broken " + name + " files");
@@ -623,10 +626,11 @@ active=true;
       return localFile;
     }
   }
+
   private ExecutorService executor;
 
-  public void exec(String urlSourceArg) {
-
+  public void checkFiles(String urlSourceArg) {
+    sendMessage("checkStarted");
     //  urlSource = urlSourceArg;
 
     FutureTask<String>
@@ -652,7 +656,7 @@ active=true;
         Log.d(CLASSNAME, "mGrabJsonRunnable output=" + s);
       }
     } catch (Exception e) {
-      Log.d(CLASSNAME, "Exception in exec(): " + e);
+      Log.d(CLASSNAME, "Exception in checkFiles(): " + e);
       futureTask1.cancel(true);
     }
   }

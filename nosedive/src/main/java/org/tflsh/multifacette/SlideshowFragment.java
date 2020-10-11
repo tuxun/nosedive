@@ -401,10 +401,10 @@ public class SlideshowFragment extends Fragment {
     new Thread(new Runnable() {
       @Override public void run() {
         if (mStartupFragment != null) {
-          //strtpfrgmnt.exec(arg);
-          Log.d("sldshowexec", " exec() mStartupFragment OOOK" + arg);
+          //strtpfrgmnt.checkFiles(arg);
+          Log.d("sldshowexec", " checkFiles() mStartupFragment OOOK" + arg);
         } else {
-          Log.d("sldshowexec", " exec() mStartupFragment=void");
+          Log.d("sldshowexec", " checkFiles() mStartupFragment=void");
         }
       }
     }).start();
@@ -813,7 +813,7 @@ public class SlideshowFragment extends Fragment {
     Log.d("sldshow", " onResume()");
 
     if ((getFragmentManager().findFragmentByTag("StartupFragment")) != null) {
-      //! strtpfrgmnt.exec(arg);
+      //! strtpfrgmnt.checkFiles(arg);
     } else {
       Log.d("sldshowexec", " onCreate() mStartupFragment=void");
     }

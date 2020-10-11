@@ -17,7 +17,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import java.util.ArrayList;
@@ -148,16 +147,26 @@ public class SlideshowActivity extends Activity {
           Log.d(TAG, "intentReceiver got action no json");
 
           break;
+
         case "StartupViewOk":
           Log.d(TAG, "intentReceiver got action StartupViewOk,startting startup fragment");
 
           //!!! ((SlideshowFragment)  getFragmentManager().findFragmentByTag("SlideshowFragment")).setBaseUrl(M_SERVER_DIRECTORY_URL);
 
           break;
+        case "checkStarted":
+          Log.d(TAG, "intentReceiver got action StartupViewOk,startting startup fragment");
+
+          //!!! ((SlideshowFragment)  getFragmentManager().findFragmentByTag("SlideshowFragment")).setBaseUrl(M_SERVER_DIRECTORY_URL);
+          findViewById(R.id.repairFilesButton).setEnabled(false);
+          findViewById(R.id.repairFilesButton).setClickable(false);
+          findViewById(R.id.repairFilesButton).setBackground(
+              getResources().getDrawable(R.drawable.white_background, null));
+          break;
         case "JSONparseok":
           Log.d(TAG, "intentReceiver got action JSONparseok");
 
-          findViewById(R.id.checkFilesButton).setOnTouchListener(new OnTouchListener() {
+          findViewById(R.id.repairFilesButton).setOnTouchListener(new OnTouchListener() {
 
             @Override
             public boolean onTouch(View view, MotionEvent event) {
@@ -165,7 +174,7 @@ public class SlideshowActivity extends Activity {
                 view.performClick();
                 view.setEnabled(false);
                 view.setClickable(false);
-                ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setProgress(0);
+                ((ProgressBar) findViewById(R.id.ui_totalfiles_ProgressBar)).setProgress(0);
                 //!!! pour checkfiles=missinf findViewById(R.id.button2).setVisibility(View.VISIBLE);
                 getFragmentManager().executePendingTransactions();
 
@@ -179,7 +188,7 @@ public class SlideshowActivity extends Activity {
                     missingFilesNames.clear();
 
                     mSlideshowFilesName.clear();
-                    Log.d(TAG, "StartupFragment.exec()");
+                    Log.d(TAG, "StartupFragment.checkFiles()");
                     if (getFragmentManager().findFragmentByTag("SlideshowFragment") == null) {
                       Log.d(TAG, "SlideshowFragment.void()");
                     } else {
@@ -200,11 +209,13 @@ public class SlideshowActivity extends Activity {
               return true;
             }
           });
-          startSlideshow("jsonparseok");
+          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(R.string.updatedJsonOK);
+          findViewById(R.id.repairFilesButton).setEnabled(true);
+          findViewById(R.id.repairFilesButton).setClickable(true);
+
           break;
 
         case "JSONok":
-          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(R.string.updatedJsonOK);
 
           Log.d(TAG, "intentReceiver got JSONok");
           /*check files button*/
@@ -226,9 +237,9 @@ public class SlideshowActivity extends Activity {
             fileschecked = true;
 
             findViewById(R.id.checkFilesButton).setVisibility(View.GONE);
-            findViewById(R.id.ui_dl_ProgressBar).setBackground(
+            findViewById(R.id.ui_totalfiles_ProgressBar).setBackground(
                 getDrawable(R.drawable.ic_not_started_black));
-            findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
+            findViewById(R.id.ui_totalfiles_ProgressBar).setVisibility(View.VISIBLE);
             /*start button
             (findViewById(R.id.ui_dl_ProgressBar)).setOnTouchListener(new OnTouchListener() {
 
@@ -261,7 +272,7 @@ public class SlideshowActivity extends Activity {
           mSlideshowFilesName.add(max);
           Log.d(TAG,
               "intentReceiver got action files found " + mSlideshowFilesName.size() + " " + max);
-          findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
+          findViewById(R.id.ui_totalfiles_ProgressBar).setVisibility(View.VISIBLE);
           if (missingFilesNames.size() > 0) {
             ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
                 (mSlideshowFilesName.size())
@@ -272,7 +283,7 @@ public class SlideshowActivity extends Activity {
             ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
                 (mSlideshowFilesName.size()) + " photos ok");
           }
-          ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setProgress(
+          ((ProgressBar) findViewById(R.id.ui_totalfiles_ProgressBar)).setProgress(
               mSlideshowFilesName.size());
 
           break;
@@ -282,11 +293,12 @@ public class SlideshowActivity extends Activity {
           mSlideshowFilesName.add(max1);
           mSlideshowDownloadedFilesName.add(max1);
           downloadedFilesNumber++;
-          if (findViewById(R.id.ui_missing_ProgressBar) != null) {
-            ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).incrementProgressBy(-1);
+          if (findViewById(R.id.ui_verticalmissing_ProgressBar) != null) {
+            ((ProgressBar) findViewById(R.id.ui_verticalmissing_ProgressBar)).incrementProgressBy(
+                -1);
           }
-          if (findViewById(R.id.ui_dl_ProgressBar) != null) {
-            ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
+          if (findViewById(R.id.ui_totalfiles_ProgressBar) != null) {
+            ((ProgressBar) findViewById(R.id.ui_totalfiles_ProgressBar)).incrementProgressBy(1);
 
 
           /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
@@ -326,9 +338,11 @@ public class SlideshowActivity extends Activity {
           ((Button) findViewById(R.id.repairFilesButton)).setText(
               "Récupérer les " + (missingFilesNames.size())
                   + " photos manquantes");
-          findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
+          findViewById(R.id.ui_totalfiles_ProgressBar).setVisibility(View.VISIBLE);
           findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
-          ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).setProgress(
+          ((ProgressBar) findViewById(R.id.ui_verticalmissing_ProgressBar)).setMax(
+              missingFilesNames.size());
+          ((ProgressBar) findViewById(R.id.ui_verticalmissing_ProgressBar)).setProgress(
               missingFilesNames.size());
 
           if (mSlideshowFilesName.size() > 0) {
@@ -341,8 +355,8 @@ public class SlideshowActivity extends Activity {
                 + " manquantes"));
           }
 
-          ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setMax(
-              missingFilesNames.size() );
+          ((ProgressBar) findViewById(R.id.ui_totalfiles_ProgressBar)).setMax(
+              missingFilesNames.size());
           //    Log.d(TAG, "intentReceiver set progress bar " + missingFilesNames.size() + max2);
          /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
               "il manque " + missingFilesNames.size() + " fichiers");
@@ -454,6 +468,8 @@ public class SlideshowActivity extends Activity {
     filter.addAction("StartupViewOk");
 
     filter.addAction("JSONparseok");
+    filter.addAction("checkStarted");
+
     filter.addAction("noJson");
     filter.addAction("JSONok");
     filter.addAction("ACTION_BOOT_COMPLETED");

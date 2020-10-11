@@ -76,7 +76,7 @@
     </LinearLayout>
 
     <ProgressBar
-        android:id="@+id/ui_dl_ProgressBar"
+        android:id="@+id/ui_totalfiles_ProgressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:indeterminateOnly="false"
@@ -92,7 +92,7 @@
 
         />
     <ProgressBar
-        android:id="@+id/ui_missing_ProgressBar"
+        android:id="@+id/ui_verticalmissing_ProgressBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="7dp"
