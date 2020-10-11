@@ -77,6 +77,7 @@ public class SlideshowActivity extends Activity {
   private SlideshowFragment mSlideshowFragment;
 
   private int downloadedFilesNumber;
+  private ArrayList mSlideshowDownloadedFilesName;
   public final BroadcastReceiver intentReceiver = new BroadcastReceiver() {
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -101,8 +102,7 @@ public class SlideshowActivity extends Activity {
             findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
 
             findViewById(R.id.repairFilesButton).setVisibility(View.GONE);
-            mSlideshowFragment.startSlideshow(mSlideshowFilesName);
-/*
+            startSlideshow("dlComplete");/*
           findViewById(R.id.ui_dl_ProgressBar).setBackground(
               getDrawable(R.drawable.ic_not_started_black));
           (findViewById(R.id.ui_dl_ProgressBar)).setOnTouchListener(new OnTouchListener() {
@@ -137,10 +137,10 @@ public class SlideshowActivity extends Activity {
 
         case "noJson":
           mHaveInternet = false;
-          findViewById(R.id.repairFilesButton).setEnabled(true);
-          findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
-          findViewById(R.id.repairFilesButton).setBackground(
-              getResources().getDrawable(R.drawable.ic_button_on_off, null));
+          // findViewById(R.id.repairFilesButton).setEnabled(true);
+          //findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
+          //  findViewById(R.id.repairFilesButton).setBackground(
+          //  getResources().getDrawable(R.drawable.ic_button_on_off, null));//
 
           ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
               R.string.pleaseRestartWithInternet);
@@ -153,12 +153,9 @@ public class SlideshowActivity extends Activity {
           //!!! ((SlideshowFragment)  getFragmentManager().findFragmentByTag("SlideshowFragment")).setBaseUrl(M_SERVER_DIRECTORY_URL);
 
           break;
+        case "JSONparseok":
+          Log.d(TAG, "intentReceiver got action JSONparseok");
 
-        case "JSONok":
-
-          (findViewById(R.id.checkFilesButton)).setEnabled(true);
-          Log.d(TAG, "intentReceiver got JSONok");
-          /*check files button*/
           findViewById(R.id.checkFilesButton).setOnTouchListener(new OnTouchListener() {
 
             @Override
@@ -166,7 +163,7 @@ public class SlideshowActivity extends Activity {
               if (event.getAction() == MotionEvent.ACTION_UP) {
                 view.performClick();
                 view.setEnabled(false);
-
+                view.setClickable(false);
                 ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setProgress(0);
                 //!!! pour checkfiles=missinf findViewById(R.id.button2).setVisibility(View.VISIBLE);
                 getFragmentManager().executePendingTransactions();
@@ -202,9 +199,19 @@ public class SlideshowActivity extends Activity {
               return true;
             }
           });
-          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(R.string.updatedJsonOK);
           findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
 
+          (findViewById(R.id.repairFilesButton)).setEnabled(true);
+          (findViewById(R.id.repairFilesButton)).setClickable(true);
+          //!!! ((SlideshowFragment)  getFragmentManager().findFragmentByTag("SlideshowFragment")).setBaseUrl(M_SERVER_DIRECTORY_URL);
+
+          break;
+
+        case "JSONok":
+          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(R.string.updatedJsonOK);
+
+          Log.d(TAG, "intentReceiver got JSONok");
+          /*check files button*/
           break;
         case "JSONlocalonly":
           Log.d(TAG, "intentReceiver got JSONlocalonly");
@@ -219,14 +226,14 @@ public class SlideshowActivity extends Activity {
 
           //(findViewById(R.id.checkFilesButton)).setBackgroundColor(
           // getResources().getColor(R.color.OurPink, null));
-          if (missingFilesNames.isEmpty() && !mSlideshowFilesName.isEmpty()) {
+          if (!mSlideshowFilesName.isEmpty()) {
             fileschecked = true;
 
             findViewById(R.id.checkFilesButton).setVisibility(View.GONE);
             findViewById(R.id.ui_dl_ProgressBar).setBackground(
                 getDrawable(R.drawable.ic_not_started_black));
             findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
-            /*start button*/
+            /*start button
             (findViewById(R.id.ui_dl_ProgressBar)).setOnTouchListener(new OnTouchListener() {
 
               @Override
@@ -243,12 +250,12 @@ public class SlideshowActivity extends Activity {
                 }
                 return true;
               }
-            });
-            findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
-            mSlideshowFragment.startSlideshow(mSlideshowFilesName);
-            //////////
+            });*/
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            startSlideshow("filesAllOk");
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
           } else {
-            findViewById(R.id.repairFilesButton).setEnabled(true);
+            //§!! findViewById(R.id.repairFilesButton).setEnabled(true);
           }
 
           break;
@@ -275,52 +282,51 @@ public class SlideshowActivity extends Activity {
           break;
         case "dlReceived":
           String max1 = intent.getStringExtra(EXTRA_MESSAGE);
-
-          Log.d(TAG, "intentReceiver got action dl received");
-                    mSlideshowFilesName.add(max1);
+          Log.d(TAG, "intentReceiver got action dl received" + max1);
+          mSlideshowFilesName.add(max1);
+          mSlideshowDownloadedFilesName.add(max1);
           downloadedFilesNumber++;
-          if( ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar))!=null)
-          {
+          if (((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)) != null) {
             ((ProgressBar) findViewById(R.id.ui_missing_ProgressBar)).incrementProgressBy(-1);
-
           }
-          if( ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar))!=null)
-          {
+          if (((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)) != null) {
             ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).incrementProgressBy(1);
 
 
           /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
            "il manque " + (missingFilesNames.size()-((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
             ) + " fichiers");*/
-          ((Button) findViewById(R.id.repairFilesButton)).setText(R.string.dl_progressText+" de "
-              + ((missingFilesNames.size() - downloadedFilesNumber))
-              + " " + getString(R.string.files));
-          if (mSlideshowFilesName.size() > 0
-              && missingFilesNumber == 0
-              && downloadedFilesNumber == 0) {
-            findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
-
-            mSlideshowFragment.startSlideshow(mSlideshowFilesName);
-          } else if (mSlideshowFilesName.size() > 0) {
-            ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-                (mSlideshowFilesName.size()) + " photos ok, " + (missingFilesNames.size()
-                    - downloadedFilesNumber) + " manquantes");
+            ((Button) findViewById(R.id.repairFilesButton)).setText(
+                new StringBuilder().append(getString(R.string.dl_progressText))
+                    .append(" de ")
+                    .append(missingFilesNames.size() - downloadedFilesNumber)
+                    .append(" ")
+                    .append(getString(R.string.files))
+                    .toString());
+            if (mSlideshowDownloadedFilesName.size() == missingFilesNames.size()) {
+              Log.e(TAG, "intentReceiver got action dl received, starting slideshow"
+                  + mSlideshowFilesName.size());
+              startSlideshow("dlReceived");
+            } else if (mSlideshowFilesName.size() > 0) {
+              ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
+                  (mSlideshowFilesName.size()) + " photos ok, " + (missingFilesNames.size()
+                      - downloadedFilesNumber) + " manquantes");
+            } else {
+              ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(("Aucune photo, "
+                  + (missingFilesNames.size() - downloadedFilesNumber)
+                  + " manquantes"));
+            }
           } else {
-            ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(("Aucune photo, "
-                + (missingFilesNames.size() - downloadedFilesNumber)
-                + " manquantes"));
+            Log.e(TAG, "intentReceiver got action dl received but fragment was hidden");
           }
-      }
-          else {          Log.e(TAG, "intentReceiver got action dl received but fragment was hidden");
-          }
-
 
           break;
         case "filesMissing":
 
-          Log.d(TAG, "intentReceiver got action files missing");
           String max2 = intent.getStringExtra(EXTRA_MESSAGE);
           missingFilesNames.add(max2);
+          Log.d(TAG, "intentReceiver got action files missing " + max2);
+
           ((Button) findViewById(R.id.repairFilesButton)).setText(
               "Récupérer les " + (missingFilesNames.size())
                   + " photos manquantes");
@@ -341,7 +347,7 @@ public class SlideshowActivity extends Activity {
 
           ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setMax(
               missingFilesNames.size() + mSlideshowFilesName.size());
-          Log.d(TAG, "intentReceiver set progress bar " + missingFilesNames.size() + max2);
+          //    Log.d(TAG, "intentReceiver set progress bar " + missingFilesNames.size() + max2);
          /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
               "il manque " + missingFilesNames.size() + " fichiers");
           ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
@@ -357,6 +363,17 @@ public class SlideshowActivity extends Activity {
       }
     }
   };
+
+  private void startSlideshow(String fromintent) {
+    Log.e(TAG, fromintent + "received, mSlideshowFilesName" + mSlideshowFilesName.size());
+    Log.e(TAG, fromintent + "received, missingFilesNames" + missingFilesNames.size());
+    Log.e(TAG, fromintent
+        + "received, mSlideshowDownloadedFilesName"
+        + mSlideshowDownloadedFilesName.size());
+
+    findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
+    mSlideshowFragment.startSlideshow(mSlideshowFilesName);
+  }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //tools
@@ -401,6 +418,10 @@ public class SlideshowActivity extends Activity {
       Log.d(TAG, " fileschecked=" + fileschecked);
     }
 
+    Log.e(TAG, " WARNING RESET COUNTER");
+
+    this.mSlideshowDownloadedFilesName = new ArrayList<>();
+
     this.mSlideshowFilesName = new ArrayList<>();
     this.missingFilesNames = new ArrayList<>();
     this.missingFilesNumber = 0;
@@ -423,6 +444,7 @@ public class SlideshowActivity extends Activity {
     filter.addAction("filesMissing");
     filter.addAction("StartupViewOk");
 
+    filter.addAction("JSONparseok");
     filter.addAction("noJson");
     filter.addAction("JSONok");
     filter.addAction("ACTION_BOOT_COMPLETED");

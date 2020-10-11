@@ -18,7 +18,6 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -348,7 +347,8 @@ public class StartupFragment extends Fragment {
         return true;
       }
     });
-
+    view.findViewById(R.id.repairFilesButton).setEnabled(false);
+    view.findViewById(R.id.repairFilesButton).setClickable(false);
     everyImagesNames = new ArrayList<String>();
     missingImagesNames = new ArrayList<String>();
     new Thread(new Runnable() {
@@ -485,14 +485,11 @@ public class StartupFragment extends Fragment {
         reader.endObject();
       }
       Log.d(CLASSNAME, "ok synchronizing "
-              + currentFile
+              + currentFile + "enabing button"
                /* + " of "
                 + missingImagesNames.size()*/
       );
-      if ((!everyImagesNames.isEmpty()) /*&& (missingImagesNames.isEmpty())*/) {
-        Log.d(CLASSNAME, "last file, starting slideshow");
-        sendMessage("filesAllOk");
-      }
+      sendMessage("JSONparseok");
       return everyImagesNames;
     } catch (FileNotFoundException e) {
       Log.e(CLASSNAME, "local json file not found");
@@ -560,7 +557,7 @@ public class StartupFragment extends Fragment {
         sendMessageWithString("dlReceived", localFile.getName());
         currentFile++;
       } else {
-        // sendMessage("JSONok");
+        //sendMessage("JSONok");
 
       }
       return localFile;
@@ -636,7 +633,7 @@ public class StartupFragment extends Fragment {
     if (!forced) {
       if (!checkFile(mCacheDirPath.getAbsolutePath(), FILELIST_JSON)) {
         Log.d(CLASSNAME,
-            "grabJson update forced was canceled and wed had no local json");
+            "grabJson update forced was canceled and we had no local json");
         sendMessage("noJson");
         return null;
       } else {
@@ -650,12 +647,12 @@ public class StartupFragment extends Fragment {
           FILELIST_JSON);
 
       if (checkFile(mContext.getCacheDir().getAbsolutePath(), FILELIST_JSON)) {
-        Log.d(CLASSNAME,
+        Log.e(CLASSNAME,
             "grabJson got local file after update");
         sendMessage("JSONok");
         return new File(mCacheDirPath.getAbsolutePath(), FILELIST_JSON);
       } else {
-        Log.d(CLASSNAME,
+        Log.e(CLASSNAME,
             "grabJson got no local file and was unable to dl the update");
         sendMessage("noJson");
         return null;
