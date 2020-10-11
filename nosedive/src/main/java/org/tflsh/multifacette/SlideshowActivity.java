@@ -100,7 +100,6 @@ public class SlideshowActivity extends Activity {
 
   /* (findViewById(R.id.button2)).setBackgroundColor(
               getResources().getColor(R.color.OurPink, null));*/
-          if (!mSlideshowFilesName.isEmpty()) {
             findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
 
             findViewById(R.id.repairFilesButton).setVisibility(View.GONE);
@@ -128,13 +127,13 @@ public class SlideshowActivity extends Activity {
           });
           findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
    */
-          } else {
+        /*  } else {
             findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
             findViewById(R.id.repairFilesButton).setEnabled(true);
             findViewById(R.id.repairFilesButton).setClickable(true);
             findViewById(R.id.repairFilesButton).setBackground(
                 getResources().getDrawable(R.drawable.ic_button_on_off, null));
-          }
+          }*/
           break;
 
         case "noJson":
@@ -201,12 +200,7 @@ public class SlideshowActivity extends Activity {
               return true;
             }
           });
-          findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
-
-          (findViewById(R.id.repairFilesButton)).setEnabled(true);
-          (findViewById(R.id.repairFilesButton)).setClickable(true);
-          //!!! ((SlideshowFragment)  getFragmentManager().findFragmentByTag("SlideshowFragment")).setBaseUrl(M_SERVER_DIRECTORY_URL);
-
+          startSlideshow("jsonparseok");
           break;
 
         case "JSONok":
@@ -348,7 +342,7 @@ public class SlideshowActivity extends Activity {
           }
 
           ((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).setMax(
-              missingFilesNames.size() + mSlideshowFilesName.size());
+              missingFilesNames.size() );
           //    Log.d(TAG, "intentReceiver set progress bar " + missingFilesNames.size() + max2);
          /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
               "il manque " + missingFilesNames.size() + " fichiers");
@@ -367,14 +361,26 @@ public class SlideshowActivity extends Activity {
   };
 
   private void startSlideshow(String fromintent) {
-    Log.e(TAG, fromintent + "received, mSlideshowFilesName" + mSlideshowFilesName.size());
-    Log.e(TAG, fromintent + "received, missingFilesNames" + missingFilesNames.size());
-    Log.e(TAG, fromintent
-        + "received, mSlideshowDownloadedFilesName"
-        + mSlideshowDownloadedFilesName.size());
+    if(mSlideshowFilesName.size()!=0) {
 
-    findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
-    mSlideshowFragment.startSlideshow(mSlideshowFilesName);
+      Log.e(TAG, fromintent + "received, mSlideshowFilesName" + mSlideshowFilesName.size());
+      Log.e(TAG, fromintent + "received, missingFilesNames" + missingFilesNames.size());
+      Log.e(TAG, fromintent
+          + "received, mSlideshowDownloadedFilesName"
+          + mSlideshowDownloadedFilesName.size());
+
+      findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
+      mSlideshowFragment.startSlideshow(mSlideshowFilesName);
+    }
+    else {
+      Log.e(TAG,"startSlideshow aborted cause array was empty, onresume startted instead" + mSlideshowFilesName.size());
+      Log.e(TAG, fromintent + "received, mSlideshowFilesName" + mSlideshowFilesName.size());
+      Log.e(TAG, fromintent + "received, missingFilesNames" + missingFilesNames.size());
+      Log.e(TAG, fromintent
+          + "received, mSlideshowDownloadedFilesName"
+          + mSlideshowDownloadedFilesName.size());
+      onResume();
+    }
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -483,7 +489,7 @@ public class SlideshowActivity extends Activity {
   protected void onResume() {
     super.onResume();
     Log.d(TAG, "Activity.resume()");
-    mSlideshowFilesName.clear();
+    //mSlideshowFilesName.clear();
     registerReceiver(intentReceiver, filter);
 
     //!!! mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
@@ -516,7 +522,7 @@ public class SlideshowActivity extends Activity {
       Log.d(TAG,
           "ListImageTask missing file after 5second and an intent? = " + missingFilesNames.size());
       //!!!  loadStartupFragment();
-      fileschecked = true;
+     // fileschecked = true;
     } else {
       Log.e("onResume", "files were already ALLOK");
 /*
@@ -533,7 +539,7 @@ public class SlideshowActivity extends Activity {
         ((ImageView) findViewById(R.id.imageView)).setImageDrawable(
             getResources().getDrawable(R.drawable.default_background, null));
         */
-      startSlideshow("onresume");
+    //  startSlideshow("onresume");
     }
   }
 
