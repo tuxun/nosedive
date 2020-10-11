@@ -12,6 +12,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -386,9 +387,10 @@ public class SlideshowActivity extends Activity {
 
   @Override
   protected void onPause() {
-    super.onPause();
     Log.d(TAG, "Activity.onPause()");
     unregisterReceiver(intentReceiver);
+    super.onPause();
+
   }
 
   @Override
@@ -465,12 +467,27 @@ public class SlideshowActivity extends Activity {
     Log.d(TAG, "onConfigurationChanged" + getIntent());
     onResume();
   }
+@Override
+  public boolean onKeyDown(int keycode, KeyEvent event)
+  {
+    if(keycode==KeyEvent.KEYCODE_BACK)
+    {
+      return true;
+    }
 
+    return super.onKeyDown(keycode,event);
+  }
   @Override
   protected void onResume() {
     super.onResume();
+    Log.d(TAG, "Activity.resume()");
+    mSlideshowFilesName.clear();
     registerReceiver(intentReceiver, filter);
-    //!!! mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
+
+
+
+
+  //!!! mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
 
     // mSlideshowFragment.setBaseUrl(M_SERVER_DIRECTORY_URL);
 
@@ -478,7 +495,15 @@ public class SlideshowActivity extends Activity {
 
     if (!fileschecked) {
       Log.d(TAG, "onResume: no bundle" + getIntent());
-      /*mAsyncTaskManager =
+
+
+     /* FragmentManager manager = getFragmentManager();
+
+      FragmentTransaction transaction = manager.beginTransaction();
+      transaction.attach(new StartupFragment());
+      transaction.addToBackStack(null);
+      transaction.commit();
+      mAsyncTaskManager =
           new BackgroundImageDecoder(getApplicationContext(), screenWidth, screenHeight, memoryCache,
               executor);
       */

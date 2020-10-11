@@ -379,7 +379,6 @@ public class SlideshowFragment extends Fragment {
       mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_GUESSING_SETTING);
     }
   };
-  private ArrayList<String> missingFilesNames;
   private boolean screenOrientationNormal;
 
   @Nullable
@@ -718,11 +717,11 @@ public class SlideshowFragment extends Fragment {
 
     mSlideshowHandler.removeCallbacks(showNextRunnable);
     mSlideshowIsRunning = false;
+    Log.d(TAG, "Fragment.onPause()");
 
     if (getActivity() != null && getActivity().getWindow() != null) {
       getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
-      Log.d(TAG, "Fragment.onPause()");
       // Clear the systemUiVisibility flag
       getActivity().getWindow().getDecorView().setSystemUiVisibility(0);
     }
@@ -803,7 +802,7 @@ public class SlideshowFragment extends Fragment {
     if (getActivity() != null && getActivity().getWindow() != null) {
       getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
     }
-
+    mSlideshowFilesName.clear();
     loadStartupFragment();
     mStartupFragment = (StartupFragment) getFragmentManager().findFragmentByTag("StartupFragment");
 

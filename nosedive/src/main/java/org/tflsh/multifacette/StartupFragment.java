@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.JsonReader;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -68,6 +69,8 @@ public class StartupFragment extends Fragment {
   private static int currentFile;
 
   protected final Runnable mGrabJsonRunnable;
+  private Thread lastThread;
+  private boolean active;
   /*/**
    * Use this factory method to create a new instance of
    * this fragment using the provided parameters.
@@ -136,6 +139,7 @@ public class StartupFragment extends Fragment {
                     + result.size()
                            /* + " (missing:) "
                             + missingImagesNames.size()*/);
+//            getView().setVisibility(View.VISIBLE);
             //sendMessageWithString("filesMissing", localJsonFile.getAbsolutePath());
           }
         } catch (Exception ex) {
@@ -147,9 +151,11 @@ public class StartupFragment extends Fragment {
 
   @Override
   public void onPause() {
+    active=false;
+    lastThread.interrupt();
     super.onPause();
-      Log.d(TAG, "Fragment.onPause()");
-      // Clear the systemUiVisibility flag
+    Log.d(TAG, "Fragment.onPause()");
+    // Clear the systemUiVisibility flag
 
   }
 
@@ -208,19 +214,30 @@ public class StartupFragment extends Fragment {
   }
 
   public void sendMessage(String message) {
+if(active) {
+  Intent intent = new Intent(message);    //action: "msg"
+  intent.setPackage(mContext.getPackageName());
+  mContext.sendBroadcast(intent);
+}
+else
+{
+  Log.e(TAG,"sendMessage with string canceled due to no view");
+}
 
-    Intent intent = new Intent(message);    //action: "msg"
-    intent.setPackage(mContext.getPackageName());
-    mContext.sendBroadcast(intent);
   }
 
   public void sendMessageWithString(String message, String params) {
-
-    Intent intent = new Intent(message);    //action: "msg"
+if(active)
+  {  Intent intent = new Intent(message);    //action: "msg"
     intent.setPackage(mContext.getPackageName());
 
     intent.putExtra(EXTRA_MESSAGE, params);
-    mContext.sendBroadcast(intent);
+    mContext.sendBroadcast(intent);}
+else
+{
+  Log.e(TAG,"sendMessageWithString with string canceled due to no view");
+
+}
   }
 
   public void setBaseUrl(String url) {
@@ -262,9 +279,9 @@ public class StartupFragment extends Fragment {
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
     // mContext=container.getContext();
-
+active=true;
     mCacheDirPath = mContext.getCacheDir();
-    executor = Executors.newFixedThreadPool(4);
+    executor = Executors.newFixedThreadPool(1);
     Log.d("startupfragment", "onCreateView start grabjson with " + M_SERVER_DIRECTORY_URL);
 
     //Log.d("startupfragment"," added to "+container.toString());
@@ -336,13 +353,14 @@ public class StartupFragment extends Fragment {
 /*                    (view.findViewById(R.id.checkFilesButton)).setBackgroundColor(
                         getResources().getColor(R.color.OurWhite, null));
 */
-          new Thread(new Runnable() {
+          lastThread=new Thread(new Runnable() {
             @Override public void run() {
 
               repairfiles(
                   M_SERVER_DIRECTORY_URL, missingImagesNames);
             }
-          }).start();
+          });
+        lastThread.start();
         }
         return true;
       }
@@ -351,16 +369,18 @@ public class StartupFragment extends Fragment {
     view.findViewById(R.id.repairFilesButton).setClickable(false);
     everyImagesNames = new ArrayList<String>();
     missingImagesNames = new ArrayList<String>();
-    new Thread(new Runnable() {
+    lastThread=new Thread(new Runnable() {
       @Override public void run() {
 
         grabJson(M_SERVER_DIRECTORY_URL, false);
         exec(M_SERVER_DIRECTORY_URL);
       }
-    }).start();
+    });
+    lastThread.start();
     //  sendMessage("StartupViewOk");
 
   }
+
 
   private void loadSettingFragment() {
 
@@ -406,26 +426,31 @@ public class StartupFragment extends Fragment {
    * @param missingsArg name of the file to check
    * arobbase return return true if file is looking fine, else return false
    */
-  public void repairfiles(String urlSource, ArrayList<String> missingsArg) {
+  public void repairfiles(final String urlSource, ArrayList<String> missingsArg) {
     Log.e("repairfiles", "missing or broken " + missingsArg.size() + " files");
-    try {
-      Thread.sleep(1000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
+
     //   exec( urlSource);
-    try {
-      Thread.sleep(1000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-    for (String name : missingsArg) {
+
+    for (final String name : missingsArg) {
       Log.e("repairfiles", "grab missing or broken " + name + " files");
 
-      getFile(urlSource, mCacheDirPath.getAbsolutePath(), name);
+      lastThread = new Thread(new Runnable() {
+        @Override public void run() {
+          getFile(urlSource, mCacheDirPath.getAbsolutePath(), name);
+        }
+      });
     }
 
+
     sendMessage("dlComplete");
+  }
+
+  public void onResume() {
+    Log.e(CLASSNAME, "onResume");
+    super.onResume();
+    missingImagesNames.clear();
+
+    active=true;
   }
 
   //parse the json file, start the dl of missing files or of corrupted files
@@ -505,8 +530,10 @@ public class StartupFragment extends Fragment {
 
       // sendMessage(NO_JSON);
     } catch (Exception e) {
-      Log.e(CLASSNAME, Objects.requireNonNull(e.getMessage()));
+      Log.e(CLASSNAME, "unknow exception"+Objects.requireNonNull(e.getMessage()));
       e.printStackTrace();
+      return Collections.emptyList();
+
     } finally {
 
       Log.d(CLASSNAME,
@@ -622,7 +649,8 @@ public class StartupFragment extends Fragment {
         Log.d(CLASSNAME, "mGrabJsonRunnable output=" + s);
       }
     } catch (Exception e) {
-      Log.d(CLASSNAME, "Exception: " + e);
+      Log.d(CLASSNAME, "Exception in exec(): " + e);
+      futureTask1.cancel(true);
     }
   }
 
@@ -661,11 +689,13 @@ public class StartupFragment extends Fragment {
   }
 
   public void sendMessageWithInt(String message, int params) {
+if(this.active) {
+  Intent intent = new Intent(message);    //action: "msg"
+  intent.setPackage(mContext.getPackageName());
 
-    Intent intent = new Intent(message);    //action: "msg"
-    intent.setPackage(mContext.getPackageName());
+  intent.putExtra(EXTRA_MESSAGE, params);
+  mContext.sendBroadcast(intent);
+}
 
-    intent.putExtra(EXTRA_MESSAGE, params);
-    mContext.sendBroadcast(intent);
   }
 }
