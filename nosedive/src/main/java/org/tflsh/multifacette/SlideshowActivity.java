@@ -314,7 +314,7 @@ public class SlideshowActivity extends Activity {
             if (mSlideshowDownloadedFilesName.size() == missingFilesNames.size()) {
               Log.e(TAG, "intentReceiver got action dl received, starting slideshow"
                   + mSlideshowFilesName.size());
-              startSlideshow("dlReceived");
+             // startSlideshow("dlReceived");
             } else if (mSlideshowFilesName.size() > 0) {
               ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
                   (mSlideshowFilesName.size()) + " photos ok, " + (missingFilesNames.size()

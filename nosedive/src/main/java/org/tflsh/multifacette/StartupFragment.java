@@ -104,6 +104,12 @@ public class StartupFragment extends Fragment {
   List<String> result;
 
   {
+    /**
+     * @mGrabJsonRunnable runnable qui dl le json
+     * intent good:NO_JSON,
+     * intent bad: JSONok
+     * intent strange: JSONparseok, JSONlocalonly
+     */
     mGrabJsonRunnable = new Runnable() {
       @Override
       public void run() {
@@ -140,8 +146,9 @@ public class StartupFragment extends Fragment {
                     + result.size()
                            /* + " (missing:) "
                             + missingImagesNames.size()*/);
-//            getView().setVisibility(View.VISIBLE);
+            //            getView().setVisibility(View.VISIBLE);
             //sendMessageWithString("filesMissing", localJsonFile.getAbsolutePath());
+            sendMessage("JSONparseok");
           }
         } catch (Exception ex) {
           ex.printStackTrace();
@@ -159,13 +166,13 @@ public class StartupFragment extends Fragment {
 
   }
 
-
   /**
-   * A function for check is file exists or is empty
-   *
    * @param path path where the file @name should be checked
    * @param name name of the file to check
    * @return return true if file is looking fine, else return false
+   *
+   * NO INTENT!
+   * @checkFile A function for check is file exists or is empty
    */
   protected static boolean checkFile(String path, String name) {
     File toTest = new File(path, name);
@@ -182,6 +189,14 @@ public class StartupFragment extends Fragment {
     return false;
   }
 
+  /**
+   * @param path path where the file @name should be checked
+   * @param originSum sum to check against
+   * @return return true if file is looking fine, else return false
+   *
+   * NO INTENT!
+   * @checkSum A function for check if a file is corrupted
+   */
   protected static boolean checkSum(String path, String originSum) {
     int read;
 
@@ -238,26 +253,6 @@ else
   Log.e(TAG,"sendMessageWithString with string canceled due to no view");
 
 }
-  }
-
-  public void setBaseUrl(String url) {
-    //M_SERVER_DIRECTORY_URL=new String(url);
-
-    new Thread(new Runnable() {
-      @Override public void run() {
-        //                grabJson(M_SERVER_DIRECTORY_URL);
-        Log.d(TAG, "M_SERVER_DIRECTORY_URL" + M_SERVER_DIRECTORY_URL);
-
-        new Thread(new Runnable() {
-          @Override public void run() {
-            //                grabJson(M_SERVER_DIRECTORY_URL);
-            Log.d(TAG, "M_SERVER_DIRECTORY_URL" + M_SERVER_DIRECTORY_URL);
-
-            grabJson(M_SERVER_DIRECTORY_URL, false);
-          }
-        }).start();
-      }
-    }).start();
   }
 
   @Override
