@@ -18,11 +18,11 @@ import static java.lang.System.currentTimeMillis;
 
 public class BackgroundImageDecoder extends Activity {
   static final String CLASSNAME = "BackgroundImageDecoder";
-  static ExecutorService executor = Executors.newFixedThreadPool(1);
+  static final ExecutorService executor = Executors.newFixedThreadPool(1);
   /**
    * Called when the user taps the Send button
    */
-  private Context mContext;
+  private final Context mContext;
   private static int currentFile;
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
   private static int missingFilesNumber;
@@ -80,7 +80,7 @@ public class BackgroundImageDecoder extends Activity {
   /**
    * scope: package-private
    */
-  public static Bitmap nudecodeSampledBitmapFromFilepath(String res) {
+  public static Bitmap decodeSampledBitmapFromFilepath(String res) {
 
     // First decode with inJustDecodeBounds=true to check dimensions
     final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -99,64 +99,6 @@ public class BackgroundImageDecoder extends Activity {
     //! return BitmapFactory.decodeFile(res,   options);
   }
 
-  void killtask() {
-    //if()
-  }
-
-  // https://developer.android.com/topic/performance/graphics/load-bitmap
-  public Bitmap decodeSampledBitmapFromFilepath(String res,
-      int reqWidth, int reqHeight) {
-
-    // First decode with inJustDecodeBounds=true to check dimensions
-    BitmapFactory.Options options = new BitmapFactory.Options();
-    BitmapFactory.Options optionsOut = new BitmapFactory.Options();
-    options.inJustDecodeBounds = true;
-    BitmapFactory.decodeFile(res, options);
-    options.inJustDecodeBounds = false;
-    // Calculate inSampleSize
-    int quality = 11;
-    int ratio = 0;
-
-    if (options.outHeight > options.outWidth) {
-      ratio = options.outHeight / options.outHeight;
-
-      int screenScaling = 100;
-      int screenScaledByRatio = screenScaling * ratio;
-      Log.d(CLASSNAME, "image ratio" + ratio);
-      int hcrop = screenScaling * quality;
-      int vcrop = screenScaledByRatio * quality;
-
-      Log.d(CLASSNAME, "image h crop" + hcrop);
-      Log.d(CLASSNAME, "image w crop" + vcrop);
-
-      optionsOut.outHeight = options.outHeight - hcrop;
-      optionsOut.outWidth = screenWidth - vcrop;
-      optionsOut.inSampleSize = calculateInSampleSize(options,
-          screenWidth - screenScaledByRatio * quality,
-          screenHeight - screenScaledByRatio * quality);
-      Log.d(CLASSNAME, "image size h:"
-          + optionsOut.outHeight
-          + " w: "
-          + optionsOut.outWidth
-          + "==>"
-          + optionsOut.inSampleSize);
-    } else {
-      ratio = screenWidth / screenHeight;
-      int screenScaling = 100;
-      int screenScaledByRatio = screenScaling * ratio;
-      optionsOut.outWidth = screenHeight - screenScaling * quality;
-      optionsOut.outHeight = screenWidth - screenScaledByRatio * quality;
-      optionsOut.inSampleSize = calculateInSampleSize(options,
-          screenWidth - screenScaledByRatio * quality,
-          screenHeight - screenScaledByRatio * quality);
-    }
-
-    //   Log.d(CLASSNAME,"sample size from h: "+reqHeight+" w: "+reqWidth+ "==>"+optionsOut.inSampleSize);
-
-    // return BitmapFactory.decodeFile(res,options);
-    return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res,
-        optionsOut), optionsOut.outWidth, optionsOut.outHeight, false);
-  }
 
   //asynchronous thread  which should:
   // -1 download file list on https://server/project/index.php
@@ -171,7 +113,7 @@ public class BackgroundImageDecoder extends Activity {
 
   @Override protected void onStop() {
     super.onStop();
-    Log.d(CLASSNAME, "onstop");
+    Log.d(CLASSNAME, "onStop()");
 
     executor.shutdown();
     while (!executor.isTerminated()) {
@@ -197,7 +139,7 @@ public class BackgroundImageDecoder extends Activity {
       startTime = currentTimeMillis();
     }
 
-    protected boolean doInBackground() {
+    protected void doInBackground() {
       try {
         //
 
@@ -205,11 +147,11 @@ public class BackgroundImageDecoder extends Activity {
           bmImage.get()
               .setImageDrawable(mContext.getResources()
                   .getDrawable(R.drawable.default_background, mContext.getTheme()));
-          Log.d(CLASSNAME, " DEFAULTIMAGE  took " + (currentTimeMillis() - startTime) + "ms");
+          Log.d(CLASSNAME, "default image took " + (currentTimeMillis() - startTime) + "ms");
 
-          return true;
+          return;
         }
-        final Bitmap result = nudecodeSampledBitmapFromFilepath(srcString);
+        final Bitmap result = decodeSampledBitmapFromFilepath(srcString);
 
         Runnable r = new Runnable() {
           public void run() {
@@ -240,27 +182,21 @@ public class BackgroundImageDecoder extends Activity {
 
               }
             }
-            Log.d(CLASSNAME,
-                " took " + timer + "ms for decode " + srcString + " , waited " + delay + "ms");
+           /* Log.d(CLASSNAME,
+                " took " + timer + "ms for decode " + srcString + " , waited " + delay + "ms");*/
           }
         };
         //executor.execute(r);
         runOnUiThread(r);
-        return true;
       } catch (Exception e) {
-        Log.e(CLASSNAME, "Exception in showImageFileTask.doinbg()");
+        Log.e(CLASSNAME, "Exception in showImageFileTask.doInBackground()");
         e.printStackTrace();
-        return false;
       }
     }
 
     @Override
     public void run() {
-      if (this.doInBackground()) {
-        Log.d(CLASSNAME, "succeed");
-      } else {
-        Log.d(CLASSNAME, "running");
-      }
+      this.doInBackground();
     }
   }
 }

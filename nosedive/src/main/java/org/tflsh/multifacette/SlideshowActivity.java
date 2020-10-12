@@ -71,13 +71,13 @@ public class SlideshowActivity extends Activity {
   ArrayList<String> missingFilesNames;
   IntentFilter filter;
   int missingFilesNumber = 0;
-  boolean fileschecked = false;
+  boolean filesChecked = false;
   private ProgressBar mDlProgressBar;
   private ArrayList<String> mSlideshowFilesName;
   private SlideshowFragment mSlideshowFragment;
 
   private int downloadedFilesNumber;
-  private ArrayList mSlideshowDownloadedFilesName;
+  private ArrayList<String> mSlideshowDownloadedFilesName;
   public final BroadcastReceiver intentReceiver = new BroadcastReceiver() {
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -95,7 +95,7 @@ public class SlideshowActivity extends Activity {
 
         case "dlComplete":
           Log.d(TAG, "intentReceiver got action dl complete");
-          fileschecked = true;
+          filesChecked = true;
 
   /* (findViewById(R.id.button2)).setBackgroundColor(
               getResources().getColor(R.color.OurPink, null));*/
@@ -149,13 +149,13 @@ public class SlideshowActivity extends Activity {
           break;
 
         case "StartupViewOk":
-          Log.d(TAG, "intentReceiver got action StartupViewOk,startting startup fragment");
+          Log.d(TAG, "intentReceiver got action StartupViewOk, starting startup fragment");
 
           //!!! ((SlideshowFragment)  getFragmentManager().findFragmentByTag("SlideshowFragment")).setBaseUrl(M_SERVER_DIRECTORY_URL);
 
           break;
         case "checkStarted":
-          Log.d(TAG, "intentReceiver got action StartupViewOk,startting startup fragment");
+          Log.d(TAG, "intentReceiver got action StartupViewOk,starting startup fragment");
 
           //!!! ((SlideshowFragment)  getFragmentManager().findFragmentByTag("SlideshowFragment")).setBaseUrl(M_SERVER_DIRECTORY_URL);
           findViewById(R.id.repairFilesButton).setEnabled(false);
@@ -163,6 +163,7 @@ public class SlideshowActivity extends Activity {
           findViewById(R.id.repairFilesButton).setBackground(
               getResources().getDrawable(R.drawable.white_background, null));
           break;
+        //TODO: fix!
         case "JSON_ParseOk":
           Log.d(TAG, "intentReceiver got action JSON_ParseOk");
 
@@ -192,17 +193,17 @@ public class SlideshowActivity extends Activity {
                     if (getFragmentManager().findFragmentByTag("SlideshowFragment") == null) {
                       Log.d(TAG, "SlideshowFragment.void()");
                     } else {
-
+                      Log.d(TAG, "SlideshowFragment.found in SlideshowActivity()");
                     }
                     if (getFragmentManager().findFragmentByTag("StartupFragment") == null) {
                       Log.d(TAG, "StartupFragment.void()");
                     } else {
-
+                      Log.d(TAG, "StartupFragment.found in SlideshowActivity()");
                     }
-
-                    ((SlideshowFragment) getFragmentManager().findFragmentByTag(
+                    //F! do nothing cause it not the fragment Startup!
+                    /*((SlideshowFragment) getFragmentManager().findFragmentByTag(
                         "SlideshowFragment")).exec(
-                        M_SERVER_DIRECTORY_URL);
+                        M_SERVER_DIRECTORY_URL);*/
                   }
                 }).start();
               }
@@ -234,7 +235,7 @@ public class SlideshowActivity extends Activity {
           //(findViewById(R.id.checkFilesButton)).setBackgroundColor(
           // getResources().getColor(R.color.OurPink, null));
           if (!mSlideshowFilesName.isEmpty()) {
-            fileschecked = true;
+            filesChecked = true;
 
             findViewById(R.id.checkFilesButton).setVisibility(View.GONE);
             findViewById(R.id.uiTotalFilesProgressBar).setBackground(
@@ -262,6 +263,8 @@ public class SlideshowActivity extends Activity {
             startSlideshow("filesAllOk");
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////
           } else {
+            Log.d(TAG, "intentReceiver got action all files ok but slideshow file names was empty");
+
             //§!! findViewById(R.id.repairFilesButton).setEnabled(true);
           }
 
@@ -309,12 +312,11 @@ public class SlideshowActivity extends Activity {
            "il manque " + (missingFilesNames.size()-((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
             ) + " fichiers");*/
             ((Button) findViewById(R.id.repairFilesButton)).setText(
-                new StringBuilder().append(getString(R.string.dl_progressText))
-                    .append(" de ")
-                    .append(missingFilesNames.size() - downloadedFilesNumber)
-                    .append(" ")
-                    .append(getString(R.string.files))
-                    .toString());
+                getString(R.string.dl_progressText)
+                    + " de "
+                    + (missingFilesNames.size() - downloadedFilesNumber)
+                    + " "
+                    + getString(R.string.files));
             if (mSlideshowDownloadedFilesName.size() == missingFilesNames.size()) {
               Log.e(TAG, "intentReceiver got action dl received, starting slideshow"
                   + mSlideshowFilesName.size());
@@ -391,12 +393,12 @@ public class SlideshowActivity extends Activity {
     }
   };
 
-  private void startSlideshow(String fromintent) {
-    if(mSlideshowFilesName.size()!=0) {
+  private void startSlideshow(String fromIntent) {
+    if (mSlideshowFilesName.size() != 0) {
 
-      Log.e(TAG, fromintent + "received, mSlideshowFilesName" + mSlideshowFilesName.size());
-      Log.e(TAG, fromintent + "received, missingFilesNames" + missingFilesNames.size());
-      Log.e(TAG, fromintent
+      Log.e(TAG, fromIntent + "received, mSlideshowFilesName" + mSlideshowFilesName.size());
+      Log.e(TAG, fromIntent + "received, missingFilesNames" + missingFilesNames.size());
+      Log.e(TAG, fromIntent
           + "received, mSlideshowDownloadedFilesName"
           + mSlideshowDownloadedFilesName.size());
 
@@ -404,10 +406,11 @@ public class SlideshowActivity extends Activity {
       mSlideshowFragment.startSlideshow(mSlideshowFilesName);
     }
     else {
-      Log.e(TAG,"startSlideshow aborted cause array was empty, onresume startted instead" + mSlideshowFilesName.size());
-      Log.e(TAG, fromintent + "received, mSlideshowFilesName" + mSlideshowFilesName.size());
-      Log.e(TAG, fromintent + "received, missingFilesNames" + missingFilesNames.size());
-      Log.e(TAG, fromintent
+      Log.e(TAG, "startSlideshow aborted cause array was empty, onResume started instead"
+          + mSlideshowFilesName.size());
+      Log.e(TAG, fromIntent + "received, mSlideshowFilesName" + mSlideshowFilesName.size());
+      Log.e(TAG, fromIntent + "received, missingFilesNames" + missingFilesNames.size());
+      Log.e(TAG, fromIntent
           + "received, mSlideshowDownloadedFilesName"
           + mSlideshowDownloadedFilesName.size());
       onResume();
@@ -434,7 +437,7 @@ public class SlideshowActivity extends Activity {
   @Override
   public void onSaveInstanceState(@NotNull Bundle outState) {
     super.onSaveInstanceState(outState);
-    outState.putBoolean("allfileschecked", fileschecked);
+    outState.putBoolean("allFilesChecked", filesChecked);
   }
 
   @Override
@@ -454,8 +457,8 @@ public class SlideshowActivity extends Activity {
     Log.d(TAG, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
     if (savedInstanceState != null) {
 
-      fileschecked = savedInstanceState.getBoolean("allfileschecked");
-      Log.d(TAG, " fileschecked=" + fileschecked);
+      filesChecked = savedInstanceState.getBoolean("allFilesChecked");
+      Log.d(TAG, " files checked=" + filesChecked);
     }
 
     Log.e(TAG, " WARNING RESET COUNTER");
@@ -531,7 +534,7 @@ public class SlideshowActivity extends Activity {
 
     //!!!StartupFragment.newInstance(M_SERVER_DIRECTORY_URL,missingFilesNames);
 
-    if (!fileschecked) {
+    if (!filesChecked) {
       Log.d(TAG, "onResume: no bundle" + getIntent());
 
 
@@ -557,7 +560,7 @@ public class SlideshowActivity extends Activity {
       //!!!  loadStartupFragment();
      // fileschecked = true;
     } else {
-      Log.e("onResume", "files were already ALLOK");
+      Log.e("onResume", "files were already ALL OK");
 /*
       if (findViewById(R.id.imageView) == null) {
         Log.e("onResume", "loading fragment");

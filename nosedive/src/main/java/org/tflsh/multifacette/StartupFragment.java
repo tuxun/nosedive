@@ -133,7 +133,7 @@ public class StartupFragment extends Fragment {
               + localJsonFile.length());
 
           //if the images list file is not empty, we can parse its json content
-          result = parseJson(localJsonFile, M_SERVER_DIRECTORY_URL + FILE_LIST_JSON);
+          result = parseJson(localJsonFile);
           if (result.isEmpty()) {
 
             Log.e(CLASSNAME, "EMPTY json file!!!");
@@ -156,29 +156,22 @@ public class StartupFragment extends Fragment {
     };
   }
 
-  @Override
-  public void onPause() {
-    active = false;
-    lastThread.interrupt();
-    super.onPause();
-    Log.d(TAG, "Fragment.onPause()");
-    // Clear the systemUiVisibility flag
-
+  public StartupFragment() {
   }
 
   /**
    * @param path path where the file @name should be checked
-   * @param name name of the file to check
    * @return return true if file is looking fine, else return false
    *
    * NO INTENT!
    * @checkFile A function for check is file exists or delete it if it is empty
    */
-  protected static boolean checkFile(String path, String name) {
-    File toTest = new File(path, name);
+  protected static boolean checkFile(String path) {
+    File toTest = new File(path, StartupFragment.FILE_LIST_JSON);
     if (toTest.exists()) {
       Log.e("checkFile", "found file " + toTest.getAbsolutePath() + toTest.length());
       if (toTest.length() == 0) {
+        //noinspection ResultOfMethodCallIgnored
         toTest.delete();
         return false;
       }
@@ -187,6 +180,16 @@ public class StartupFragment extends Fragment {
     Log.e("checkFile", "unable to find file " + toTest.getAbsolutePath());
 
     return false;
+  }
+
+  @Override
+  public void onPause() {
+    active = false;
+    lastThread.interrupt();
+    super.onPause();
+    Log.d(TAG, "Fragment.onPause()");
+    // Clear the systemUiVisibility flag
+
   }
 
   /**
@@ -259,8 +262,7 @@ else
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     if (getArguments() != null) {
-      //   M_SERVER_DIRECTORY_URL = getArguments().getString(ARG_PARAM1);
-      // missingImagesNames = getArguments().getStringArrayList(ARG_PARAM2);
+      Log.d(TAG, "onCreate had arguments at start");
     }
   }
 
@@ -358,17 +360,17 @@ active=true;
                   M_SERVER_DIRECTORY_URL, missingImagesNames);
             }
           });
-        lastThread.start();
+          lastThread.start();
         }
         return true;
       }
     });
     view.findViewById(R.id.repairFilesButton).setEnabled(false);
     view.findViewById(R.id.repairFilesButton).setClickable(false);
-    everyImagesNames = new ArrayList<String>();
-    missingImagesNames = new ArrayList<String>();
+    everyImagesNames = new ArrayList<>();
+    missingImagesNames = new ArrayList<>();
 
-    lastThread=new Thread(new Runnable() {
+    lastThread = new Thread(new Runnable() {
       @Override public void run() {
 
         grabJson(M_SERVER_DIRECTORY_URL, false);
@@ -439,7 +441,7 @@ active=true;
           getFile(urlSource, mCacheDirPath.getAbsolutePath(), name);
         }
       });
-      lastThread.run();
+      lastThread.start();
     }
 
 
@@ -456,7 +458,6 @@ active=true;
 
   /**
    * @param jsonFile existing file checked with {@link StartupFragment#checkFile}
-   * @param downloadSrcUrl not used anymore: TODO
    * @return return true if file is looking fine, else return false
    *
    * Intent("filesMissing", filename);
@@ -465,7 +466,7 @@ active=true;
    * @parseJson read existing Json file
    */
   //parse the json file, start the dl of missing files or of corrupted files
-  protected List<String> parseJson(File jsonFile, String downloadSrcUrl) {
+  protected List<String> parseJson(File jsonFile) {
     try (
         JsonReader reader = new JsonReader(
             new InputStreamReader(new FileInputStream(jsonFile.getAbsolutePath())))
@@ -607,9 +608,6 @@ active=true;
                     + localFile.getAbsolutePath());*/
         sendMessageWithString("dlReceived", localFile.getName());
         currentFile++;
-      } else {
-        //sendMessage("JSONok");
-
       }
       return localFile;
     } catch (
@@ -620,7 +618,7 @@ active=true;
       return localFile;
     } catch (
         SSLException e) {
-      Log.e(CLASSNAME, "SSL exception: vérifier le wifi et relancer l'appli");
+      Log.e(CLASSNAME, "SSL exception " + getString(R.string.downloadError));
       ((TextView) getView().findViewById(R.id.ui_dl_progressTextView)).setText(
           R.string.downloadError);
       e.printStackTrace();
@@ -690,19 +688,18 @@ active=true;
     }
   }
 
-  public File grabJson(String urlSource, boolean forced) {
+  public void grabJson(String urlSource, boolean forced) {
     Log.d(CLASSNAME, "start grabJson with " + M_SERVER_DIRECTORY_URL + urlSource);
 
     Log.d(CLASSNAME, "grabJson update forced");
     if (!forced) {
-      if (!checkFile(mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON)) {
+      if (!checkFile(mCacheDirPath.getAbsolutePath())) {
         Log.d(CLASSNAME,
             "grabJson update forced was canceled and we had no local json");
         sendMessage("noJson");
-        return null;
       } else {
         sendMessage("JSON_LocalOnly");
-        return new File(mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON);
+        new File(mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON);
       }
     } else {
       Log.d(CLASSNAME, "grabJson update forced think we have internet,url source=" + urlSource);
@@ -710,16 +707,15 @@ active=true;
       File file = getFile(urlSource, mCacheDirPath.getAbsolutePath(),
           FILE_LIST_JSON);
 
-      if (checkFile(mContext.getCacheDir().getAbsolutePath(), FILE_LIST_JSON)) {
+      if (checkFile(mContext.getCacheDir().getAbsolutePath())) {
         Log.e(CLASSNAME,
             "grabJson got local file after update");
         sendMessage("JSONok");
-        return new File(mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON);
+        new File(mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON);
       } else {
         Log.e(CLASSNAME,
             "grabJson got no local file and was unable to dl the update");
         sendMessage("noJson");
-        return null;
       }
     }
   }

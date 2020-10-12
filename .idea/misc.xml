@@ -3,7 +3,11 @@
   <component name="EntryPointsManager">
     <entry_points version="2.0">
       <entry_point TYPE="field" FQNAME="org.tflsh.nosedive.SlideshowActivity asm" />
+      <entry_point TYPE="field" FQNAME="org.tflsh.multifacette.BackgroundImageDecoder currentFile" />
+      <entry_point TYPE="field" FQNAME="org.tflsh.multifacette.BackgroundImageDecoder missingFilesNumber" />
     </entry_points>
+    <pattern value="org.tflsh.multifacette.BackgroundImageDecoder" />
+    <pattern value="org.tflsh.multifacette.BackgroundImageDecoder" method="BackgroundImageDecoder" />
   </component>
   <component name="JavadocGenerationManager">
     <option name="OUTPUT_DIRECTORY" value="$PROJECT_DIR$/javadoc" />

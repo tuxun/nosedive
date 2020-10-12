@@ -28,6 +28,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -171,16 +172,16 @@ public class SlideshowFragment extends Fragment {
   private StartupFragment mStartupFragment;
   private ExecutorService executor;
   private boolean mSlideshowIsRunning = false;
-  private final Runnable blockmenu = new Runnable() {
+  private final Runnable blockMenuRunnable = new Runnable() {
     @Override
     public void run() {
-      Log.e("blockmenu", "visible ?");
+      Log.e("blockMenuRunnable", "visible ?");
 
       //a chaque button cliqué, si on est perdu, on decheck les bouttons
       //should only  happen when 2 DIFFERENT buttons are pressed
       mSlideshowIsRunning = false;
       int clickedButtons = mToggleButtonsArrayList.size() - 1;
-      Log.d(CLASSNAME, "blockmenu:" + clickedButtons + " blockmenu buttons");
+      Log.d(CLASSNAME, "blockMenuRunnable:" + clickedButtons + " blockMenuRunnable buttons");
       for (int i = clickedButtons; i >= 0; i--) {
         // mToggleButtonsArrayList.get(i).setEnabled(false);
         mToggleButtonsArrayList.get(i).setClickable(false);
@@ -299,7 +300,9 @@ public class SlideshowFragment extends Fragment {
       }
 
       mSlideshowHandler.post(mHideMenuRunnable);
-      getView().findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
+      Objects.requireNonNull(getView())
+          .findViewById(R.id.ui_centralLinearLayout)
+          .setVisibility(View.VISIBLE);
       //      ((LinearLayout)mParentView.findViewById(R.id.slideshowScreenLinearSourceLayout)).setLayoutMode(
       //      LinearLayout.LayoutParams.MATCH_PARENT);
       mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
@@ -392,23 +395,11 @@ public class SlideshowFragment extends Fragment {
       @Nullable Bundle savedInstanceState) {
     mContext = getContext();
     mCacheDirPath = mContext.getCacheDir();
-    mSlideshowFilesName = new ArrayList<String>();
+    mSlideshowFilesName = new ArrayList<>();
 
     return inflater.inflate(R.layout.fragment_slideshow, container, false);
   }
 
-  void exec(final String arg) {
-    new Thread(new Runnable() {
-      @Override public void run() {
-        if (mStartupFragment != null) {
-          //strtpfrgmnt.checkFiles(arg);
-          Log.d("sldshowexec", " checkFiles() mStartupFragment OOOK" + arg);
-        } else {
-          Log.d("sldshowexec", " checkFiles() mStartupFragment=void");
-        }
-      }
-    }).start();
-  }
 
   //quand on crée le fragment, on commence par une image du slideshow
   @Override
@@ -636,7 +627,7 @@ public class SlideshowFragment extends Fragment {
           // deselect every checked button if more than 3 are pressed
           if (mCheckedToggleButtonsArrayList.size() > 2) {
             Log.d("mCheckedToggle", "3 Button pressed");
-            mSlideshowHandler.post(blockmenu);
+            mSlideshowHandler.post(blockMenuRunnable);
             mSlideshowHandler.post(cleanButtonRunnable);
             mSlideshowHandler.post(mStartSlideshowRunnable);
           } else if (mCheckedToggleButtonsArrayList.size() == 1) {
@@ -648,7 +639,7 @@ public class SlideshowFragment extends Fragment {
             Log.d("toggleClick", "toggle 1 buttons ok");
             ((Button) view).setTextColor(Color.BLACK);
           } else if (mCheckedToggleButtonsArrayList.size() == 2) {
-            mSlideshowHandler.post(blockmenu);
+            mSlideshowHandler.post(blockMenuRunnable);
 
             //should only  happen when 2 DIFFERENT buttons are pressed
             //   ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
@@ -670,7 +661,6 @@ public class SlideshowFragment extends Fragment {
             mSlideshowHandler.post(mShowImageAfterTwoWordsRunnable);
           }
 
-          return;
         }
       });
 
@@ -758,27 +748,37 @@ public class SlideshowFragment extends Fragment {
     //    buttonVerticalPadding *= screenDensity;
     //  buttonHorizontalPadding *= screenDensity;
 
-    buttonVerticalMargin *= screenDensity;
-    buttonVerticalMargin = Math.round(buttonVerticalMargin);
-    buttonHorizontalMargin *= screenDensity;
-    buttonHorizontalMargin = Math.round(buttonHorizontalMargin);
+    if (screenDPI < 340) {
 
-    buttonVerticalPadding *= screenDensity;
-    buttonVerticalPadding = Math.round(buttonVerticalMargin);
-    buttonHorizontalPadding *= screenDensity;
-    buttonHorizontalPadding = Math.round(buttonHorizontalMargin);
+      buttonVerticalMargin *= screenDensity;
+      buttonVerticalMargin = Math.round(buttonVerticalMargin);
+      buttonHorizontalMargin *= screenDensity;
+      buttonHorizontalMargin = Math.round(buttonHorizontalMargin);
 
-    buttonTextSize *= screenDensity;
+      buttonVerticalPadding *= screenDensity;
+      buttonVerticalPadding = Math.round(buttonVerticalMargin);
+      buttonHorizontalPadding *= screenDensity;
+      buttonHorizontalPadding = Math.round(buttonHorizontalMargin);
 
-    pressMeTextSize *= screenDensity;
+      buttonTextSize *= screenDensity;
 
-    pressTwoWordsTextSize *= screenDensity;
+      pressMeTextSize *= screenDensity;
 
+      pressTwoWordsTextSize *= screenDensity;
+      Log.d("low DPI !!!", String.valueOf(screenDensity));
+    } else {
+      Log.e("high dpi !!!", String.valueOf(screenDensity));
+
+      buttonVerticalPadding -= 10;
+      buttonVerticalMargin -= 10;
+      buttonHorizontalPadding -= 10;
+      buttonHorizontalMargin -= 10;
+    }
     Log.d("dpi", "metrics returned DPI "
         + screenDPI
         + " density "
         + screenMetrics.density
-        + " textsize "
+        + " text size "
         + pressMeTextSize);
 
     screenOrientationNormal = false;
@@ -798,9 +798,7 @@ public class SlideshowFragment extends Fragment {
       Log.e("screenOrientationNormal", "paysage");
     }
 
-    if (screenDPI > 340) {
-      Log.e("highdpi!!!", String.valueOf(screenDensity));
-    }
+
     Log.d(CLASSNAME, "default screen width= " + screenWidth);
     Log.d(CLASSNAME, "default screen height= " + screenHeight);
   }
@@ -818,14 +816,14 @@ public class SlideshowFragment extends Fragment {
     Log.d(CLASSNAME, " onResume()");
 
     if ((getFragmentManager().findFragmentByTag("StartupFragment")) != null) {
-      //! StartupFragment.checkFiles(arg);
+      Log.e(CLASSNAME, "we found our StartupFragment!!!!");
     } else {
       Log.d(CLASSNAME, "SlideshowFragment onCreate() mStartupFragment=void");
     }
     // Trigger the initial hide() shortly after the activity has been
     // created, to briefly hint to the user that UI controls
     // are available.
-    delayedHide(100);
+    delayedHide();
   }
 
   @Override
@@ -860,7 +858,7 @@ public class SlideshowFragment extends Fragment {
 
   private void show() {
     // Show the system bar
-    getView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+    Objects.requireNonNull(getView()).setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
 
     mVisible = true;
@@ -878,15 +876,15 @@ public class SlideshowFragment extends Fragment {
    * Schedules a call to hide() in delay milliseconds, canceling any
    * previously scheduled calls.
    */
-  private void delayedHide(int delayMillis) {
+  private void delayedHide() {
     mSlideshowHandler.removeCallbacks(mHideRunnable);
-    mSlideshowHandler.postDelayed(mHideRunnable, delayMillis);
+    mSlideshowHandler.postDelayed(mHideRunnable, 100);
   }
 
   @Nullable
   private ActionBar getSupportActionBar() {
     ActionBar actionBar = null;
-    if (getActivity() instanceof Activity) {
+    if (getActivity() != null) {
       Activity activity = getActivity();
       actionBar = activity.getActionBar();
     }

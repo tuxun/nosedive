@@ -17,6 +17,9 @@ public class SettingsFragment extends Fragment {
 
   }
 
+  public SettingsFragment() {
+  }
+
   @Nullable
   @Override
   public View onCreateView(@NonNull LayoutInflater inflater,
