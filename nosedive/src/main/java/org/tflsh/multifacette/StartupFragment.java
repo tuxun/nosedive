@@ -436,15 +436,9 @@ active=true;
     for (final String name : missingFileNamesArg) {
       Log.e(CLASSNAME, "repairMissingFiles() grab missing or broken " + name + " files");
 
-      lastThread = new Thread(new Runnable() {
-        @Override public void run() {
-          getFile(urlSource, mCacheDirPath.getAbsolutePath(), name);
-        }
-      });
-      lastThread.start();
-    }
+    getFile(urlSource, mCacheDirPath.getAbsolutePath(), name);
 
-
+};
     sendMessage("dlComplete");
   }
 
@@ -587,7 +581,7 @@ active=true;
       byte[] bitmapBytesData = new byte[1024];
       int read;
       Log.d(CLASSNAME, "downloading " + localFile.getPath() + "  from " + localFile);
-      SystemClock.sleep(2000);
+      SystemClock.sleep(200);
       while ((read = is.read(bitmapBytesData)) != -1) {
         fos.write(bitmapBytesData, 0, read);
       }
