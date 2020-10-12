@@ -254,6 +254,8 @@ public class SlideshowFragment extends Fragment {
 
     // Code here will run in UI thread
   };
+  private long mLastMenuClickTime;
+
   public void cleanNext()
   {
     mSlideshowHandler.removeCallbacks(showNextRunnable);
@@ -317,8 +319,16 @@ public class SlideshowFragment extends Fragment {
   private final Runnable showMenuRunnable = new Runnable() {
     @Override
     public void run() {
+
+      if (SystemClock.elapsedRealtime() - mLastMenuClickTime < 100) {
+        return;
+      }
+      mLastMenuClickTime = SystemClock.elapsedRealtime();
       Log.d(TAG, "showMenuRunnable");
       mSlideshowIsRunning = false;
+      //hide image
+
+      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.GONE);
 
       //clean pending runnables
       mSlideshowHandler.removeCallbacks(showMenuRunnable);
@@ -328,8 +338,6 @@ public class SlideshowFragment extends Fragment {
       //restrating slideshow if no touch on button is detected for "delay" microseconds
       mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_CHOICE_WORDS_SETTING);
 
-      //hide image
-      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.GONE);
 /* replaces it with placehoder?
       ((ImageView) mParentView.findViewById(R.id.imageView)).setImageDrawable(
           getResources().getDrawable(R.drawable.white_background, null));
@@ -626,7 +634,7 @@ public class SlideshowFragment extends Fragment {
           mSlideshowHandler.removeCallbacks(mShowImageAfterTwoWordsRunnable);
           mSlideshowHandler.removeCallbacks(showNextRunnable);
           mSlideshowIsRunning = false;
-          if (SystemClock.elapsedRealtime() - mLastClickTime < 1000) {
+          if (SystemClock.elapsedRealtime() - mLastClickTime < 100) {
             return;
           }
           mLastClickTime = SystemClock.elapsedRealtime();

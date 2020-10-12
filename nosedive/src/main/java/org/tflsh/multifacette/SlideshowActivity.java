@@ -301,8 +301,7 @@ public class SlideshowActivity extends Activity {
           if (findViewById(R.id.ui_verticalmissing_ProgressBar) != null) {
             ((ProgressBar) findViewById(R.id.ui_verticalmissing_ProgressBar)).incrementProgressBy(
                 -1);
-          }
-          if (findViewById(R.id.ui_totalfiles_ProgressBar) != null) {
+
             ((ProgressBar) findViewById(R.id.ui_totalfiles_ProgressBar)).incrementProgressBy(1);
 
 
@@ -319,6 +318,15 @@ public class SlideshowActivity extends Activity {
             if (mSlideshowDownloadedFilesName.size() == missingFilesNames.size()) {
               Log.e(TAG, "intentReceiver got action dl received, starting slideshow"
                   + mSlideshowFilesName.size());
+              ((Button) findViewById(R.id.repairFilesButton)).setText("Téléchargement complet! Lancer le diapo");
+              ((Button) findViewById(R.id.repairFilesButton)).setOnClickListener(
+                  new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+
+                      findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
+                      mSlideshowFragment.startSlideshow(mSlideshowFilesName);
+                    }
+                  });
              // startSlideshow("dlReceived");
             } else if (mSlideshowFilesName.size() > 0) {
               Log.e(TAG,
