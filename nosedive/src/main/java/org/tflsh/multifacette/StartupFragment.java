@@ -53,7 +53,7 @@ import javax.net.ssl.SSLException;
  * create an instance of this fragment.
  */
 public class StartupFragment extends Fragment {
-  public static final String FILELIST_JSON = "filelist.json";
+  public static final String FILE_LIST_JSON = "filelist.json";
   public static final String NO_JSON = "noJson";
   static final String M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "julia/";
   static final String EXTRA_MESSAGE = "EXTRA_MESSAGE";
@@ -62,7 +62,7 @@ public class StartupFragment extends Fragment {
   private static final String ARG_PARAM1 = "param1";
   private static final String ARG_PARAM2 = "param2";
   private static final String TAG = "StartupFragment";
-  private static final String CLASSNAME = "startupfragment";
+  private static final String CLASSNAME = "StartupFragment";
   private Context mContext;
   // private static List<String> everyImagesNames;
   private static int currentFile;
@@ -103,19 +103,18 @@ public class StartupFragment extends Fragment {
 
   List<String> result;
 
-  {
-    /**
-     * @mGrabJsonRunnable runnable qui dl le json
-     * intent good:NO_JSON,
-     * intent bad: JSONok
-     * intent strange: JSONparseok, JSONlocalonly
-     */
+  /**
+   * @mGrabJsonRunnable runnable qui dl le json
+   * intent good:NO_JSON,
+   * intent bad: JSONok
+   * intent strange: JSON_ParseOk, JSON_LocalOnly
+   */ {
     mGrabJsonRunnable = new Runnable() {
       @Override
       public void run() {
 
         try {
-          File localJsonFile = new File(mCacheDirPath.getAbsolutePath(), FILELIST_JSON);
+          File localJsonFile = new File(mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON);
 
           if (!localJsonFile.exists()) {
 
@@ -134,7 +133,7 @@ public class StartupFragment extends Fragment {
               + localJsonFile.length());
 
           //if the images list file is not empty, we can parse its json content
-          result = parseJson(localJsonFile, M_SERVER_DIRECTORY_URL + FILELIST_JSON);
+          result = parseJson(localJsonFile, M_SERVER_DIRECTORY_URL + FILE_LIST_JSON);
           if (result.isEmpty()) {
 
             Log.e(CLASSNAME, "EMPTY json file!!!");
@@ -148,7 +147,7 @@ public class StartupFragment extends Fragment {
                             + missingImagesNames.size()*/);
             //            getView().setVisibility(View.VISIBLE);
             //sendMessageWithString("filesMissing", localJsonFile.getAbsolutePath());
-            sendMessage("JSONparseok");
+            sendMessage("JSON_ParseOk");
           }
         } catch (Exception ex) {
           ex.printStackTrace();
@@ -156,9 +155,10 @@ public class StartupFragment extends Fragment {
       }
     };
   }
+
   @Override
   public void onPause() {
-    active=false;
+    active = false;
     lastThread.interrupt();
     super.onPause();
     Log.d(TAG, "Fragment.onPause()");
@@ -172,7 +172,7 @@ public class StartupFragment extends Fragment {
    * @return return true if file is looking fine, else return false
    *
    * NO INTENT!
-   * @checkFile A function for check is file exists or is empty
+   * @checkFile A function for check is file exists or delete it if it is empty
    */
   protected static boolean checkFile(String path, String name) {
     File toTest = new File(path, name);
@@ -191,7 +191,7 @@ public class StartupFragment extends Fragment {
 
   /**
    * @param path path where the file @name should be checked
-   * @param originSum sum to check against
+   * @param originSum sum to check file against
    * @return return true if file is looking fine, else return false
    *
    * NO INTENT!
@@ -219,7 +219,7 @@ public class StartupFragment extends Fragment {
         return true;
       } else {
         Log.e("fs_sum", "found one  broken file " + path);
-        //super warn, inversed bool for test, was false at start
+        //super warn, reversed bool for test, was false at start
         return false;
       }
     } catch (NoSuchAlgorithmException | IOException e) {
@@ -277,9 +277,9 @@ else
 active=true;
     mCacheDirPath = mContext.getCacheDir();
     executor = Executors.newFixedThreadPool(1);
-    Log.d("startupfragment", "onCreateView start grabjson with " + M_SERVER_DIRECTORY_URL);
+    Log.d(CLASSNAME, "onCreateView start grabJson with " + M_SERVER_DIRECTORY_URL);
 
-    //Log.d("startupfragment"," added to "+container.toString());
+    //Log.d(CLASSNAME," added to "+container.toString());
     // Inflate the layout for this fragment
     return inflater.inflate(R.layout.fragment_startup, container, false);
   }
@@ -287,9 +287,9 @@ active=true;
 
 /*
             //if the images list don't exists, download and save it
-            if (ListImageTask.checkFile(mCacheDir.getAbsolutePath(), FILELIST_JSON)) {
+            if (ListImageTask.checkFile(mCacheDir.getAbsolutePath(), FILE_LIST_JSON)) {
                 Log.d(CLASSNAME, "grabJson got local file,update skipped");
-                sendMessage("JSONlocalonly");
+                sendMessage("JSON_LocalOnly");
 
                 return new File(mCacheDir.getAbsolutePath(), FILELIST_JSON);
 
@@ -354,7 +354,7 @@ active=true;
           lastThread=new Thread(new Runnable() {
             @Override public void run() {
 
-              repairfiles(
+              repairMissingFiles(
                   M_SERVER_DIRECTORY_URL, missingImagesNames);
             }
           });
@@ -373,7 +373,7 @@ active=true;
 
         grabJson(M_SERVER_DIRECTORY_URL, false);
         checkFiles(M_SERVER_DIRECTORY_URL);
-        repairfiles(M_SERVER_DIRECTORY_URL, missingImagesNames);
+        repairMissingFiles(M_SERVER_DIRECTORY_URL, missingImagesNames);
       }
     });
     lastThread.start();
@@ -423,16 +423,16 @@ active=true;
    * A function for check is file exists or is empty
    *
    * @param urlSource path where the file @name should be checked
-   * @param missingsArg name of the file to check
-   * arobbase return return true if file is looking fine, else return false
+   * @param missingFileNamesArg name of the file to check
    */
-  public void repairfiles(final String urlSource, ArrayList<String> missingsArg) {
-    Log.e("repairfiles", "missing or broken " + missingsArg.size() + " files");
+  public void repairMissingFiles(final String urlSource, ArrayList<String> missingFileNamesArg) {
+    Log.e(CLASSNAME,
+        "repairMissingFiles()  missing or broken " + missingFileNamesArg.size() + " files");
 
     //   checkFiles( urlSource);
 
-    for (final String name : missingsArg) {
-      Log.e("repairfiles", "grab missing or broken " + name + " files");
+    for (final String name : missingFileNamesArg) {
+      Log.e(CLASSNAME, "repairMissingFiles() grab missing or broken " + name + " files");
 
       lastThread = new Thread(new Runnable() {
         @Override public void run() {
@@ -451,9 +451,19 @@ active=true;
     super.onResume();
     missingImagesNames.clear();
 
-    active=true;
+    active = true;
   }
 
+  /**
+   * @param jsonFile existing file checked with {@link StartupFragment#checkFile}
+   * @param downloadSrcUrl not used anymore: TODO
+   * @return return true if file is looking fine, else return false
+   *
+   * Intent("filesMissing", filename);
+   * Intent("JSON_ParseOk", filename);
+   * Intent("filesFound", filename);
+   * @parseJson read existing Json file
+   */
   //parse the json file, start the dl of missing files or of corrupted files
   protected List<String> parseJson(File jsonFile, String downloadSrcUrl) {
     try (
@@ -480,7 +490,7 @@ active=true;
 
           if (!checkSum(mCacheDirPath + "/" + everyImagesNames.get(everyImagesNames.size() - 1),
               sum)) {
-            Log.e(CLASSNAME, "on dl le file, il etait corrompu");
+            Log.e(CLASSNAME, "grabbing file, it was corrupted");
 
             //todo in another fonction:
             //
@@ -511,11 +521,11 @@ active=true;
         reader.endObject();
       }
       Log.d(CLASSNAME, "ok synchronizing "
-              + currentFile + "enabing button"
+              + currentFile //+ "enabling button"
                /* + " of "
                 + missingImagesNames.size()*/
       );
-      sendMessage("JSONparseok");
+      sendMessage("JSON_ParseOk");
       return everyImagesNames;
     } catch (FileNotFoundException e) {
       Log.e(CLASSNAME, "local json file not found");
@@ -528,13 +538,13 @@ active=true;
     } catch (IOException e) {
       Log.e(CLASSNAME, "Unable to download json file from internet");
       e.printStackTrace();
+      return Collections.emptyList();
 
       // sendMessage(NO_JSON);
     } catch (Exception e) {
-      Log.e(CLASSNAME, "unknow exception"+Objects.requireNonNull(e.getMessage()));
+      Log.e(CLASSNAME, "unknown exception" + Objects.requireNonNull(e.getMessage()));
       e.printStackTrace();
       return Collections.emptyList();
-
     } finally {
 
       Log.d(CLASSNAME,
@@ -543,9 +553,22 @@ active=true;
     return Collections.emptyList();
   }
 
+  /**
+   * @param urlSourceString root url of the project: "https://server.tld/basedir/"
+   * @param pathDest where to save downloaded file
+   * @param nameDest name of the file to get (string is to urlSourceString and pathDest to obtain
+   * complete path
+   * @return return null if we are unable to grab the file, or the file directly.
+   * Made to be used with, {@link StartupFragment#repairMissingFiles(String, ArrayList)} and {@link
+   * StartupFragment#grabJson(String, boolean)}
+   *
+   * Intent("dlReceived", filename);
+   * @getFile download a file from the project (Warning: NO CHECK: IT OVERWRITES FILES!)
+   */
   /*return a array of string, naming the files downloaded, or found in the cache dir
    * @param: String url: base string to construct files url
-   */
+   dlReceived
+   * */
   protected File getFile(String urlSourceString, String pathDest, String nameDest) {
     File localFile = new File(pathDest, nameDest);
 
@@ -598,7 +621,8 @@ active=true;
     } catch (
         SSLException e) {
       Log.e(CLASSNAME, "SSL exception: vérifier le wifi et relancer l'appli");
-      ((TextView) getView().findViewById(R.id.ui_dl_progressTextView)).setText(   R.string.dlerror);
+      ((TextView) getView().findViewById(R.id.ui_dl_progressTextView)).setText(
+          R.string.downloadError);
       e.printStackTrace();
       return localFile;
     } catch (
@@ -624,6 +648,16 @@ active=true;
 
   private ExecutorService executor;
 
+  /**
+   * @param urlSourceArg root url of the project: "https://server.tld/basedir/"
+   * @return return void, it send intents instead
+   *
+   * Made to be used with, {@link StartupFragment#repairMissingFiles(String, ArrayList)} and {@link
+   * StartupFragment#grabJson(String, boolean)}
+   *
+   * Intent("dlReceived", filename);
+   * @checkFiles download a file from the project (Warning: NO CHECK: IT OVERWRITES FILES!)
+   */
   public void checkFiles(String urlSourceArg) {
     sendMessage("checkStarted");
     //  urlSource = urlSourceArg;
@@ -657,30 +691,30 @@ active=true;
   }
 
   public File grabJson(String urlSource, boolean forced) {
-    Log.d("startupfragment", "start grabjson with " + M_SERVER_DIRECTORY_URL + urlSource);
+    Log.d(CLASSNAME, "start grabJson with " + M_SERVER_DIRECTORY_URL + urlSource);
 
     Log.d(CLASSNAME, "grabJson update forced");
     if (!forced) {
-      if (!checkFile(mCacheDirPath.getAbsolutePath(), FILELIST_JSON)) {
+      if (!checkFile(mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON)) {
         Log.d(CLASSNAME,
             "grabJson update forced was canceled and we had no local json");
         sendMessage("noJson");
         return null;
       } else {
-        sendMessage("JSONlocalonly");
-        return new File(mCacheDirPath.getAbsolutePath(), FILELIST_JSON);
+        sendMessage("JSON_LocalOnly");
+        return new File(mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON);
       }
     } else {
-      Log.d(CLASSNAME, "grabJson update forced think we have internet,urlsource=" + urlSource);
+      Log.d(CLASSNAME, "grabJson update forced think we have internet,url source=" + urlSource);
 
       File file = getFile(urlSource, mCacheDirPath.getAbsolutePath(),
-          FILELIST_JSON);
+          FILE_LIST_JSON);
 
-      if (checkFile(mContext.getCacheDir().getAbsolutePath(), FILELIST_JSON)) {
+      if (checkFile(mContext.getCacheDir().getAbsolutePath(), FILE_LIST_JSON)) {
         Log.e(CLASSNAME,
             "grabJson got local file after update");
         sendMessage("JSONok");
-        return new File(mCacheDirPath.getAbsolutePath(), FILELIST_JSON);
+        return new File(mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON);
       } else {
         Log.e(CLASSNAME,
             "grabJson got no local file and was unable to dl the update");

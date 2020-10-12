@@ -50,7 +50,7 @@
           android:id="@+id/settingsImageButton"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:contentDescription="@string/showsettings"
+          android:contentDescription="@string/showSettingsImageButton"
           android:gravity="start"
           android:maxHeight="30dp"
           android:maxWidth="30dp"
@@ -64,7 +64,7 @@
           android:id="@+id/aboutImageButton"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:contentDescription="@string/showsettings"
+          android:contentDescription="@string/showSettingsImageButton"
           android:gravity="end"
           android:maxHeight="20dp"
           android:maxWidth="20dp"
@@ -76,7 +76,7 @@
     </LinearLayout>
 
     <ProgressBar
-        android:id="@+id/ui_totalfiles_ProgressBar"
+        android:id="@+id/uiTotalFilesProgressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:indeterminateOnly="false"
@@ -92,7 +92,7 @@
 
         />
     <ProgressBar
-        android:id="@+id/ui_verticalmissing_ProgressBar"
+        android:id="@+id/uiVerticalMissingProgressBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="7dp"

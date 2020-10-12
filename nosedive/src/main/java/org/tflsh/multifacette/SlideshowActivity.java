@@ -163,8 +163,8 @@ public class SlideshowActivity extends Activity {
           findViewById(R.id.repairFilesButton).setBackground(
               getResources().getDrawable(R.drawable.white_background, null));
           break;
-        case "JSONparseok":
-          Log.d(TAG, "intentReceiver got action JSONparseok");
+        case "JSON_ParseOk":
+          Log.d(TAG, "intentReceiver got action JSON_ParseOk");
 
           findViewById(R.id.repairFilesButton).setOnTouchListener(new OnTouchListener() {
 
@@ -174,7 +174,7 @@ public class SlideshowActivity extends Activity {
                 view.performClick();
                 view.setEnabled(false);
                 view.setClickable(false);
-                ((ProgressBar) findViewById(R.id.ui_totalfiles_ProgressBar)).setProgress(0);
+                ((ProgressBar) findViewById(R.id.uiTotalFilesProgressBar)).setProgress(0);
                 //!!! pour checkfiles=missinf findViewById(R.id.button2).setVisibility(View.VISIBLE);
                 getFragmentManager().executePendingTransactions();
 
@@ -220,8 +220,8 @@ public class SlideshowActivity extends Activity {
           Log.d(TAG, "intentReceiver got JSONok");
           /*check files button*/
           break;
-        case "JSONlocalonly":
-          Log.d(TAG, "intentReceiver got JSONlocalonly");
+        case "JSON_LocalOnly":
+          Log.d(TAG, "intentReceiver got JSON_LocalOnly");
           ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
               "Liste des photos ok");
 
@@ -237,9 +237,9 @@ public class SlideshowActivity extends Activity {
             fileschecked = true;
 
             findViewById(R.id.checkFilesButton).setVisibility(View.GONE);
-            findViewById(R.id.ui_totalfiles_ProgressBar).setBackground(
+            findViewById(R.id.uiTotalFilesProgressBar).setBackground(
                 getDrawable(R.drawable.ic_not_started_black));
-            findViewById(R.id.ui_totalfiles_ProgressBar).setVisibility(View.VISIBLE);
+            findViewById(R.id.uiTotalFilesProgressBar).setVisibility(View.VISIBLE);
             /*start button
             (findViewById(R.id.ui_dl_ProgressBar)).setOnTouchListener(new OnTouchListener() {
 
@@ -272,7 +272,7 @@ public class SlideshowActivity extends Activity {
           mSlideshowFilesName.add(max);
           Log.d(TAG,
               "intentReceiver got action files found " + mSlideshowFilesName.size() + " " + max);
-          findViewById(R.id.ui_totalfiles_ProgressBar).setVisibility(View.VISIBLE);
+          findViewById(R.id.uiTotalFilesProgressBar).setVisibility(View.VISIBLE);
           if (missingFilesNames.size() > 0) {
             ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
                 (mSlideshowFilesName.size())
@@ -283,7 +283,7 @@ public class SlideshowActivity extends Activity {
             ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
                 (mSlideshowFilesName.size()) + " photos ok");
           }
-          ((ProgressBar) findViewById(R.id.ui_totalfiles_ProgressBar)).setProgress(
+          ((ProgressBar) findViewById(R.id.uiTotalFilesProgressBar)).setProgress(
               mSlideshowFilesName.size());
 
           break;
@@ -298,11 +298,11 @@ public class SlideshowActivity extends Activity {
           findViewById(R.id.repairFilesButton).setBackground(
               getResources().getDrawable(R.drawable.white_background, null));
           downloadedFilesNumber++;
-          if (findViewById(R.id.ui_verticalmissing_ProgressBar) != null) {
-            ((ProgressBar) findViewById(R.id.ui_verticalmissing_ProgressBar)).incrementProgressBy(
+          if (findViewById(R.id.uiVerticalMissingProgressBar) != null) {
+            ((ProgressBar) findViewById(R.id.uiVerticalMissingProgressBar)).incrementProgressBy(
                 -1);
 
-            ((ProgressBar) findViewById(R.id.ui_totalfiles_ProgressBar)).incrementProgressBy(1);
+            ((ProgressBar) findViewById(R.id.uiTotalFilesProgressBar)).incrementProgressBy(1);
 
 
           /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
@@ -319,7 +319,7 @@ public class SlideshowActivity extends Activity {
               Log.e(TAG, "intentReceiver got action dl received, starting slideshow"
                   + mSlideshowFilesName.size());
               ((Button) findViewById(R.id.repairFilesButton)).setText("Téléchargement complet! Lancer le diapo");
-              ((Button) findViewById(R.id.repairFilesButton)).setOnClickListener(
+              findViewById(R.id.repairFilesButton).setOnClickListener(
                   new View.OnClickListener() {
                     @Override public void onClick(View view) {
 
@@ -355,11 +355,11 @@ public class SlideshowActivity extends Activity {
           ((Button) findViewById(R.id.repairFilesButton)).setText(
               "Récupérer les " + (missingFilesNames.size())
                   + " photos manquantes");
-          findViewById(R.id.ui_totalfiles_ProgressBar).setVisibility(View.VISIBLE);
+          findViewById(R.id.uiTotalFilesProgressBar).setVisibility(View.VISIBLE);
           findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
-          ((ProgressBar) findViewById(R.id.ui_verticalmissing_ProgressBar)).setMax(
+          ((ProgressBar) findViewById(R.id.uiVerticalMissingProgressBar)).setMax(
               missingFilesNames.size());
-          ((ProgressBar) findViewById(R.id.ui_verticalmissing_ProgressBar)).setProgress(
+          ((ProgressBar) findViewById(R.id.uiVerticalMissingProgressBar)).setProgress(
               missingFilesNames.size());
 
           if (mSlideshowFilesName.size() > 0) {
@@ -372,7 +372,7 @@ public class SlideshowActivity extends Activity {
                 + " manquantes"));
           }
 
-          ((ProgressBar) findViewById(R.id.ui_totalfiles_ProgressBar)).setMax(
+          ((ProgressBar) findViewById(R.id.uiTotalFilesProgressBar)).setMax(
               missingFilesNames.size());
           //    Log.d(TAG, "intentReceiver set progress bar " + missingFilesNames.size() + max2);
          /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
@@ -484,13 +484,13 @@ public class SlideshowActivity extends Activity {
     filter.addAction("filesMissing");
     filter.addAction("StartupViewOk");
 
-    filter.addAction("JSONparseok");
+    filter.addAction("JSON_ParseOk");
     filter.addAction("checkStarted");
 
     filter.addAction("noJson");
     filter.addAction("JSONok");
     filter.addAction("ACTION_BOOT_COMPLETED");
-    filter.addAction("JSONlocalonly");
+    filter.addAction("JSON_LocalOnly");
     setContentView(R.layout.activity_fullscreen);
 
     //end try lru

@@ -44,9 +44,9 @@
   <string name="attachment_summary_on">Automatically download attachments for incoming emails
   </string>
   <string name="attachment_summary_off">Only download attachments when manually requested</string>
-  <string name="showsettings">accéder aux réglages de l\'appli</string>
+  <string name="showSettingsImageButton">accéder aux réglages de l\'application</string>
   <string name="settings1">paramètre 1</string>
   <string name="settings2">paramètre 2</string>
-  <string name="dlerror">Erreur de téléchargement, vérifier le wifi et relancer l\'appli</string>
+  <string name="downloadError">Erreur de téléchargement, vérifier le wifi et relancer l\'application</string>
 
 </resources>
