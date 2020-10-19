@@ -21,11 +21,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
 
 public class SlideshowActivity extends Activity {
   public static final String EXTRA_MESSAGE = "EXTRA_MESSAGE";
-  static final String M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "julia/";
+ // static final String M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "rescatest/";
   //temps unitaire (base de temps), sert a définir le delai entre deux images
   static final int DELAY_INTER_FRAME_SETTING = 750;
   //temps durant lequel on regarde une image proposé apres le menu (en multiple d'interframedelay)
@@ -99,10 +98,11 @@ public class SlideshowActivity extends Activity {
 
   /* (findViewById(R.id.button2)).setBackgroundColor(
               getResources().getColor(R.color.OurPink, null));*/
-            findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
+         //   findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
 
-            findViewById(R.id.repairFilesButton).setVisibility(View.GONE);
-            startSlideshow("dlComplete");/*
+           // findViewById(R.id.repairFilesButton).setVisibility(View.GONE);
+            //startSlideshow("dlComplete");
+          /*
           findViewById(R.id.ui_dl_ProgressBar).setBackground(
               getDrawable(R.drawable.ic_not_started_black));
           (findViewById(R.id.ui_dl_ProgressBar)).setOnTouchListener(new OnTouchListener() {
@@ -136,14 +136,26 @@ public class SlideshowActivity extends Activity {
           break;
 
         case "noJson":
+        case "dlFailed":
           mHaveInternet = false;
-          // findViewById(R.id.repairFilesButton).setEnabled(true);
-          //findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
-          //  findViewById(R.id.repairFilesButton).setBackground(
-          //  getResources().getDrawable(R.drawable.ic_button_on_off, null));//
+          findViewById(R.id.repairFilesButton).setEnabled(true);
+          findViewById(R.id.repairFilesButton).setClickable(true);
+
+          findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
+          ((Button)findViewById(R.id.repairFilesButton)).setText("Pas de fichiers, activez le wifi et réessayez");
+
+          findViewById(R.id.repairFilesButton).setBackground(
+              getResources().getDrawable(R.drawable.ic_button_on_off, null));
+          findViewById(R.id.repairFilesButton).setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+              mSlideshowFragment.mStartupFragment.grabJson(StartupFragment.M_SERVER_DIRECTORY_URL,true);
+            }
+          });
+
 
           ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
               R.string.pleaseRestartWithInternet);
+
           Log.d(TAG, "intentReceiver got action no json");
 
           break;
@@ -406,14 +418,15 @@ public class SlideshowActivity extends Activity {
       mSlideshowFragment.startSlideshow(mSlideshowFilesName);
     }
     else {
-      Log.e(TAG, "startSlideshow aborted cause array was empty, onResume started instead"
+      Log.e(TAG, "startSlideshow aborted cause array was empty, halt (no net?)"
           + mSlideshowFilesName.size());
       Log.e(TAG, fromIntent + "received, mSlideshowFilesName" + mSlideshowFilesName.size());
       Log.e(TAG, fromIntent + "received, missingFilesNames" + missingFilesNames.size());
       Log.e(TAG, fromIntent
           + "received, mSlideshowDownloadedFilesName"
           + mSlideshowDownloadedFilesName.size());
-      onResume();
+     //
+      // stop  we prob dont have internet onResume();
     }
   }
 
@@ -435,7 +448,7 @@ public class SlideshowActivity extends Activity {
   }
 
   @Override
-  public void onSaveInstanceState(@NotNull Bundle outState) {
+  public void onSaveInstanceState( Bundle outState) {
     super.onSaveInstanceState(outState);
     outState.putBoolean("allFilesChecked", filesChecked);
   }
@@ -505,7 +518,7 @@ public class SlideshowActivity extends Activity {
   }
 
   @Override
-  public void onConfigurationChanged(@NotNull Configuration newConfig) {
+  public void onConfigurationChanged( Configuration newConfig) {
     super.onConfigurationChanged(newConfig);
     Log.d(TAG, "onConfigurationChanged" + getIntent());
     onResume();

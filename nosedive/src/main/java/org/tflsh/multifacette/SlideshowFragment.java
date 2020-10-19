@@ -59,7 +59,7 @@ public class SlideshowFragment extends Fragment {
    */
   private static final int UI_ANIMATION_DELAY = 300;
   private static final String CLASSNAME = "SlideshowFragment";
-  static String SLIDESHOW_M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "julia/";
+//  static String SLIDESHOW_M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "rescatest/";
   final ArrayList<Button> mCheckedToggleButtonsArrayList = new ArrayList<>();
   protected final Handler mSlideshowHandler = new Handler();
   private final Runnable mHidePart2Runnable = new Runnable() {
@@ -169,7 +169,7 @@ public class SlideshowFragment extends Fragment {
       hide();
     }
   };
-  private StartupFragment mStartupFragment;
+  protected StartupFragment mStartupFragment;
   private ExecutorService executor;
   private boolean mSlideshowIsRunning = false;
   private final Runnable blockMenuRunnable = new Runnable() {
@@ -395,7 +395,8 @@ public class SlideshowFragment extends Fragment {
       @Nullable Bundle savedInstanceState) {
     mContext = getContext();
     mCacheDirPath = mContext.getCacheDir();
-    mSlideshowFilesName = new ArrayList<>();
+
+
 
     return inflater.inflate(R.layout.fragment_slideshow, container, false);
   }
@@ -432,9 +433,8 @@ public class SlideshowFragment extends Fragment {
     };
     initScreenMetrics();
     if (savedInstanceState != null) {
-      mSlideshowFilesName = savedInstanceState.getStringArrayList("SlideshowFilenames");
+          mSlideshowFilesName = savedInstanceState.getStringArrayList("SlideshowFilenames");
     } else {
-      mSlideshowFilesName = new ArrayList<>();
     }
     mVisible = true;
     executor = Executors.newFixedThreadPool(1);
@@ -466,7 +466,7 @@ public class SlideshowFragment extends Fragment {
 
   public void setBaseUrl(String arg) {
 
-    SLIDESHOW_M_SERVER_DIRECTORY_URL = arg;
+    //SLIDESHOW_M_SERVER_DIRECTORY_URL = arg;
   }
 
   private void makeImageNotClickable() {
@@ -809,9 +809,9 @@ public class SlideshowFragment extends Fragment {
     if (getActivity() != null && getActivity().getWindow() != null) {
       getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
     }
-    mSlideshowFilesName.clear();
+    mSlideshowFilesName = new ArrayList<>();
     loadStartupFragment();
-    mStartupFragment = (StartupFragment) getFragmentManager().findFragmentByTag("StartupFragment");
+   // mStartupFragment = (StartupFragment) getFragmentManager().findFragmentByTag("StartupFragment");
 
     Log.d(CLASSNAME, " onResume()");
 
@@ -823,7 +823,7 @@ public class SlideshowFragment extends Fragment {
     // Trigger the initial hide() shortly after the activity has been
     // created, to briefly hint to the user that UI controls
     // are available.
-    delayedHide();
+    mStartupFragment.startGlobalCheckThread();
   }
 
   @Override

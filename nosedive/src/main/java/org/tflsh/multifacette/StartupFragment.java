@@ -5,12 +5,8 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.NetworkOnMainThreadException;
 import android.os.SystemClock;
 import android.util.JsonReader;
 import android.util.Log;
@@ -46,7 +42,6 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 
-
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link StartupFragment#newInstance} factory method to
@@ -55,7 +50,7 @@ import javax.net.ssl.SSLException;
 public class StartupFragment extends Fragment {
   public static final String FILE_LIST_JSON = "filelist.json";
   public static final String NO_JSON = "noJson";
-  static final String M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "julia/";
+  static final String M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "rescatest/";
   static final String EXTRA_MESSAGE = "EXTRA_MESSAGE";
   // TODO: Rename parameter arguments, choose names that match
   // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -63,13 +58,12 @@ public class StartupFragment extends Fragment {
   private static final String ARG_PARAM2 = "param2";
   private static final String TAG = "StartupFragment";
   private static final String CLASSNAME = "StartupFragment";
-  private Context mContext;
   // private static List<String> everyImagesNames;
   private static int currentFile;
-
   protected final Runnable mGrabJsonRunnable;
-  private Thread lastThread;
-  private boolean active;
+  ArrayList<String> everyImagesNames;
+  ArrayList<String> missingImagesNames;
+  List<String> result;
   /*/**
    * Use this factory method to create a new instance of
    * this fragment using the provided parameters.
@@ -79,29 +73,27 @@ public class StartupFragment extends Fragment {
    * @return A new instance of fragment StartupFragment.
    */
   // TODO: Rename and change types and number of parameters
-
-    public static StartupFragment newInstance(String param1, ArrayList<String> param2) {
-        StartupFragment fragment = new StartupFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putStringArrayList(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-  ArrayList<String> everyImagesNames;
-  ArrayList<String> missingImagesNames;
+  private Context mContext;
+  private boolean active;
   // TODO: Rename and change types of parameters
   //    private String M_SERVER_DIRECTORY_URL;
   //   private ArrayList<String> missingImagesNames;
   private File mCacheDirPath;
   private ViewGroup mParentViewGroup;
   private View mParentView;
+  private ExecutorService executor;
   // static List<String> name;
   //static String urlSource;
   //static List<String> missingImagesNames;
+  private Thread globalCheckThread = new Thread(new Runnable() {
+    @Override public void run() {
 
-  List<String> result;
+      grabJson(M_SERVER_DIRECTORY_URL, false);
+      checkFiles(M_SERVER_DIRECTORY_URL);
+      repairMissingFiles(M_SERVER_DIRECTORY_URL, missingImagesNames);
+    }
+  });
+  //waring ce runnable n'enoive plus d'intent, on tente de favoriser celes émises dans grabJson
 
   /**
    * @mGrabJsonRunnable runnable qui dl le json
@@ -114,17 +106,13 @@ public class StartupFragment extends Fragment {
       public void run() {
 
         try {
-          File localJsonFile = new File(mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON);
+          File localJsonFile = checkFile(grabJson(M_SERVER_DIRECTORY_URL,true));
 
-          if (!localJsonFile.exists()) {
-
-            Log.d(CLASSNAME, "mGrabJsonRunnable unable to find json, trying to grab it");
-            grabJson(M_SERVER_DIRECTORY_URL, true);
-          }
-          if (!localJsonFile.exists()) {
+          //TODO: grabjson still return an empty file somewhere.
+          if (localJsonFile==null) {
 
             Log.d(CLASSNAME, "mGrabJsonRunnable unable to create json, we gave up");
-            sendMessage(NO_JSON);
+            sendMessage("dlFailed");
             return;
           }
           Log.d(CLASSNAME, "mGrabJsonRunnable opening"
@@ -137,7 +125,7 @@ public class StartupFragment extends Fragment {
           if (result.isEmpty()) {
 
             Log.e(CLASSNAME, "EMPTY json file!!!");
-            sendMessage(NO_JSON);
+            //sendMessage(NO_JSON);
             Log.e(CLASSNAME,
                 "no results: unable to get json from internet or to create files");
           } else {
@@ -147,7 +135,7 @@ public class StartupFragment extends Fragment {
                             + missingImagesNames.size()*/);
             //            getView().setVisibility(View.VISIBLE);
             //sendMessageWithString("filesMissing", localJsonFile.getAbsolutePath());
-            sendMessage("JSON_ParseOk");
+            //sendMessage("JSON_ParseOk");
           }
         } catch (Exception ex) {
           ex.printStackTrace();
@@ -159,6 +147,15 @@ public class StartupFragment extends Fragment {
   public StartupFragment() {
   }
 
+  public static StartupFragment newInstance(String param1, ArrayList<String> param2) {
+    StartupFragment fragment = new StartupFragment();
+    Bundle args = new Bundle();
+    args.putString(ARG_PARAM1, param1);
+    args.putStringArrayList(ARG_PARAM2, param2);
+    fragment.setArguments(args);
+    return fragment;
+  }
+
   /**
    * @param path path where the file @name should be checked
    * @return return true if file is looking fine, else return false
@@ -166,30 +163,23 @@ public class StartupFragment extends Fragment {
    * NO INTENT!
    * @checkFile A function for check is file exists or delete it if it is empty
    */
-  protected static boolean checkFile(String path) {
+   @Nullable
+  protected static File checkFile(File path) {
     File toTest = new File(path, StartupFragment.FILE_LIST_JSON);
     if (toTest.exists()) {
-      Log.e("checkFile", "found file " + toTest.getAbsolutePath() + toTest.length());
       if (toTest.length() == 0) {
+        Log.e("checkFile", "deleted empty file " + toTest.getAbsolutePath());
+
         //noinspection ResultOfMethodCallIgnored
         toTest.delete();
-        return false;
+        return null;
       }
-      return true;
+      Log.e("checkFile", "found file " + toTest.getAbsolutePath() + toTest.length());
+
+      return toTest;
     }
-    Log.e("checkFile", "unable to find file " + toTest.getAbsolutePath());
 
-    return false;
-  }
-
-  @Override
-  public void onPause() {
-    active = false;
-    lastThread.interrupt();
-    super.onPause();
-    Log.d(TAG, "Fragment.onPause()");
-    // Clear the systemUiVisibility flag
-
+    return null;
   }
 
   /**
@@ -231,31 +221,36 @@ public class StartupFragment extends Fragment {
     }
   }
 
-  public void sendMessage(String message) {
-if(active) {
-  Intent intent = new Intent(message);    //action: "msg"
-  intent.setPackage(mContext.getPackageName());
-  mContext.sendBroadcast(intent);
-}
-else
-{
-  Log.e(TAG,"sendMessage with string canceled due to no view");
-}
+  @Override
+  public void onPause() {
+    active = false;
+    globalCheckThread.interrupt();
+    super.onPause();
+    Log.d(TAG, "Fragment.onPause()");
+    // Clear the systemUiVisibility flag
 
   }
 
+  public void sendMessage(String message) {
+    if (active) {
+      Intent intent = new Intent(message);    //action: "msg"
+      intent.setPackage(mContext.getPackageName());
+      mContext.sendBroadcast(intent);
+    } else {
+      Log.e(TAG, "sendMessage with string canceled due to no view");
+    }
+  }
+
   public void sendMessageWithString(String message, String params) {
-if(active)
-  {  Intent intent = new Intent(message);    //action: "msg"
-    intent.setPackage(mContext.getPackageName());
+    if (active) {
+      Intent intent = new Intent(message);    //action: "msg"
+      intent.setPackage(mContext.getPackageName());
 
-    intent.putExtra(EXTRA_MESSAGE, params);
-    mContext.sendBroadcast(intent);}
-else
-{
-  Log.e(TAG,"sendMessageWithString with string canceled due to no view");
-
-}
+      intent.putExtra(EXTRA_MESSAGE, params);
+      mContext.sendBroadcast(intent);
+    } else {
+      Log.e(TAG, "sendMessageWithString with string canceled due to no view");
+    }
   }
 
   @Override
@@ -270,20 +265,6 @@ else
   public void onAttach(Context context) {
     super.onAttach(context);
     mContext = context;
-  }
-
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container,
-      Bundle savedInstanceState) {
-    // mContext=container.getContext();
-active=true;
-    mCacheDirPath = mContext.getCacheDir();
-    executor = Executors.newFixedThreadPool(1);
-    Log.d(CLASSNAME, "onCreateView start grabJson with " + M_SERVER_DIRECTORY_URL);
-
-    //Log.d(CLASSNAME," added to "+container.toString());
-    // Inflate the layout for this fragment
-    return inflater.inflate(R.layout.fragment_startup, container, false);
   }
   //should never occur
 
@@ -302,7 +283,7 @@ active=true;
                     Log.d(CLASSNAME, "grabJson did not find local file+no internet");
 
 
-                sendMessage("noJson");
+                sendMessage(NO_JSON);
 
                 return null;
             }
@@ -314,6 +295,20 @@ active=true;
 
         }
 */
+
+  @Override
+  public View onCreateView(LayoutInflater inflater, ViewGroup container,
+      Bundle savedInstanceState) {
+    // mContext=container.getContext();
+    active = true;
+    mCacheDirPath = mContext.getCacheDir();
+    executor = Executors.newFixedThreadPool(1);
+    Log.d(CLASSNAME, "onCreateView start grabJson with " + M_SERVER_DIRECTORY_URL);
+
+    //Log.d(CLASSNAME," added to "+container.toString());
+    // Inflate the layout for this fragment
+    return inflater.inflate(R.layout.fragment_startup, container, false);
+  }
 
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -353,14 +348,14 @@ active=true;
 /*                    (view.findViewById(R.id.checkFilesButton)).setBackgroundColor(
                         getResources().getColor(R.color.OurWhite, null));
 */
-          lastThread=new Thread(new Runnable() {
+          globalCheckThread = new Thread(new Runnable() {
             @Override public void run() {
 
               repairMissingFiles(
                   M_SERVER_DIRECTORY_URL, missingImagesNames);
             }
           });
-          lastThread.start();
+          globalCheckThread.start();
         }
         return true;
       }
@@ -370,19 +365,14 @@ active=true;
     everyImagesNames = new ArrayList<>();
     missingImagesNames = new ArrayList<>();
 
-    lastThread = new Thread(new Runnable() {
-      @Override public void run() {
-
-        grabJson(M_SERVER_DIRECTORY_URL, false);
-        checkFiles(M_SERVER_DIRECTORY_URL);
-        repairMissingFiles(M_SERVER_DIRECTORY_URL, missingImagesNames);
-      }
-    });
-    lastThread.start();
+    //avant on lancait le thread de check d'ici.
     //  sendMessage("StartupViewOk");
 
   }
 
+  protected void startGlobalCheckThread() {
+    globalCheckThread.start();
+  }
 
   private void loadSettingFragment() {
 
@@ -401,12 +391,12 @@ active=true;
     transaction.addToBackStack(null);
     transaction.commit();
   }
-
+/*
   private boolean isInternetOk() {
     //https://developer.android.com/training/monitoring-device-state/connectivity-status-type
     ConnectivityManager cm =
         (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BASE) {
       Log.e("checkFile", "SDK>R");
 
       Network activeNetwork = cm.getActiveNetwork();
@@ -420,26 +410,41 @@ active=true;
           activeNetwork.isConnected();
     }
   }
-
+*/
   /**
    * A function for check is file exists or is empty
    *
    * @param urlSource path where the file @name should be checked
    * @param missingFileNamesArg name of the file to check
    */
-  public void repairMissingFiles(final String urlSource, ArrayList<String> missingFileNamesArg) {
-    Log.e(CLASSNAME,
+  public int repairMissingFiles(final String urlSource, ArrayList<String> missingFileNamesArg) {
+
+    if(missingFileNamesArg==null)
+    {Log.e(CLASSNAME,
+        "repairMissingFiles()  canceled cause no files to repair");
+      sendMessage("dlFailed");
+
+      return -1;
+    }Log.e(CLASSNAME,
         "repairMissingFiles()  missing or broken " + missingFileNamesArg.size() + " files");
-
+int downloadedFilesNumber=0;
     //   checkFiles( urlSource);
-
+    boolean thereIsMissingFiles = true;
     for (final String name : missingFileNamesArg) {
       Log.e(CLASSNAME, "repairMissingFiles() grab missing or broken " + name + " files");
+      if (getFile(urlSource, mCacheDirPath.getAbsolutePath(), name)==null) {
+        thereIsMissingFiles = true;
+        Log.e(CLASSNAME, "unable to dl a file in repairMissingFiles()");
 
-    getFile(urlSource, mCacheDirPath.getAbsolutePath(), name);
-
-};
-    sendMessage("dlComplete");
+      }
+      else {
+        downloadedFilesNumber++;
+      }
+    }
+    if (!thereIsMissingFiles) {
+      sendMessage("dlComplete");
+    }
+    return downloadedFilesNumber;
   }
 
   public void onResume() {
@@ -460,13 +465,16 @@ active=true;
    * @parseJson read existing Json file
    */
   //parse the json file, start the dl of missing files or of corrupted files
-  protected List<String> parseJson(File jsonFile) {
+  protected List<String> parseJson(@Nullable File jsonFile) {
     try (
         JsonReader reader = new JsonReader(
             new InputStreamReader(new FileInputStream(jsonFile.getAbsolutePath())))
 
     ) {
-
+if(jsonFile==null)
+{
+  return null;
+}
       reader.beginArray();
 
       while (reader.hasNext()) {
@@ -559,12 +567,14 @@ active=true;
    *
    * Intent("dlReceived", filename);
    * @getFile download a file from the project (Warning: NO CHECK: IT OVERWRITES FILES!)
+   * return null if no internet
    */
   /*return a array of string, naming the files downloaded, or found in the cache dir
    * @param: String url: base string to construct files url
    dlReceived
    * */
-  protected File getFile(String urlSourceString, String pathDest, String nameDest) {
+  @Nullable
+    protected File getFile(String urlSourceString, String pathDest, String nameDest) {
     File localFile = new File(pathDest, nameDest);
 
     Log.d(CLASSNAME, "creating ..."
@@ -610,7 +620,14 @@ active=true;
 
       e.printStackTrace();
       return localFile;
-    } catch (
+    }
+    catch (
+  NetworkOnMainThreadException e) {
+    Log.e(CLASSNAME, "NO NET HAHAHAHAHA");
+
+    e.printStackTrace();
+    return null;
+  } catch (
         SSLException e) {
       Log.e(CLASSNAME, "SSL exception " + getString(R.string.downloadError));
       ((TextView) getView().findViewById(R.id.ui_dl_progressTextView)).setText(
@@ -633,12 +650,10 @@ active=true;
       Log.e(CLASSNAME, "Unable to download json file from internet");
       e.printStackTrace();
 
-      sendMessage(NO_JSON);
+      // sendMessage(NO_JSON);
       return localFile;
     }
   }
-
-  private ExecutorService executor;
 
   /**
    * @param urlSourceArg root url of the project: "https://server.tld/basedir/"
@@ -682,46 +697,51 @@ active=true;
     }
   }
 
-  public void grabJson(String urlSource, boolean forced) {
-    Log.d(CLASSNAME, "start grabJson with " + M_SERVER_DIRECTORY_URL + urlSource);
+  //wtf, on a un deja un runnable grabjson
+  public File grabJson(String urlSource, boolean forced) {
+    Log.d(CLASSNAME, "start grabJson FUNCTION with " + urlSource);
 
-    Log.d(CLASSNAME, "grabJson update forced");
     if (!forced) {
-      if (!checkFile(mCacheDirPath.getAbsolutePath())) {
+      File  file=new File(mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON);
+      if (checkFile(file)==null) {
         Log.d(CLASSNAME,
             "grabJson update forced was canceled and we had no local json");
-        sendMessage("noJson");
+        // sendMessage(NO_JSON);
+        Log.d(CLASSNAME, "grabJson update NOT forced, url source=" + urlSource);
       } else {
         sendMessage("JSON_LocalOnly");
-        new File(mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON);
+        return file;
       }
-    } else {
-      Log.d(CLASSNAME, "grabJson update forced think we have internet,url source=" + urlSource);
+    }
+    //if internet update not forced:
+    else {
+      Log.d(CLASSNAME, "grabJson update forced, url source=" + urlSource);
 
       File file = getFile(urlSource, mCacheDirPath.getAbsolutePath(),
           FILE_LIST_JSON);
 
-      if (checkFile(mContext.getCacheDir().getAbsolutePath())) {
+      if (null != checkFile(file)) {
         Log.e(CLASSNAME,
             "grabJson got local file after update");
         sendMessage("JSONok");
-        new File(mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON);
+        return file;
       } else {
         Log.e(CLASSNAME,
             "grabJson got no local file and was unable to dl the update");
-        sendMessage("noJson");
+        sendMessage(NO_JSON);
+
       }
     }
+    return null;
   }
 
   public void sendMessageWithInt(String message, int params) {
-if(this.active) {
-  Intent intent = new Intent(message);    //action: "msg"
-  intent.setPackage(mContext.getPackageName());
+    if (this.active) {
+      Intent intent = new Intent(message);    //action: "msg"
+      intent.setPackage(mContext.getPackageName());
 
-  intent.putExtra(EXTRA_MESSAGE, params);
-  mContext.sendBroadcast(intent);
-}
-
+      intent.putExtra(EXTRA_MESSAGE, params);
+      mContext.sendBroadcast(intent);
+    }
   }
 }

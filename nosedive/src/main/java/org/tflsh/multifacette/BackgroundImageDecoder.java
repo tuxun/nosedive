@@ -174,7 +174,7 @@ public class BackgroundImageDecoder extends Activity {
                 if (screenHeight > screenWidth) {
                   bmImage.get().setScaleType(ImageView.ScaleType.FIT_START);
                 } else {
-                  bmImage.get().setScaleType(ImageView.ScaleType.FIT_CENTER);
+                  //bmImage.get().setScaleType(ImageView.ScaleType.FIT_CENTER);
                 }
               } else {
                 Log.e(CLASSNAME, "tentative d'affichage d'une image sur un composant caché");
