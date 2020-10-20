@@ -53,13 +53,12 @@
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="match_parent"
-            android:layout_height="700px"
+            android:layout_height="700dp"
             android:adjustViewBounds="true"
             android:contentDescription="@string/portrait_de_julia"
             android:scaleType="fitStart"
             android:src="@drawable/default_background"
-            android:layout_weight="90"
-            android:maxHeight="1000px"
+            android:maxHeight="1000dp"
             />
 
 
@@ -85,7 +84,6 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:orientation="vertical"
-        android:layout_weight="10"
 
         >
       <LinearLayout

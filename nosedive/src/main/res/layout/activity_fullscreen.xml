@@ -18,7 +18,7 @@
       android:layout_height="match_parent"
       android:orientation="vertical"
       >
-    <fragment
+    <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment"
         android:name="org.tflsh.multifacette.SlideshowFragment"
         android:layout_width="match_parent"
@@ -37,7 +37,7 @@
       android:visibility="gone"
       >
 
-    <fragment
+    <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment2"
         android:name="org.tflsh.multifacette.SettingsFragment"
         android:layout_width="match_parent"

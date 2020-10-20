@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -161,7 +162,7 @@ public class StartupFragment extends Fragment {
    * @return return true if file is looking fine, else return false
    *
    * NO INTENT!
-   * @checkFile A function for check is file exists or delete it if it is empty
+   * checkFile A function for check is file exists or delete it if it is empty
    */
    @Nullable
   protected static File checkFile(File path) {
@@ -336,7 +337,7 @@ public class StartupFragment extends Fragment {
       public boolean onTouch(View view, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
           view.findViewById(R.id.repairFilesButton).setBackground(
-              getResources().getDrawable(R.color.OurWhite, null));
+              ResourcesCompat.getDrawable(getResources(), R.color.OurWhite, null));
           view.setClickable(false);
           view.setEnabled(false);
 
@@ -418,6 +419,7 @@ public class StartupFragment extends Fragment {
    * @param missingFileNamesArg name of the file to check
    */
   public int repairMissingFiles(final String urlSource, ArrayList<String> missingFileNamesArg) {
+    int downloadedFilesNumber = 0;
 
     if(missingFileNamesArg==null)
     {Log.e(CLASSNAME,
@@ -427,7 +429,6 @@ public class StartupFragment extends Fragment {
       return -1;
     }Log.e(CLASSNAME,
         "repairMissingFiles()  missing or broken " + missingFileNamesArg.size() + " files");
-int downloadedFilesNumber=0;
     //   checkFiles( urlSource);
     boolean thereIsMissingFiles = true;
     for (final String name : missingFileNamesArg) {
@@ -441,7 +442,7 @@ int downloadedFilesNumber=0;
         downloadedFilesNumber++;
       }
     }
-    if (!thereIsMissingFiles) {
+    if (thereIsMissingFiles == false) {
       sendMessage("dlComplete");
     }
     return downloadedFilesNumber;
@@ -519,7 +520,7 @@ if(jsonFile==null)
           reader.nextString();
           reader.nextName();
           reader.nextString();
-          Thread.sleep(50);
+          //  Thread.sleep(50);
         }
         reader.endObject();
       }

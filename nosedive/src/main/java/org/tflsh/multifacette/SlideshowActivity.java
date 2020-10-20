@@ -19,6 +19,7 @@ import android.view.View.OnTouchListener;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import androidx.core.content.res.ResourcesCompat;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -145,10 +146,11 @@ public class SlideshowActivity extends Activity {
           ((Button)findViewById(R.id.repairFilesButton)).setText("Pas de fichiers, activez le wifi et réessayez");
 
           findViewById(R.id.repairFilesButton).setBackground(
-              getResources().getDrawable(R.drawable.ic_button_on_off, null));
+              ResourcesCompat.getDrawable(getResources(), R.drawable.ic_button_on_off, null));
           findViewById(R.id.repairFilesButton).setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
-              mSlideshowFragment.mStartupFragment.grabJson(StartupFragment.M_SERVER_DIRECTORY_URL,true);
+              mSlideshowFragment.mStartupFragment.grabJson(StartupFragment.M_SERVER_DIRECTORY_URL,
+                  true);
             }
           });
 
@@ -173,7 +175,7 @@ public class SlideshowActivity extends Activity {
           findViewById(R.id.repairFilesButton).setEnabled(false);
           findViewById(R.id.repairFilesButton).setClickable(false);
           findViewById(R.id.repairFilesButton).setBackground(
-              getResources().getDrawable(R.drawable.white_background, null));
+              ResourcesCompat.getDrawable(getResources(), R.drawable.white_background, null));
           break;
         //TODO: fix!
         case "JSON_ParseOk":
@@ -251,7 +253,7 @@ public class SlideshowActivity extends Activity {
 
             findViewById(R.id.checkFilesButton).setVisibility(View.GONE);
             findViewById(R.id.uiTotalFilesProgressBar).setBackground(
-                getDrawable(R.drawable.ic_not_started_black));
+                ResourcesCompat.getDrawable(getResources(), R.drawable.ic_not_started_black, null));
             findViewById(R.id.uiTotalFilesProgressBar).setVisibility(View.VISIBLE);
             /*start button
             (findViewById(R.id.ui_dl_ProgressBar)).setOnTouchListener(new OnTouchListener() {
@@ -311,7 +313,7 @@ public class SlideshowActivity extends Activity {
           findViewById(R.id.repairFilesButton).setEnabled(false);
           findViewById(R.id.repairFilesButton).setClickable(false);
           findViewById(R.id.repairFilesButton).setBackground(
-              getResources().getDrawable(R.drawable.white_background, null));
+              ResourcesCompat.getDrawable(getResources(), R.drawable.white_background, null));
           downloadedFilesNumber++;
           if (findViewById(R.id.uiVerticalMissingProgressBar) != null) {
             ((ProgressBar) findViewById(R.id.uiVerticalMissingProgressBar)).incrementProgressBy(

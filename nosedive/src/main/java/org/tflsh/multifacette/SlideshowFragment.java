@@ -26,6 +26,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -207,7 +208,8 @@ public class SlideshowFragment extends Fragment {
   private long mLastClickTime = 0;
   private ArrayList<String> mSlideshowFilesName;
   /**
-   * @showMenuRunnable replace the image from the slideshow, with menu
+   * @Runnable showMenuRunnable
+   * replace the image from the slideshow, with menu
    */
   private final Runnable showMenuRunnable = new Runnable() {
     @Override
@@ -356,8 +358,9 @@ public class SlideshowFragment extends Fragment {
     // Code here will run in UI thread
   };
   /**
-   * @mShowImageAfterTwoWordsRunnable
-   * replace the menu with a random image from the slideshow, wait for "delay", then restart slideshow
+   * @Runnable mShowImageAfterTwoWordsRunnable
+   * replace the menu with a random image from the slideshow, wait for "delay", then restart
+   * slideshow
    */
   private final Runnable mShowImageAfterTwoWordsRunnable = new Runnable() {
 
@@ -434,7 +437,6 @@ public class SlideshowFragment extends Fragment {
     initScreenMetrics();
     if (savedInstanceState != null) {
           mSlideshowFilesName = savedInstanceState.getStringArrayList("SlideshowFilenames");
-    } else {
     }
     mVisible = true;
     executor = Executors.newFixedThreadPool(1);
@@ -464,10 +466,6 @@ public class SlideshowFragment extends Fragment {
     mSlideshowHandler.post(mStartSlideshowRunnable);
   }
 
-  public void setBaseUrl(String arg) {
-
-    //SLIDESHOW_M_SERVER_DIRECTORY_URL = arg;
-  }
 
   private void makeImageNotClickable() {
     mParentView.findViewById(R.id.slideshowLayout).setClickable(false);
@@ -525,7 +523,7 @@ public class SlideshowFragment extends Fragment {
         }
       };
       tempButton.setBackground(
-          getResources().getDrawable(R.drawable.ic_button_on_off, null));
+          ResourcesCompat.getDrawable(getResources(), R.drawable.ic_button_on_off, null));
       tempButton.setText(buttonName);
       tempButton.setStateListAnimator(null);
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

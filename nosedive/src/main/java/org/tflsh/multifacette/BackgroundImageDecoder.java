@@ -9,6 +9,7 @@ import android.util.Log;
 import android.util.LruCache;
 import android.widget.ImageView;
 import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
@@ -145,8 +146,8 @@ public class BackgroundImageDecoder extends Activity {
 
         if (srcString.isEmpty()) {
           bmImage.get()
-              .setImageDrawable(mContext.getResources()
-                  .getDrawable(R.drawable.default_background, mContext.getTheme()));
+              .setImageDrawable(ResourcesCompat.getDrawable(getResources(),
+                  R.drawable.default_background, mContext.getTheme()));
           Log.d(CLASSNAME, "default image took " + (currentTimeMillis() - startTime) + "ms");
 
           return;
@@ -174,7 +175,7 @@ public class BackgroundImageDecoder extends Activity {
                 if (screenHeight > screenWidth) {
                   bmImage.get().setScaleType(ImageView.ScaleType.FIT_START);
                 } else {
-                  //bmImage.get().setScaleType(ImageView.ScaleType.FIT_CENTER);
+                  bmImage.get().setScaleType(ImageView.ScaleType.FIT_CENTER);
                 }
               } else {
                 Log.e(CLASSNAME, "tentative d'affichage d'une image sur un composant caché");
