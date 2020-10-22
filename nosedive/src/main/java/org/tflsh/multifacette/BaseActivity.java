@@ -1,11 +1,10 @@
-package com.google.firebase.quickstart.auth.java;
+package org.tflsh.multifacette;
 
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import androidx.appcompat.app.AppCompatActivity;
-import org.tflsh.login.R;
 
 public class BaseActivity extends AppCompatActivity {
 

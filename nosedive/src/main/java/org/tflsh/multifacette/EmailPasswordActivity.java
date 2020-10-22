@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.firebase.quickstart.auth.java;
+package org.tflsh.multifacette;
 
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -29,7 +29,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import org.tflsh.login.R;
+//import org.tflsh.login.R;
 
 public class EmailPasswordActivity extends BaseActivity implements
     View.OnClickListener {

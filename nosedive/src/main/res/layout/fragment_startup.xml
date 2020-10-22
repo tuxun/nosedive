@@ -39,41 +39,41 @@
         />
 
 
-    <LinearLayout
+  <LinearLayout
 
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:visibility="gone"
-        >
-      <ImageButton
-          android:id="@+id/settingsImageButton"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:contentDescription="@string/showSettingsImageButton"
-          android:gravity="start"
-          android:maxHeight="30dp"
-          android:maxWidth="30dp"
-          android:minHeight="20dp"
+      android:layout_width="match_parent"
+      android:layout_height="50dp"
+      android:orientation="horizontal"
+      android:visibility="visible"
+      >
+    <ImageButton
+        android:id="@+id/settingsImageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/showSettingsImageButton"
+        android:gravity="start"
+        android:maxHeight="20dp"
+        android:maxWidth="20dp"
+        android:minHeight="20dp"
 
-          android:minWidth="20dp"
-          android:src="@mipmap/ic_settings"
+        android:minWidth="20dp"
+        android:src="@mipmap/ic_settings"
 
-          />
-      <ImageButton
-          android:id="@+id/aboutImageButton"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:contentDescription="@string/showSettingsImageButton"
-          android:gravity="end"
-          android:maxHeight="20dp"
-          android:maxWidth="20dp"
-          android:minHeight="10dp"
-          android:minWidth="10dp"
-          android:src="@mipmap/ic_info"
+        />
+    <ImageButton
+        android:id="@+id/aboutImageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/showSettingsImageButton"
+        android:gravity="end"
+        android:maxHeight="20dp"
+        android:maxWidth="20dp"
+        android:minHeight="10dp"
+        android:minWidth="10dp"
+        android:src="@mipmap/ic_info"
 
-          />
-    </LinearLayout>
+        />
+  </LinearLayout>
 
     <ProgressBar
         android:id="@+id/uiTotalFilesProgressBar"

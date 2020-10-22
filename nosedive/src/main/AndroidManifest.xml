@@ -32,7 +32,11 @@
       </intent-filter>
 
     </activity>
-
+    <activity
+        android:name=".EmailPasswordActivity"
+        android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+        android:label="@string/applogin_name"
+        android:theme="@style/AppTheme"></activity>
 
   </application>
 

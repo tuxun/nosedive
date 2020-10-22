@@ -43,6 +43,10 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 
+//import com.google.firebase.quickstart.auth.java.EmailPasswordActivity;
+//import com.google.firebase.quickstart.auth.java.EmailPasswordActivity;
+//import com.google.firebase.auth.EmailAuthCredential;
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link StartupFragment#newInstance} factory method to
@@ -330,6 +334,25 @@ public class StartupFragment extends Fragment {
         return true;
       }
     });
+
+    view.findViewById(R.id.aboutImageButton);
+    view.setOnTouchListener(new View.OnTouchListener() {
+
+      @Override
+      public boolean onTouch(View view, MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+          view.performClick();
+          Intent intent = null;
+          intent = new Intent(getActivity(), EmailPasswordActivity.class);
+
+          String message = "editText.getText().toString()";
+          //    intent.putExtra(EXTRA_MESSAGE, message);
+
+          startActivity(intent);
+        }
+        return true;
+      }
+    });
     /*repair files button*/
     view.findViewById(R.id.repairFilesButton).setOnTouchListener(new View.OnTouchListener() {
 
@@ -577,6 +600,11 @@ if(jsonFile==null)
   @Nullable
     protected File getFile(String urlSourceString, String pathDest, String nameDest) {
     File localFile = new File(pathDest, nameDest);
+    try {
+      localFile.createNewFile();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
 
     Log.d(CLASSNAME, "creating ..."
         + localFile.getAbsolutePath()
@@ -585,14 +613,18 @@ if(jsonFile==null)
         + nameDest);
 
     try (
+
         OutputStream fos = new FileOutputStream(localFile);
         InputStream is = new BufferedInputStream(
-            new URL(urlSourceString + nameDest).openStream())) {
+            new URL(urlSourceString + nameDest).openStream())
+
+    ) {
+      SystemClock.sleep(1000);
 
       byte[] bitmapBytesData = new byte[1024];
       int read;
-      Log.d(CLASSNAME, "downloading " + localFile.getPath() + "  from " + localFile);
-      SystemClock.sleep(200);
+      Log.d(CLASSNAME,
+          "downloading " + localFile.getPath() + "  from " + urlSourceString + nameDest);
       while ((read = is.read(bitmapBytesData)) != -1) {
         fos.write(bitmapBytesData, 0, read);
       }

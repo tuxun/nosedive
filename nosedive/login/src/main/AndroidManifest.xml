@@ -9,7 +9,7 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:supportsRtl="true"
       android:theme="@style/Theme.Multifacette">
-    <activity android:name=".EmailPasswordActivity">
+    <activity android:name="com.google.firebase.quickstart.auth.java.EmailPasswordActivity">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
 

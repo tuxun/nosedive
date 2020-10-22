@@ -149,8 +149,14 @@ public class SlideshowActivity extends Activity {
               ResourcesCompat.getDrawable(getResources(), R.drawable.ic_button_on_off, null));
           findViewById(R.id.repairFilesButton).setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
-              mSlideshowFragment.mStartupFragment.grabJson(StartupFragment.M_SERVER_DIRECTORY_URL,
-                  true);
+              new Thread(new Runnable() {
+                @Override public void run() {
+
+                  mSlideshowFragment.mStartupFragment.grabJson(
+                      StartupFragment.M_SERVER_DIRECTORY_URL,
+                      true);
+                }
+              });
             }
           });
 
