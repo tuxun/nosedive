@@ -1,2 +1,3 @@
+include ':nosedive:login'
 include ':nosedive'
 rootProject.name='multifacette'

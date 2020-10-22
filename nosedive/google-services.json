@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "837204950670",
+    "firebase_url": "https://nosedive-1581d.firebaseio.com",
+    "project_id": "nosedive-1581d",
+    "storage_bucket": "nosedive-1581d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:837204950670:android:c878ca9179c459522d13df",
+        "android_client_info": {
+          "package_name": "org.tflsh.multifacette"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "837204950670-rjf0cruihver4faisuf26mhpofr2kmbb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnooAwjqAaxK-6EKbr9-0a-VR1jMCwqWo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "837204950670-rjf0cruihver4faisuf26mhpofr2kmbb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
