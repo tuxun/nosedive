@@ -29,6 +29,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 //import org.tflsh.login.R;
 
 public class EmailPasswordActivity extends BaseActivity implements
@@ -66,6 +68,7 @@ public class EmailPasswordActivity extends BaseActivity implements
     // Initialize Firebase Auth
     mAuth = FirebaseAuth.getInstance();
     // [END initialize_auth]
+
   }
 
   // [START on_start_check_user]
@@ -95,6 +98,13 @@ public class EmailPasswordActivity extends BaseActivity implements
               // Sign in success, update UI with the signed-in user's information
               Log.d(TAG, "createUserWithEmail:success");
               FirebaseUser user = mAuth.getCurrentUser();
+
+              // Write a message to the database
+              FirebaseDatabase database = FirebaseDatabase.getInstance();
+              DatabaseReference myRef = database.getReference("message");
+
+              myRef.setValue("Hello, World!");
+
               updateUI(user);
             } else {
               // If sign in fails, display a message to the user.

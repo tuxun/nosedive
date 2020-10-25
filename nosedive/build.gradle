@@ -63,10 +63,12 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
 
   implementation platform('com.google.firebase:firebase-bom:25.12.0')
-
+implementation 'androidx.preference:preference:1.1.1'
   // Add the dependencies for the desired Firebase products
   // https://firebase.google.com/docs/android/setup#available-libraries
   implementation 'com.google.firebase:firebase-perf'
   implementation 'com.google.firebase:firebase-auth'
-    //androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+  implementation 'com.google.firebase:firebase-database'
+
+  //androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 }

@@ -1,8 +1,5 @@
 package org.tflsh.multifacette;
 
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,6 +15,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -735,8 +735,9 @@ if(jsonFile==null)
     Log.d(CLASSNAME, "start grabJson FUNCTION with " + urlSource);
 
     if (!forced) {
-      File  file=new File(mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON);
-      if (checkFile(file)==null) {
+      File file = new File(getActivity().getBaseContext().getExternalCacheDir().getAbsolutePath(),
+          FILE_LIST_JSON);
+      if (checkFile(file) == null) {
         Log.d(CLASSNAME,
             "grabJson update forced was canceled and we had no local json");
         // sendMessage(NO_JSON);

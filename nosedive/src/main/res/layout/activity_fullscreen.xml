@@ -37,13 +37,12 @@
       android:visibility="visible"
       >
 
-    <fragment
+    <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment2"
         android:name="org.tflsh.multifacette.SettingsFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:tag="SettingsFragment"
-        tools:layout="@layout/fragment_slideshow"
 
         />
 

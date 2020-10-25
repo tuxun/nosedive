@@ -1,9 +1,6 @@
 package org.tflsh.multifacette;
 
 import android.app.ActionBar;
-import android.app.Activity;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -19,13 +16,16 @@ import android.view.View.OnTouchListener;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class SlideshowActivity extends Activity {
+public class SlideshowActivity extends AppCompatActivity {
   public static final String EXTRA_MESSAGE = "EXTRA_MESSAGE";
- // static final String M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "rescatest/";
+  // static final String M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "rescatest/";
   //temps unitaire (base de temps), sert a définir le delai entre deux images
   static final int DELAY_INTER_FRAME_SETTING = 750;
   //temps durant lequel on regarde une image proposé apres le menu (en multiple d'interframedelay)
@@ -152,9 +152,9 @@ public class SlideshowActivity extends Activity {
               new Thread(new Runnable() {
                 @Override public void run() {
 
-                  mSlideshowFragment.mStartupFragment.grabJson(
+                 /* !!! mSlideshowFragment.mStartupFragment.grabJson(
                       StartupFragment.M_SERVER_DIRECTORY_URL,
-                      true);
+                      true);*/
                 }
               });
             }
@@ -465,9 +465,11 @@ public class SlideshowActivity extends Activity {
   public void onPostCreate(Bundle savedInstanceState) {
     super.onPostCreate(savedInstanceState);
 
-    mSlideshowFragment =
-        (SlideshowFragment) getFragmentManager().findFragmentByTag(
+  /*!!!  mSlideshowFragment =
+        getFragmentManager().findFragmentByTag(
             "SlideshowFragment");//new org.tflsh.nosedive.SlideshowFragment();
+  */
+
   }
 
   @Override
@@ -611,7 +613,7 @@ public class SlideshowActivity extends Activity {
     Bundle args = new Bundle();
     args.putStringArrayList("SlideshowFilenames", mSlideshowFilesName);
     mSlideshowFragment.setArguments(args);
-    FragmentManager manager = getFragmentManager();
+    FragmentManager manager = getSupportFragmentManager();
     FragmentTransaction transaction = manager.beginTransaction();
     transaction.add(R.id.motherLayout, mSlideshowFragment, "MULTIFACETTE_SLIDESHOW");
     transaction.addToBackStack(null);

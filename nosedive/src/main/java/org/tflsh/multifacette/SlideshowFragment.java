@@ -2,9 +2,6 @@ package org.tflsh.multifacette;
 
 import android.app.ActionBar;
 import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -27,6 +24,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -170,7 +170,55 @@ public class SlideshowFragment extends Fragment {
       hide();
     }
   };
-  protected StartupFragment mStartupFragment;
+  private final Runnable mStartSlideshowRunnable = new Runnable() {
+
+    @Override
+    public void run() {
+
+      Log.d(CLASSNAME, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesName.size());
+      //mSlideshowHandler.post(cleanButtonRunnable);
+
+      makeImageClickable();
+
+      if ((!mSlideshowFilesName.isEmpty())) {
+        mSlideshowHandler.removeCallbacks(showNextRunnable);
+        //      mSlideshowHandler.removeCallbacks(mShowImageAfterTwoWordsRunnable);
+
+        if (!mSlideshowIsRunning) {
+          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
+              getResources().getColor(R.color.OurWhite, null));
+
+          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(
+              getResources().getString(R.string.string_press_me));
+
+          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(
+              TypedValue.COMPLEX_UNIT_DIP,
+              pressMeTextSize);
+          mSlideshowIsRunning = true;
+
+          for (long i = 0; i < mSlideshowFilesName.size() + 1; i++) {
+            mSlideshowHandler.postDelayed(showNextRunnable, i * DELAY_INTER_FRAME_SETTING);
+          }
+        } else {
+          Log.e(CLASSNAME,
+              "mStartSlideshowRunnable tried to start twice" + mSlideshowFilesName.size());
+          mSlideshowIsRunning = false;
+        }
+      } else {
+        Log.e(CLASSNAME, "mSlideshowFilesName is empty" + mSlideshowFilesName.size());
+      }
+
+      mSlideshowHandler.post(mHideMenuRunnable);
+      getView()
+          .findViewById(R.id.ui_centralLinearLayout)
+          .setVisibility(View.VISIBLE);
+      //      ((LinearLayout)mParentView.findViewById(R.id.slideshowScreenLinearSourceLayout)).setLayoutMode(
+      //      LinearLayout.LayoutParams.MATCH_PARENT);
+      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+      mParentView.findViewById(R.id.ui_press_meTextView).setVisibility(View.VISIBLE);
+    }
+  };
   private ExecutorService executor;
   private boolean mSlideshowIsRunning = false;
   private final Runnable blockMenuRunnable = new Runnable() {
@@ -262,56 +310,8 @@ public class SlideshowFragment extends Fragment {
   {
     mSlideshowHandler.removeCallbacks(showNextRunnable);
   }
-  private final Runnable mStartSlideshowRunnable = new Runnable() {
 
-    @Override
-    public void run() {
-
-      Log.d(CLASSNAME, "mStartSlideshowRunnable with slideshow size=" + mSlideshowFilesName.size());
-      //mSlideshowHandler.post(cleanButtonRunnable);
-
-      makeImageClickable();
-
-      if ((!mSlideshowFilesName.isEmpty())) {
-        mSlideshowHandler.removeCallbacks(showNextRunnable);
-        //      mSlideshowHandler.removeCallbacks(mShowImageAfterTwoWordsRunnable);
-
-
-        if (!mSlideshowIsRunning) {
-          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
-              getResources().getColor(R.color.OurWhite,null));
-
-          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(
-              getResources().getString(R.string.string_press_me));
-
-          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(
-              TypedValue.COMPLEX_UNIT_DIP,
-              pressMeTextSize);
-          mSlideshowIsRunning = true;
-
-          for (long i = 0; i < mSlideshowFilesName.size() + 1; i++) {
-            mSlideshowHandler.postDelayed(showNextRunnable, i * DELAY_INTER_FRAME_SETTING);
-          }
-        } else {
-          Log.e(CLASSNAME,
-              "mStartSlideshowRunnable tried to start twice" + mSlideshowFilesName.size());
-          mSlideshowIsRunning = false;
-        }
-      } else {
-        Log.e(CLASSNAME, "mSlideshowFilesName is empty" + mSlideshowFilesName.size());
-      }
-
-      mSlideshowHandler.post(mHideMenuRunnable);
-      Objects.requireNonNull(getView())
-          .findViewById(R.id.ui_centralLinearLayout)
-          .setVisibility(View.VISIBLE);
-      //      ((LinearLayout)mParentView.findViewById(R.id.slideshowScreenLinearSourceLayout)).setLayoutMode(
-      //      LinearLayout.LayoutParams.MATCH_PARENT);
-      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
-      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
-      mParentView.findViewById(R.id.ui_press_meTextView).setVisibility(View.VISIBLE);
-    }
-  };
+  public StartupFragment mStartupFragment;
   public final Runnable showNextRunnable = new Runnable() {
     @Override
     public void run() {
