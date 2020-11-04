@@ -183,8 +183,8 @@ public class BackgroundImageDecoder extends Activity {
 
               }
             }
-           /* Log.d(CLASSNAME,
-                " took " + timer + "ms for decode " + srcString + " , waited " + delay + "ms");*/
+            Log.d(CLASSNAME,
+                " took " + timer + "ms for decode " + srcString + " , waited " + delay + "ms");
           }
         };
         //executor.execute(r);

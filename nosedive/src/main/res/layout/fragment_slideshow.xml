@@ -86,14 +86,7 @@
         android:orientation="vertical"
 
         >
-      <LinearLayout
-          android:id="@+id/startupScreenLinearSourceLayout"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:orientation="vertical"
-          >
 
-      </LinearLayout>
       <TextView
           android:id="@+id/ui_press_meTextView"
           android:layout_width="match_parent"

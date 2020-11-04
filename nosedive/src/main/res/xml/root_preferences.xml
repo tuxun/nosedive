@@ -3,36 +3,77 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:keep="@xml/root_preferences">
 
-  <EditTextPreference
-      android:defaultValue="Default value"
-      android:key="edit_text_preference_1"
-      android:selectAllOnFocus="true"
-      android:singleLine="true"
-      android:title="Edit text preference" />
 
-  <PreferenceCategory app:title="@string/messages_header">
-
+  <PreferenceCategory app:title="Internet">
     <EditTextPreference
-        app:key="signature"
-        app:title="@string/signature_title"
-        app:useSimpleSummaryProvider="true" />
-    <EditTextPreference
-        android:defaultValue="Default value"
-        android:key="edit_text_preference_2"
+        android:defaultValue="https://dev.tuxun.fr/nosedive/"
+        android:key="BASE_URL"
         android:selectAllOnFocus="true"
         android:singleLine="true"
-        android:title="Edit text preference" />
+        android:title="BASE_URL" />
+    <EditTextPreference
+        android:defaultValue="rescatest"
+        android:key="DEFAUT_PROJECT_KEY"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="DEFAUT_PROJECT_KEY" />
 
+
+    <SwitchPreference
+        app:key="syncProjectOnNextStartup"
+        app:title="Update project on next startup" />
   </PreferenceCategory>
+
+
   <PreferenceCategory app:title="@string/sync_header">
 
-    <SwitchPreference
-        app:key="sync"
-        app:title="@string/sync_title" />
 
     <SwitchPreference
-        app:dependency="sync"
-        app:key="attachment"
+        app:key="resetSettingsOnNextStartup"
+        app:title="Reset to default settings on next startup" />
+
+  </PreferenceCategory>
+
+
+  <PreferenceCategory app:title="Timings">
+    <SeekBarPreference
+        android:max="5000"
+        app:defaultValue="750"
+        app:key="DELAY_INTER_FRAME_SETTING"
+        app:min="100"
+        app:showSeekBarValue="true"
+        app:title="DELAY_INTER_FRAME_SETTING" />
+
+    <SeekBarPreference
+        android:max="10000"
+        app:defaultValue="5000"
+        app:key="DELAY_GUESSING_SETTING"
+        app:min="100"
+        app:showSeekBarValue="true"
+        app:title="DELAY_GUESSING_SETTING" />
+
+    <SeekBarPreference
+        android:max="20000"
+        app:defaultValue="10000"
+        app:key="DELAY_CHOICE_WORDS_SETTING"
+        app:min="1000"
+        app:showSeekBarValue="true"
+        app:title="DELAY_CHOICE_WORDS_SETTING" />
+
+    <SeekBarPreference
+        android:max="1000"
+        app:defaultValue="300"
+        app:key="UI_ANIMATION_DELAY"
+        app:min="100"
+        app:showSeekBarValue="true"
+        app:title="UI_ANIMATION_DELAY" />
+    <SwitchPreference
+        app:key="syncCloud"
+        app:title="Save settings in cloud" />
+
+    <SwitchPreference
+        app:dependency="syncCloud"
+        app:key="sync"
         app:summaryOff="@string/attachment_summary_off"
         app:summaryOn="@string/attachment_summary_on"
         app:title="@string/attachment_title" />

@@ -4,7 +4,7 @@
     android:id="@+id/motherLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/OurWhite"
+    android:theme="@style/AppTheme.Accent"
     android:gravity="top"
     android:orientation="vertical"
 
@@ -18,34 +18,41 @@
       android:layout_height="wrap_content"
       android:orientation="vertical"
       >
-    <fragment
-        android:id="@+id/fragment"
-        android:name="org.tflsh.multifacette.SlideshowFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:tag="SlideshowFragment"
-        tools:layout="@layout/fragment_slideshow"
-        />
+
 
   </LinearLayout>
+
+
   <LinearLayout
-      android:id="@+id/setupScreenLinearSourceLayout"
+      android:id="@+id/startupScreenLinearSourceLayout"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:orientation="vertical"
-
-      android:visibility="visible"
       >
+
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment2"
-        android:name="org.tflsh.multifacette.SettingsFragment"
+        android:name="org.tflsh.multifacette.StartupFragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:tag="SettingsFragment"
+        android:layout_height="match_parent"
+        android:tag="StartupFragment"
+        tools:layout="@layout/fragment_startup"
+
 
         />
 
   </LinearLayout>
+
+  <LinearLayout
+      android:id="@+id/settingScreenLinearSourceLayout"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      >
+
+
+  </LinearLayout>
+
 
 </LinearLayout>

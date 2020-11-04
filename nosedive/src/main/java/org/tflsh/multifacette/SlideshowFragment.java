@@ -29,7 +29,6 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,11 +38,7 @@ import java.util.concurrent.Executors;
  * status bar and navigation/system bar) with user interaction.
  */
 public class SlideshowFragment extends Fragment {
-  static final int DELAY_INTER_FRAME_SETTING = 750;
-  //temps durant lequel on regarde une image proposé apres le menu (en multiple d'interframedelay)
-  static final int DELAY_GUESSING_SETTING = 5000;
-  //temps durant lequel on peut choisir deux mots (en multiple d'interframedelay)
-  static final int DELAY_CHOICE_WORDS_SETTING = 10000;
+
   /**
    * Whether or not the system UI should be auto-hidden after
    * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -58,7 +53,6 @@ public class SlideshowFragment extends Fragment {
    * Some older devices needs a small delay between UI widget updates
    * and a change of the status and navigation bar.
    */
-  private static final int UI_ANIMATION_DELAY = 300;
   private static final String CLASSNAME = "SlideshowFragment";
 //  static String SLIDESHOW_M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "rescatest/";
   final ArrayList<Button> mCheckedToggleButtonsArrayList = new ArrayList<>();
@@ -305,6 +299,7 @@ public class SlideshowFragment extends Fragment {
     }
   };
   private long mLastMenuClickTime;
+  static int DELAY_INTER_FRAME_SETTING = 750;
 
   public void cleanNext()
   {
@@ -390,6 +385,12 @@ public class SlideshowFragment extends Fragment {
     }
   };
   private boolean screenOrientationNormal;
+  //temps durant lequel on regarde une image proposé apres le menu (en multiple d'interframedelay)
+  static int DELAY_GUESSING_SETTING = 5000;
+  //temps durant lequel on peut choisir deux mots (en multiple d'interframedelay)
+  static int DELAY_CHOICE_WORDS_SETTING = 10000;
+  private static int UI_ANIMATION_DELAY = 300;
+  private Bundle mBundle;
 
   @Nullable
   @Override
@@ -398,17 +399,35 @@ public class SlideshowFragment extends Fragment {
       @Nullable Bundle savedInstanceState) {
     mContext = getContext();
     mCacheDirPath = mContext.getCacheDir();
+    Log.d(CLASSNAME, "DELAY_INTER_FRAME_SETTING" + DELAY_INTER_FRAME_SETTING);
 
+    UI_ANIMATION_DELAY = getActivity().getApplicationContext()
+        .getSharedPreferences("root", Context.MODE_PRIVATE)
+        .getInt("UI_ANIMATION_DELAY", 300);
+    DELAY_CHOICE_WORDS_SETTING = getActivity().getApplicationContext()
+        .getSharedPreferences("root", Context.MODE_PRIVATE)
+        .getInt("DELAY_CHOICE_WORDS_SETTING", 10000);
+    DELAY_GUESSING_SETTING = getActivity().getApplicationContext()
+        .getSharedPreferences("root", Context.MODE_PRIVATE)
+        .getInt("DELAY_GUESSING_SETTING", 5000);
+    DELAY_INTER_FRAME_SETTING = getActivity().getApplicationContext()
+        .getSharedPreferences("root", Context.MODE_PRIVATE)
+        .getInt("UI_ANIMATION_DELAY", 750);
 
+    Log.d(CLASSNAME, "DELAY_INTER_FRAME_SETTING" + DELAY_INTER_FRAME_SETTING);
+
+    if (savedInstanceState != null) {
+      mSlideshowFilesName = savedInstanceState.getStringArrayList("SlideshowFilenames");
+    }
 
     return inflater.inflate(R.layout.fragment_slideshow, container, false);
   }
-
 
   //quand on crée le fragment, on commence par une image du slideshow
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
+    this.mBundle = savedInstanceState;
     final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024);
     // Use maximum available memory for this memory cache.
     Log.d(CLASSNAME, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
@@ -804,14 +823,18 @@ public class SlideshowFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
+
     if (getActivity() != null && getActivity().getWindow() != null) {
       getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
     }
-    mSlideshowFilesName = new ArrayList<>();
-    loadStartupFragment();
-   // mStartupFragment = (StartupFragment) getFragmentManager().findFragmentByTag("StartupFragment");
+    //mSlideshowFilesName = new ArrayList<>();
+    //  loadStartupFragment();
+    //mStartupFragment = (StartupFragment) getFragmentManager().findFragmentByTag("StartupFragment");
+    //mStartupFragment.startGlobalCheckThread();
 
-    Log.d(CLASSNAME, " onResume()");
+    Log.d(CLASSNAME,
+        " onResume() DEFAUT_PROJECT_KEY" + getArguments().getString("DEFAUT_PROJECT_KEY",
+            "DEFAUT_PROJECT_KEY_NOT_FOUND"));
 
     if ((getFragmentManager().findFragmentByTag("StartupFragment")) != null) {
       Log.e(CLASSNAME, "we found our StartupFragment!!!!");
@@ -821,7 +844,7 @@ public class SlideshowFragment extends Fragment {
     // Trigger the initial hide() shortly after the activity has been
     // created, to briefly hint to the user that UI controls
     // are available.
-    mStartupFragment.startGlobalCheckThread();
+    //  startSlideshow(mSlideshowFilesName);
   }
 
   @Override
@@ -856,7 +879,7 @@ public class SlideshowFragment extends Fragment {
 
   private void show() {
     // Show the system bar
-    Objects.requireNonNull(getView()).setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+    requireView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
 
     mVisible = true;

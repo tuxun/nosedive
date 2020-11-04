@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -55,7 +54,6 @@ import javax.net.ssl.SSLException;
 public class StartupFragment extends Fragment {
   public static final String FILE_LIST_JSON = "filelist.json";
   public static final String NO_JSON = "noJson";
-  static final String M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "rescatest/";
   static final String EXTRA_MESSAGE = "EXTRA_MESSAGE";
   // TODO: Rename parameter arguments, choose names that match
   // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -65,6 +63,7 @@ public class StartupFragment extends Fragment {
   private static final String CLASSNAME = "StartupFragment";
   // private static List<String> everyImagesNames;
   private static int currentFile;
+  private static String M_SERVER_DIRECTORY_URL;
   protected final Runnable mGrabJsonRunnable;
   ArrayList<String> everyImagesNames;
   ArrayList<String> missingImagesNames;
@@ -150,6 +149,7 @@ public class StartupFragment extends Fragment {
   }
 
   public StartupFragment() {
+
   }
 
   public static StartupFragment newInstance(String param1, ArrayList<String> param2) {
@@ -158,19 +158,20 @@ public class StartupFragment extends Fragment {
     args.putString(ARG_PARAM1, param1);
     args.putStringArrayList(ARG_PARAM2, param2);
     fragment.setArguments(args);
+    //M_SERVER_DIRECTORY_URL=getActivity().getSharedPreferences("root",Context.MODE_PRIVATE).getString("DEFAUT_PROJECT_KEY","nokey");
+
     return fragment;
   }
 
   /**
-   * @param path path where the file @name should be checked
+   * @param toTest path where the file @name should be checked
    * @return return true if file is looking fine, else return false
    *
    * NO INTENT!
    * checkFile A function for check is file exists or delete it if it is empty
    */
-   @Nullable
-  protected static File checkFile(File path) {
-    File toTest = new File(path, StartupFragment.FILE_LIST_JSON);
+  @Nullable
+  protected static File checkFile(File toTest) {
     if (toTest.exists()) {
       if (toTest.length() == 0) {
         Log.e("checkFile", "deleted empty file " + toTest.getAbsolutePath());
@@ -182,6 +183,8 @@ public class StartupFragment extends Fragment {
       Log.e("checkFile", "found file " + toTest.getAbsolutePath() + toTest.length());
 
       return toTest;
+    } else {
+      Log.e("checkFile", " empty file, return null" + toTest.getAbsolutePath());
     }
 
     return null;
@@ -309,6 +312,8 @@ public class StartupFragment extends Fragment {
     mCacheDirPath = mContext.getCacheDir();
     executor = Executors.newFixedThreadPool(1);
     Log.d(CLASSNAME, "onCreateView start grabJson with " + M_SERVER_DIRECTORY_URL);
+    Log.e("lastchance", getActivity().getSharedPreferences("", Context.MODE_MULTI_PROCESS)
+        .getString("DEFAUT_PROJECT_KEY", "nokeyy"));
 
     //Log.d(CLASSNAME," added to "+container.toString());
     // Inflate the layout for this fragment
@@ -320,23 +325,40 @@ public class StartupFragment extends Fragment {
     super.onViewCreated(view, savedInstanceState);
     final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024);
     // Use maximum available memory for this memory cache.
+
+    Log.d(TAG, "onCreate had arguments at start " + M_SERVER_DIRECTORY_URL);
+    //Log.e("lastchance",getArguments().getString("DEFAUT_PROJECT_KEY"));
+
     Log.d(TAG, " onViewCreated()");
+    setupButtons(view);
+    //  view.findViewById(R.id.repairFilesButton).setEnabled(false);
+    // view.findViewById(R.id.repairFilesButton).setClickable(false);
+    everyImagesNames = new ArrayList<>();
+    missingImagesNames = new ArrayList<>();
+
+    //avant on lancait le thread de check d'ici.
+    //  sendMessage("StartupViewOk");
+
+  }
+
+  private void setupButtons(View view) {
 
     view.findViewById(R.id.settingsImageButton).setOnTouchListener(new View.OnTouchListener() {
 
       @Override
       public boolean onTouch(View view, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
-          view.performClick();
+          //  view.performClick();
 
           loadSettingFragment();
         }
+
         return true;
       }
     });
 
     view.findViewById(R.id.aboutImageButton);
-    view.setOnTouchListener(new View.OnTouchListener() {
+    /*view.setOnTouchListener(new View.OnTouchListener() {
 
       @Override
       public boolean onTouch(View view, MotionEvent event) {
@@ -353,14 +375,44 @@ public class StartupFragment extends Fragment {
         return true;
       }
     });
+
+
+
+
+
+     */
+
+    /*login show activity button*/
+
+    view.findViewById(R.id.loginImageButton).setOnTouchListener(new View.OnTouchListener() {
+
+      @Override
+      public boolean onTouch(View view, MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+          view.performClick();
+          Intent intent = null;
+          intent = new Intent(getActivity(), EmailPasswordActivity.class);
+
+          Log.d(TAG, "EmailPasswordActivity()");
+
+          // String message = "editText.getText().toString()";
+          //    intent.putExtra(EXTRA_MESSAGE, message);
+
+          startActivity(intent);
+        }
+        return true;
+      }
+    });
     /*repair files button*/
     view.findViewById(R.id.repairFilesButton).setOnTouchListener(new View.OnTouchListener() {
 
       @Override
       public boolean onTouch(View view, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
-          view.findViewById(R.id.repairFilesButton).setBackground(
-              ResourcesCompat.getDrawable(getResources(), R.color.OurWhite, null));
+          Log.d(TAG, "repairFilesButton()");
+
+        /*  view.findViewById(R.id.repairFilesButton).setBackground(
+              ResourcesCompat.getDrawable(getResources(), R.color.OurWhite, null));*/
           view.setClickable(false);
           view.setEnabled(false);
 
@@ -375,8 +427,11 @@ public class StartupFragment extends Fragment {
           globalCheckThread = new Thread(new Runnable() {
             @Override public void run() {
 
-              repairMissingFiles(
-                  M_SERVER_DIRECTORY_URL, missingImagesNames);
+              //  repairMissingFiles(
+              //      M_SERVER_DIRECTORY_URL, missingImagesNames);
+              grabJson(M_SERVER_DIRECTORY_URL, true);
+              checkFiles(M_SERVER_DIRECTORY_URL);
+              repairMissingFiles(M_SERVER_DIRECTORY_URL, missingImagesNames);
             }
           });
           globalCheckThread.start();
@@ -384,14 +439,8 @@ public class StartupFragment extends Fragment {
         return true;
       }
     });
-    view.findViewById(R.id.repairFilesButton).setEnabled(false);
-    view.findViewById(R.id.repairFilesButton).setClickable(false);
-    everyImagesNames = new ArrayList<>();
-    missingImagesNames = new ArrayList<>();
-
-    //avant on lancait le thread de check d'ici.
-    //  sendMessage("StartupViewOk");
-
+    view.findViewById(R.id.repairFilesButton).setClickable(true);
+    view.findViewById(R.id.repairFilesButton).setEnabled(true);
   }
 
   protected void startGlobalCheckThread() {
@@ -409,10 +458,14 @@ public class StartupFragment extends Fragment {
     SettingsFragment FS = new SettingsFragment();
     Bundle args = new Bundle();
     args.putString("SlideshowFilenames", "plop");
+    args.putString("DEFAUT_PROJECT_KEY", getActivity().getApplicationContext()
+        .getSharedPreferences(null, Context.MODE_MULTI_PROCESS)
+        .getString("DEFAUT_PROJECT_KEY", "alsoNOKEY"));
     FS.setArguments(args);
     //mParentView.findViewById(R.id.motherLayout).setVisibility(View.GONE);
-    transaction.add(R.id.setupScreenLinearSourceLayout, FS, "MULTIFACETTE_Settings");
-    transaction.addToBackStack(null);
+    transaction.replace(R.id.startupScreenLinearLayout, FS, "MULTIFACETTE_Settings");
+    // was working transaction.add(R.id.setupScreenLinearSourceLayout, FS, "MULTIFACETTE_Settings");
+    //transaction.addToBackStack(null);
     transaction.commit();
   }
 /*
@@ -610,7 +663,9 @@ if(jsonFile==null)
         + localFile.getAbsolutePath()
         + " from "
         + urlSourceString
-        + nameDest);
+        + nameDest
+        + "  "
+        + pathDest);
 
     try (
 
@@ -619,7 +674,7 @@ if(jsonFile==null)
             new URL(urlSourceString + nameDest).openStream())
 
     ) {
-      SystemClock.sleep(1000);
+      Thread.sleep(2000);
 
       byte[] bitmapBytesData = new byte[1024];
       int read;
@@ -628,7 +683,9 @@ if(jsonFile==null)
       while ((read = is.read(bitmapBytesData)) != -1) {
         fos.write(bitmapBytesData, 0, read);
       }
-
+      // SystemClock.sleep(1000);
+      fos.flush();
+      fos.close();
       if (!localFile.exists()) {
         Log.d(CLASSNAME, "unable to create " + localFile.getAbsolutePath());
 
@@ -646,7 +703,6 @@ if(jsonFile==null)
         sendMessageWithString("dlReceived", localFile.getName());
         currentFile++;
       }
-      return localFile;
     } catch (
         FileNotFoundException e) {
       Log.e(CLASSNAME, "local  file not found");
@@ -685,7 +741,10 @@ if(jsonFile==null)
 
       // sendMessage(NO_JSON);
       return localFile;
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
+    return localFile;
   }
 
   /**
@@ -733,9 +792,11 @@ if(jsonFile==null)
   //wtf, on a un deja un runnable grabjson
   public File grabJson(String urlSource, boolean forced) {
     Log.d(CLASSNAME, "start grabJson FUNCTION with " + urlSource);
+    Log.d(CLASSNAME, "start grabJson FUNCTION with settings" + getContext().getSharedPreferences("",
+        Context.MODE_PRIVATE).getString("DEFAUT_PROJECT_KEY", "noheckingkey"));
 
     if (!forced) {
-      File file = new File(getActivity().getBaseContext().getExternalCacheDir().getAbsolutePath(),
+      File file = new File(getActivity().getCacheDir().getAbsolutePath(),
           FILE_LIST_JSON);
       if (checkFile(file) == null) {
         Log.d(CLASSNAME,
@@ -749,10 +810,12 @@ if(jsonFile==null)
     }
     //if internet update not forced:
     else {
+      File file = getFile(urlSource, getActivity().getCacheDir().getAbsolutePath(),
+          FILE_LIST_JSON);
+
       Log.d(CLASSNAME, "grabJson update forced, url source=" + urlSource);
 
-      File file = getFile(urlSource, mCacheDirPath.getAbsolutePath(),
-          FILE_LIST_JSON);
+      SystemClock.sleep(1000);
 
       if (null != checkFile(file)) {
         Log.e(CLASSNAME,
@@ -761,7 +824,7 @@ if(jsonFile==null)
         return file;
       } else {
         Log.e(CLASSNAME,
-            "grabJson got no local file and was unable to dl the update");
+            "grabJson got no local file and was unable to dl the update" + mCacheDirPath);
         sendMessage(NO_JSON);
 
       }

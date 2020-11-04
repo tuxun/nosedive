@@ -3,8 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/startupScreenLinearLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context=".StartupFragment"
+    android:theme="@style/AppTheme.Accent"
 
     android:gravity="center|top"
     android:orientation="vertical" >
@@ -30,11 +31,10 @@
         android:layout_height="wrap_content"
         android:layout_margin="7dp"
         android:background="@drawable/ic_button_on_off"
-        android:enabled="false"
+        android:enabled="true"
         android:shadowColor="@color/OurWhite"
         android:text="@string/pleaseRepairFiles"
-        android:theme="@style/AppTheme.WhiteAccent"
-        android:visibility="gone"
+        android:theme="@style/AppTheme.Accent"
         style="?android:attr/borderlessButtonStyle"
         />
 
@@ -42,7 +42,7 @@
   <LinearLayout
 
       android:layout_width="match_parent"
-      android:layout_height="50dp"
+      android:layout_height="wrap_content"
       android:orientation="horizontal"
       android:visibility="visible"
       >
@@ -52,11 +52,13 @@
         android:layout_height="wrap_content"
         android:contentDescription="@string/showSettingsImageButton"
         android:gravity="start"
-        android:maxHeight="20dp"
-        android:maxWidth="20dp"
-        android:minHeight="20dp"
+        android:maxHeight="40dp"
+        android:maxWidth="40dp"
+        android:minHeight="30dp"
 
-        android:minWidth="20dp"
+        android:minWidth="30dp"
+
+
         android:src="@mipmap/ic_settings"
 
         />
@@ -71,6 +73,19 @@
         android:minHeight="10dp"
         android:minWidth="10dp"
         android:src="@mipmap/ic_info"
+
+        />
+    <ImageButton
+        android:id="@+id/loginImageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/showSettingsImageButton"
+        android:gravity="end"
+        android:maxHeight="20dp"
+        android:maxWidth="20dp"
+        android:minHeight="10dp"
+        android:minWidth="10dp"
+        android:src="@mipmap/ic_login"
 
         />
   </LinearLayout>
@@ -99,7 +114,7 @@
         android:indeterminateDrawable="@drawable/white_horizontal_progress_bar"
         android:indeterminateTint="@color/OurWhite"
         android:progressTint="@color/OurPink"
-        android:theme="@style/AppTheme.WhiteAccent"
+        android:theme="@style/AppTheme.Accent"
         style="?android:attr/progressBarStyleHorizontal"
 
         />
