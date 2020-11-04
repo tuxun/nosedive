@@ -19,7 +19,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:baselineAligned="false"
         android:gravity="top"
         android:orientation="horizontal"
@@ -91,7 +91,7 @@
           android:id="@+id/ui_press_meTextView"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-android:text="defauttext_slideshow_fragment"
+android:text="default_text_slideshow_fragment"
           android:gravity="center"
           android:visibility="visible"
           />

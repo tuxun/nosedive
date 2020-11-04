@@ -12,9 +12,11 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.res.ResourcesCompat;
@@ -64,23 +66,18 @@ public class SlideshowActivity extends AppCompatActivity {
   ////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////ATTRIBUTES////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////
-  boolean mHaveInternet = false;
   ArrayList<Button> mToggleButtonsArrayList = new ArrayList<>();
   //runnnable s'appelant lui meme a la fin du diapo qu'il lance
-  int screenHeight;
+  //int screenHeight;
   ArrayList<String> missingFilesNames;
   IntentFilter filter;
   int missingFilesNumber = 0;
   boolean filesChecked = false;
   private ProgressBar mDlProgressBar;
   private ArrayList<String> mSlideshowFilesName;
-  private SlideshowFragment mSlideshowFragment;
 
   private int downloadedFilesNumber;
   private ArrayList<String> mSlideshowDownloadedFilesName;
-  private View initView;
-  private Fragment mSettingsFragment;
-  private boolean fileschecked;
   public final BroadcastReceiver intentReceiver = new BroadcastReceiver() {
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -98,6 +95,7 @@ public class SlideshowActivity extends AppCompatActivity {
 
         case "dlComplete":
           Log.d(TAG, "intentReceiver got action dl complete");
+          mHaveInternet=true;
           filesChecked = true;
 
   /* (findViewById(R.id.button2)).setBackgroundColor(
@@ -141,7 +139,6 @@ public class SlideshowActivity extends AppCompatActivity {
 
         case "noJson":
         case "dlFailed":
-          mHaveInternet = false;
           findViewById(R.id.repairFilesButton).setEnabled(true);
           findViewById(R.id.repairFilesButton).setClickable(true);
 
@@ -237,7 +234,7 @@ public class SlideshowActivity extends AppCompatActivity {
           ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(R.string.updatedJsonOK);
           findViewById(R.id.repairFilesButton).setEnabled(true);
           findViewById(R.id.repairFilesButton).setClickable(true);
-          loadSlideshowFragment("jsonok");
+          loadSlideshowFragment("jsonOk");
 
           break;
 
@@ -316,6 +313,7 @@ public class SlideshowActivity extends AppCompatActivity {
 
           break;
         case "dlReceived":
+          mHaveInternet=true;
           String max1 = intent.getStringExtra(EXTRA_MESSAGE);
           Log.d(TAG, "intentReceiver got action dl received" + max1);
           mSlideshowFilesName.add(max1);
@@ -351,7 +349,7 @@ public class SlideshowActivity extends AppCompatActivity {
               findViewById(R.id.repairFilesButton).setClickable(true);
               findViewById(R.id.repairFilesButton).setBackground(
                   getResources().getDrawable(R.drawable.ic_button_on_off, null));
-              fileschecked = true;
+              boolean filesWereAlreadyFound = true;
               ((Button) findViewById(R.id.repairFilesButton)).setText(
                   "Téléchargement complet! Lancer le diapo");
               findViewById(R.id.repairFilesButton).setOnClickListener(
@@ -425,6 +423,7 @@ public class SlideshowActivity extends AppCompatActivity {
       }
     }
   };
+  protected boolean mHaveInternet = false;
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //tools
@@ -444,7 +443,7 @@ public class SlideshowActivity extends AppCompatActivity {
   }
 
   @Override
-  public void onSaveInstanceState( Bundle outState) {
+  public void onSaveInstanceState( @NonNull Bundle outState) {
     super.onSaveInstanceState(outState);
     outState.putBoolean("allFilesChecked", filesChecked);
   }
@@ -509,9 +508,9 @@ public class SlideshowActivity extends AppCompatActivity {
 
     //baseurl,projectcode, todo
 
-    mSettingsFragment = new SettingsFragment();
+    Fragment mSettingsFragment = new SettingsFragment();
     Log.d("activity", "onCreate" + getIntent());
-    initView = getWindow().getDecorView();
+   // View initView = getWindow().getDecorView();
   }
 
   @Override
@@ -520,9 +519,19 @@ public class SlideshowActivity extends AppCompatActivity {
     Log.d(TAG, "onConfigurationChanged" + getIntent());
     onResume();
   }
-@Override
+  public void hideKeyboard(View view) {
+    final InputMethodManager imm =
+        (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+    if (imm != null) {
+      imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+  }
+
+  @Override
   public boolean onKeyDown(int keycode, KeyEvent event) {
   Log.d(TAG, "onKeyDown" + keycode);
+    hideKeyboard(getWindow().getDecorView());
+
 /*  if(mSlideshowFragment!=null)
   {
     mSlideshowFragment.cleanNext();
@@ -601,24 +610,6 @@ public class SlideshowActivity extends AppCompatActivity {
    * TODO: it uses a setArguments()
    */
 
-  private void loadSettingFragment() {
-
-    Log.d(TAG, "loadSettingFragment()");
-
-    FragmentManager manager = getSupportFragmentManager();
-    FragmentTransaction transaction = manager.beginTransaction();
-
-    //transaction1.remove(this).commit();
-    Bundle args = new Bundle();
-    args.putString("SlideshowFilenames", "plop");
-    mSettingsFragment.setArguments(args);
-    //mParentView.findViewById(R.id.motherLayout).setVisibility(View.GONE);
-    transaction.replace(R.id.settingScreenLinearSourceLayout, mSettingsFragment,
-        "MULTIFACETTE_Settings");
-    // was working transaction.add(R.id.setupScreenLinearSourceLayout, FS, "MULTIFACETTE_Settings");
-    //transaction.addToBackStack(null);
-    transaction.commit();
-  }
 
   private void loadStartupFragment() {
 
@@ -641,12 +632,7 @@ public class SlideshowActivity extends AppCompatActivity {
 
   private void loadLoginFragment() {
 
-    Intent intent = null;
-    intent = new Intent(this, EmailPasswordActivity.class);
-
-    String message = "editText.getText().toString()";
-    //    intent.putExtra(EXTRA_MESSAGE, message);
-
+    Intent intent = new Intent(this, EmailPasswordActivity.class);
     startActivity(intent);
   }
 
@@ -660,7 +646,7 @@ public class SlideshowActivity extends AppCompatActivity {
           + mSlideshowDownloadedFilesName.size());
 
       findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
-      mSlideshowFragment = new SlideshowFragment();
+      SlideshowFragment mSlideshowFragment = new SlideshowFragment();
           /*
           getSupportFragmentManager().findFragmentByTag(
               "SlideshowFragment");//new org.tflsh.nosedive.SlideshowFragment();
@@ -669,8 +655,8 @@ public class SlideshowActivity extends AppCompatActivity {
       Log.d(TAG, "loadSlideshowFragment()");
       Bundle args = new Bundle();
       args.putStringArrayList("SlideshowFilenames", mSlideshowFilesName);
-      args.putString("DEFAUT_PROJECT_KEY",
-          getSharedPreferences("root", MODE_PRIVATE).getString("DEFAUT_PROJECT_KEY",
+      args.putString("DEFAULT_PROJECT_KEY",
+          getSharedPreferences("root", MODE_PRIVATE).getString("DEFAULT_PROJECT_KEY",
               "MODE_PRIVATE"));
 
       mSlideshowFragment.setArguments(args);

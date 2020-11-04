@@ -13,10 +13,10 @@
         android:title="BASE_URL" />
     <EditTextPreference
         android:defaultValue="rescatest"
-        android:key="DEFAUT_PROJECT_KEY"
+        android:key="DEFAULT_PROJECT_KEY"
         android:selectAllOnFocus="true"
         android:singleLine="true"
-        android:title="DEFAUT_PROJECT_KEY" />
+        android:title="DEFAULT_PROJECT_KEY" />
 
 
     <SwitchPreference

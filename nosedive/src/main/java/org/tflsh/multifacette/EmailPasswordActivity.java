@@ -82,7 +82,7 @@ public class EmailPasswordActivity extends BaseActivity implements
 
   private void createAccount(String email, String password) {
     Log.d(TAG, "createAccount:" + email);
-    if (!validateForm()) {
+    if (validateForm()) {
       return;
     }
 
@@ -118,7 +118,7 @@ public class EmailPasswordActivity extends BaseActivity implements
 
   private void signIn(String email, String password) {
     Log.d(TAG, "signIn:" + email);
-    if (!validateForm()) {
+    if (validateForm()) {
       return;
     }
 
@@ -211,13 +211,13 @@ public class EmailPasswordActivity extends BaseActivity implements
       mPasswordField.setError(null);
     }
 
-    return valid;
+    return !valid;
   }
 
   private void updateUI(FirebaseUser user) {
     hideProgressDialog();
     if (user != null) {
-      mStatusTextView.setText(getString(R.string.emailpassword_status_fmt,
+      mStatusTextView.setText(getString(R.string.email_password_status_fmt,
           user.getEmail(), user.isEmailVerified()));
       mDetailTextView.setText(getString(R.string.firebase_status_fmt, user.getUid()));
 

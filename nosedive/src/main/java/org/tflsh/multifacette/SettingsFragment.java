@@ -6,11 +6,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.preference.EditTextPreference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
-import androidx.preference.SeekBarPreference;
 import androidx.preference.SwitchPreferenceCompat;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -22,38 +22,49 @@ import java.util.Map;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements
     SharedPreferences.OnSharedPreferenceChangeListener {
+  private static final String CLASSNAME = "SettingsFragment";
   DataStore datastore;
   private FirebaseRemoteConfig mFirebaseRemoteConfig;
 
-  Map<String, FirebaseRemoteConfigValue> getConfig() {
-    return mFirebaseRemoteConfig.getAll();
-  }
-
-  public Map<String, ?> createSettings(Map<String, FirebaseRemoteConfigValue> SettingArg) {
-
-  /* getActivity().getSharedPreferences("",Context.MODE_PRIVATE).edit().putInt("DELAY_INTER_FRAME_SETTING",
-        (int) SettingArg.get("DELAY_INTER_FRAME_SETTING").asDouble());*/
-
-    return getActivity().getSharedPreferences("", Context.MODE_PRIVATE).getAll();
-  }
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     if (savedInstanceState != null) {
-
-      getContext().getSharedPreferences("", Context.MODE_PRIVATE)
-          .edit()
-          .putString("DEFAUT_PROJECT_KEY",
-              savedInstanceState.getString("DEFAUT_PROJECT_KEY"));
-      Log.d("settingsFrgmntOnCreate",
-          mFirebaseRemoteConfig.getString("DEFAUT_PROJECT_KEY"));
-
+//get uid?
       FirebaseDatabase.getInstance().setPersistenceEnabled(true);
     }
+  }
 
-    //setPreferencesFromResource(R.xml.root_preferences,null);
+  public EditTextPreference makeEditTextPreference(Context contextArg, String keyArg) {
+    EditTextPreference retPreference = new EditTextPreference(contextArg);
+    String value =datastore.getValue(keyArg, "makeEditTextPreference no data with key "+keyArg);
 
+    retPreference.setKey(keyArg);
+
+    retPreference.setText(value);
+    retPreference.setDefaultValue(value);
+
+    retPreference.setTitle(keyArg + " original value: "+value);
+    return retPreference;
+
+  }
+
+    public customSeekBarPreference makeSeekBar(Context contextArg, String keyArg,int defValue, int maxValue,boolean showValueArg) {
+
+    customSeekBarPreference retPreference = new customSeekBarPreference(contextArg);
+    int value =datastore.getValue(keyArg, defValue);
+
+    retPreference.setKey(keyArg);
+    retPreference.setMax(maxValue);
+
+    retPreference.setValue(value);
+    retPreference.setDefaultValue(value);
+    retPreference.setShowSeekBarValue(showValueArg);
+
+    retPreference.setTitle(keyArg + " original value: "+value);
+return retPreference;
+    //  delayFramePreference.update();
   }
 
   @Override
@@ -92,61 +103,41 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
         getPreferenceManager().createPreferenceScreen(getContext());
 
     if (datastore.isUserConnected()) {
-      Log.d("settingfragmennt", "found connected user " + datastore.getUserName());
-
+      Log.d(CLASSNAME, "found connected user " + datastore.getUserName());
+    }
       PreferenceCategory timerCategory = new PreferenceCategory(getContext());
       timerCategory.setKey("timers");
       timerCategory.setTitle("Timers");
       screen.addPreference(timerCategory);
 
-      customSeekBarPreference delayFramePreference = new customSeekBarPreference(getContext());
 
-      delayFramePreference.setKey("DELAY_INTER_FRAME_SETTING");
-      delayFramePreference.setMax(10000);
 
-      delayFramePreference.setValue(datastore.getSettings("", null).DELAY_INTER_FRAME_SETTING);
-      delayFramePreference.setDefaultValue(
-          datastore.getSettings("", null).DELAY_INTER_FRAME_SETTING);
 
-      delayFramePreference.setTitle(
-          "url" + datastore.getSettings("", null).DELAY_INTER_FRAME_SETTING);
-
-      delayFramePreference.setShowSeekBarValue(true);
-
-      //  delayFramePreference.update();
+      customSeekBarPreference delayFramePreference = makeSeekBar(getContext(),"DELAY_INTER_FRAME_SETTING",750,10000,true);
       screen.addPreference(delayFramePreference);
 
-      SeekBarPreference delayGuessingPreference = new SeekBarPreference(getContext());
-      delayGuessingPreference.setKey("DELAY_GUESSING_SETTING");
-      delayGuessingPreference.setTitle(
-          "url" + datastore.getSettings("", null).DELAY_GUESSING_SETTING);
-      delayGuessingPreference.setMax(30000);
-      delayGuessingPreference.setValue(datastore.getValue("DELAY_GUESSING_SETTING", 0));
-      delayGuessingPreference.setShowSeekBarValue(true);
+      customSeekBarPreference SeekBarPreference = makeSeekBar(getContext(),"DELAY_GUESSING_SETTING",5000,30000,true);
+      screen.addPreference(SeekBarPreference);
 
+      customSeekBarPreference delayGuessingPreference = makeSeekBar(getContext(),"DELAY_CHOICE_WORDS_SETTING",10000,30000,true);
       screen.addPreference(delayGuessingPreference);
 
-      SeekBarPreference delayChoicePreference = new SeekBarPreference(getContext());
-      delayChoicePreference.setKey("DELAY_CHOICE_WORDS_SETTING");
-      delayChoicePreference.setShowSeekBarValue(true);
-      delayChoicePreference.setTitle(
-          "url" + datastore.getSettings("", null).DELAY_CHOICE_WORDS_SETTING);
-      delayChoicePreference.setValue(datastore.getValue("DELAY_CHOICE_WORDS_SETTING", 0));
-      delayChoicePreference.setMax(30000);
-      screen.addPreference(delayChoicePreference);
-
-      SeekBarPreference delayUIPreference = new SeekBarPreference(getContext());
-      delayUIPreference.setKey("UI_ANIMATION_DELAY");
-      delayUIPreference.setShowSeekBarValue(true);
-      delayUIPreference.setTitle("url" + datastore.getSettings("", null).UI_ANIMATION_DELAY);
-      delayUIPreference.setValue(datastore.getValue("UI_ANIMATION_DELAY", 0));
-      delayUIPreference.setMax(30000);
-
+      customSeekBarPreference delayUIPreference = makeSeekBar(getContext(),"UI_ANIMATION_DELAY",300,1000,true);
       screen.addPreference(delayUIPreference);
+
+    EditTextPreference
+        baseUrlPreference = makeEditTextPreference(getContext(),"BASE_URL");
+    screen.addPreference(baseUrlPreference);
+
+    EditTextPreference
+        baseProjectPreference = makeEditTextPreference(getContext(),"DEFAULT_PROJECT_KEY");
+    screen.addPreference(baseProjectPreference);
+
+
 
       SwitchPreferenceCompat notificationPreference = new SwitchPreferenceCompat(getContext());
       notificationPreference.setKey("logout");
-      notificationPreference.setTitle("url" + datastore.getSettings("", null).DEFAUT_PROJECT_KEY);
+      notificationPreference.setTitle("url" + datastore.getValue("DEFAULT_PROJECT_KEY", "null"));
       screen.addPreference(notificationPreference);
 
       PreferenceCategory helpCategory = new PreferenceCategory(getContext());
@@ -155,7 +146,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
       screen.addPreference(helpCategory);
 
       setPreferenceScreen(screen);
-    }
+
     PreferenceManager preferenceManager = getPreferenceManager();
 
     preferenceManager.setPreferenceDataStore(datastore);
@@ -176,7 +167,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
             if (task.isSuccessful()) {
               boolean updated = task.getResult();
 
-              Log.d("settingfragmennt", "Config params updated: " + updated);
+              Log.d(CLASSNAME, "Config params updated: " + updated);
               Toast.makeText(getActivity(), "Fetch and activate succeeded",
                   Toast.LENGTH_SHORT).show();
             } else {
@@ -188,38 +179,41 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
 
             setPreferenceScreen(getPreferenceScreen());
 
-            Log.d("settingsFrament",
+            Log.d(CLASSNAME,
                 String.valueOf(mFirebaseRemoteConfig.getBoolean("resetSettingsOnNextStartup")));
-            Log.d("settingsFrament",
-                mFirebaseRemoteConfig.getString("DEFAUT_PROJECT_KEY"));
+            Log.d(CLASSNAME,
+                mFirebaseRemoteConfig.getString("DEFAULT_PROJECT_KEY"));
           /*  Log.d("settingsFrament",
-                getPreferenceScreen().findPreference("DEFAUT_PROJECT_KEY").getSharedPreferences().getString("DEFAUT_PROJECT_KEY","proutnokey"));
+                getPreferenceScreen().findPreference("DEFAULT_PROJECT_KEY").getSharedPreferences().getString("DEFAULT_PROJECT_KEY","proutnokey"));
 
 
-            getPreferenceScreen().findPreference("DEFAUT_PROJECT_KEY").getSharedPreferences().edit().putString("DEFAUT_PROJECT_KEY",
-                 mFirebaseRemoteConfig.getString("DEFAUT_PROJECT_KEY"));
-            getPreferenceScreen().findPreference("DEFAUT_PROJECT_KEY").getSharedPreferences().edit().apply();
+            getPreferenceScreen().findPreference("DEFAULT_PROJECT_KEY").getSharedPreferences().edit().putString("DEFAULT_PROJECT_KEY",
+                 mFirebaseRemoteConfig.getString("DEFAULT_PROJECT_KEY"));
+            getPreferenceScreen().findPreference("DEFAULT_PROJECT_KEY").getSharedPreferences().edit().apply();
 */
           }
         });
     mFirebaseRemoteConfig.setDefaultsAsync(R.xml.root_preferences);
 
-    createSettings(getConfig());
 
     //mFirebaseRemoteConfig.fetch(5);
 
-    //mFirebaseRemoteConfig.getString("DEFAUT_PROJECT_KEY");
+    //mFirebaseRemoteConfig.getString("DEFAULT_PROJECT_KEY");
 
   }
 
   @Override public void onPause() {
     super.onPause();
+    Log.d(CLASSNAME, "onPause");
+
     /*getPreferenceScreen().getSharedPreferences()
         .unregisterOnSharedPreferenceChangeListener(this);*/
   }
 
   @Override public void onResume() {
     super.onResume();
+    Log.d(CLASSNAME, "onResume");
+
 /*    getPreferenceScreen().getSharedPreferences()
         .registerOnSharedPreferenceChangeListener(this);
   */
@@ -228,17 +222,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
   @Override
   public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
       String key) {
-    switch (key) {
- /*getPreferenceManager().getSharedPreferences().edit().putInt("DELAY_GUESSING_SETTING",
-        (int) SettingArg.get("DELAY_INTER_FRAME_SETTING").asDouble());
-    getPreferenceManager().getSharedPreferences().edit().putInt("DELAY_CHOICE_WORDS_SETTING",
-        (int) SettingArg.get("DELAY_INTER_FRAME_SETTING").asDouble());
-    getPreferenceManager().getSharedPreferences().edit().putInt("UI_ANIMATION_DELAY",
-        (int) SettingArg.get("DELAY_INTER_FRAME_SETTING").asDouble());
-    getPreferenceManager().getSharedPreferences().edit().putBoolean("resetSettingsOnNextStartup",SettingArg.get("resetSettingsOnNextStartup").asBoolean());
-    getPreferenceManager().getSharedPreferences().edit().putString("DEFAUT_PROJECT_KEY",SettingArg.get("DEFAUT_PROJECT_KEY").asString());
-    getPreferenceManager().getSharedPreferences().edit().putString("BASE_URL",SettingArg.get("BASE_URL").asString());
-    getPreferenceManager().getSharedPreferences().edit().commit();*/
+  /*  switch (key) {
+
       case "DELAY_CHOICE_WORDS_SETTING":
       case "DELAY_GUESSING_SETTING":
       case "DELAY_INTER_FRAME_SETTING": {
@@ -252,7 +237,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
       }
 
       case "BASE_URL":
-      case "DEFAUT_PROJECT_KEY": {
+      case "DEFAULT_PROJECT_KEY": {
         getPreferenceScreen().getSharedPreferences()
             .edit()
             .putString(key, mFirebaseRemoteConfig.getString(key));
@@ -262,10 +247,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
             .edit()
             .putString(key, mFirebaseRemoteConfig.getString(key));
 
-     /* getActivity().getSharedPreferences( "",Context.MODE_PRIVATE)
-          .edit()
-          .putString(key, sharedPreferences.getString(key, "keychanged"));
-*/
+
         getActivity().getSharedPreferences("", Context.MODE_PRIVATE)
             .edit().commit();
         //mFirebaseRemoteConfig.getKeysByPrefix("DELAY
@@ -275,10 +257,10 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
     Log.d("settingfragmennt", "Config params updated: " + key);
     getActivity().getSharedPreferences("", Context.MODE_PRIVATE)
         .edit().apply();
+   */
   }
 
-  public SettingsFragment() {
-  }
+
 
 /*
   @Nullable

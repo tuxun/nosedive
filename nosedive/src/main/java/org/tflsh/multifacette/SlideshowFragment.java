@@ -390,7 +390,6 @@ public class SlideshowFragment extends Fragment {
   //temps durant lequel on peut choisir deux mots (en multiple d'interframedelay)
   static int DELAY_CHOICE_WORDS_SETTING = 10000;
   private static int UI_ANIMATION_DELAY = 300;
-  private Bundle mBundle;
 
   @Nullable
   @Override
@@ -427,7 +426,6 @@ public class SlideshowFragment extends Fragment {
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    this.mBundle = savedInstanceState;
     final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024);
     // Use maximum available memory for this memory cache.
     Log.d(CLASSNAME, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
@@ -460,7 +458,7 @@ public class SlideshowFragment extends Fragment {
     mVisible = true;
     executor = Executors.newFixedThreadPool(1);
     mBackgroundImageDecoder =
-        new BackgroundImageDecoder(mContext, screenWidth, screenHeight, memoryCache,
+        new BackgroundImageDecoder(mContext, screenWidth, screenHeight,
             executor);
     //    mParentView = view.findViewById(R.id.fullscreen_content_controls);
     //mControlsView = view.findViewById(R.id.SlideshowFragment);
@@ -833,14 +831,9 @@ public class SlideshowFragment extends Fragment {
     //mStartupFragment.startGlobalCheckThread();
 
     Log.d(CLASSNAME,
-        " onResume() DEFAUT_PROJECT_KEY" + getArguments().getString("DEFAUT_PROJECT_KEY",
-            "DEFAUT_PROJECT_KEY_NOT_FOUND"));
+        " onResume() DEFAULT_PROJECT_KEY" + getArguments().getString("DEFAULT_PROJECT_KEY",
+            "DEFAULT_PROJECT_KEY_NOT_FOUND"));
 
-    if ((getFragmentManager().findFragmentByTag("StartupFragment")) != null) {
-      Log.e(CLASSNAME, "we found our StartupFragment!!!!");
-    } else {
-      Log.d(CLASSNAME, "SlideshowFragment onCreate() mStartupFragment=void");
-    }
     // Trigger the initial hide() shortly after the activity has been
     // created, to briefly hint to the user that UI controls
     // are available.
@@ -919,7 +912,8 @@ public class SlideshowFragment extends Fragment {
     //args.putString("M_SERVER_DIRECTORY_URL", M_SERVER_DIRECTORY_URL);
     //args.putStringArrayList("SlideshowFilenames", mSlideshowFilesName);
     //mStartupFragment.setArguments(args);
-    FragmentManager manager = getFragmentManager();
+
+    @SuppressWarnings("deprecation") FragmentManager manager = getFragmentManager();
     mStartupFragment = new StartupFragment();
 
     FragmentTransaction transaction = manager.beginTransaction();

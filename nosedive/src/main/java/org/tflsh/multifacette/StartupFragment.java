@@ -52,7 +52,7 @@ import javax.net.ssl.SSLException;
  * create an instance of this fragment.
  */
 public class StartupFragment extends Fragment {
-  public static final String FILE_LIST_JSON = "filelist.json";
+  public static final String FILE_LIST_JSON = "files_list.json";
   public static final String NO_JSON = "noJson";
   static final String EXTRA_MESSAGE = "EXTRA_MESSAGE";
   // TODO: Rename parameter arguments, choose names that match
@@ -61,6 +61,7 @@ public class StartupFragment extends Fragment {
   private static final String ARG_PARAM2 = "param2";
   private static final String TAG = "StartupFragment";
   private static final String CLASSNAME = "StartupFragment";
+  private static String M_SERVER_BASE_PROJECT_KEY = "rescatest";
   // private static List<String> everyImagesNames;
   private static int currentFile;
   private static String M_SERVER_DIRECTORY_URL;
@@ -83,18 +84,13 @@ public class StartupFragment extends Fragment {
   //    private String M_SERVER_DIRECTORY_URL;
   //   private ArrayList<String> missingImagesNames;
   private File mCacheDirPath;
-  private ViewGroup mParentViewGroup;
-  private View mParentView;
   private ExecutorService executor;
-  // static List<String> name;
-  //static String urlSource;
-  //static List<String> missingImagesNames;
   private Thread globalCheckThread = new Thread(new Runnable() {
     @Override public void run() {
 
-      grabJson(M_SERVER_DIRECTORY_URL, false);
+      grabJson(M_SERVER_DIRECTORY_URL+M_SERVER_BASE_PROJECT_KEY, false);
       checkFiles(M_SERVER_DIRECTORY_URL);
-      repairMissingFiles(M_SERVER_DIRECTORY_URL, missingImagesNames);
+      repairMissingFiles(M_SERVER_DIRECTORY_URL+M_SERVER_BASE_PROJECT_KEY, missingImagesNames);
     }
   });
   //waring ce runnable n'enoive plus d'intent, on tente de favoriser celes émises dans grabJson
@@ -110,7 +106,7 @@ public class StartupFragment extends Fragment {
       public void run() {
 
         try {
-          File localJsonFile = checkFile(grabJson(M_SERVER_DIRECTORY_URL,true));
+          File localJsonFile = checkFile(grabJson(M_SERVER_DIRECTORY_URL+M_SERVER_BASE_PROJECT_KEY,true));
 
           //TODO: grabjson still return an empty file somewhere.
           if (localJsonFile==null) {
@@ -158,7 +154,7 @@ public class StartupFragment extends Fragment {
     args.putString(ARG_PARAM1, param1);
     args.putStringArrayList(ARG_PARAM2, param2);
     fragment.setArguments(args);
-    //M_SERVER_DIRECTORY_URL=getActivity().getSharedPreferences("root",Context.MODE_PRIVATE).getString("DEFAUT_PROJECT_KEY","nokey");
+    //M_SERVER_DIRECTORY_URL=getActivity().getSharedPreferences("root",Context.MODE_PRIVATE).getString("DEFAULT_PROJECT_KEY","nokey");
 
     return fragment;
   }
@@ -312,8 +308,7 @@ public class StartupFragment extends Fragment {
     mCacheDirPath = mContext.getCacheDir();
     executor = Executors.newFixedThreadPool(1);
     Log.d(CLASSNAME, "onCreateView start grabJson with " + M_SERVER_DIRECTORY_URL);
-    Log.e("lastchance", getActivity().getSharedPreferences("", Context.MODE_MULTI_PROCESS)
-        .getString("DEFAUT_PROJECT_KEY", "nokeyy"));
+
 
     //Log.d(CLASSNAME," added to "+container.toString());
     // Inflate the layout for this fragment
@@ -327,7 +322,7 @@ public class StartupFragment extends Fragment {
     // Use maximum available memory for this memory cache.
 
     Log.d(TAG, "onCreate had arguments at start " + M_SERVER_DIRECTORY_URL);
-    //Log.e("lastchance",getArguments().getString("DEFAUT_PROJECT_KEY"));
+    //Log.e("lastchance",getArguments().getString("DEFAULT_PROJECT_KEY"));
 
     Log.d(TAG, " onViewCreated()");
     setupButtons(view);
@@ -390,8 +385,7 @@ public class StartupFragment extends Fragment {
       public boolean onTouch(View view, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
           view.performClick();
-          Intent intent = null;
-          intent = new Intent(getActivity(), EmailPasswordActivity.class);
+          Intent intent = new Intent(getActivity(), EmailPasswordActivity.class);
 
           Log.d(TAG, "EmailPasswordActivity()");
 
@@ -410,6 +404,8 @@ public class StartupFragment extends Fragment {
       public boolean onTouch(View view, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
           Log.d(TAG, "repairFilesButton()");
+          M_SERVER_DIRECTORY_URL=new DataStore().getValue("BASE_URL","startup fragment button but no url");
+          M_SERVER_BASE_PROJECT_KEY=new DataStore().getValue("DEFAULT_PROJECT_KEY","startup fragment button but no project key")+"/";
 
         /*  view.findViewById(R.id.repairFilesButton).setBackground(
               ResourcesCompat.getDrawable(getResources(), R.color.OurWhite, null));*/
@@ -429,9 +425,9 @@ public class StartupFragment extends Fragment {
 
               //  repairMissingFiles(
               //      M_SERVER_DIRECTORY_URL, missingImagesNames);
-              grabJson(M_SERVER_DIRECTORY_URL, true);
+              grabJson(M_SERVER_DIRECTORY_URL+M_SERVER_BASE_PROJECT_KEY, true);
               checkFiles(M_SERVER_DIRECTORY_URL);
-              repairMissingFiles(M_SERVER_DIRECTORY_URL, missingImagesNames);
+              repairMissingFiles(M_SERVER_DIRECTORY_URL+M_SERVER_BASE_PROJECT_KEY, missingImagesNames);
             }
           });
           globalCheckThread.start();
@@ -451,50 +447,25 @@ public class StartupFragment extends Fragment {
 
     Log.d(TAG, "loadSettingFragment()");
 
-    FragmentManager manager = getFragmentManager();
+    @SuppressWarnings("deprecation") FragmentManager manager = getFragmentManager();
     FragmentTransaction transaction = manager.beginTransaction();
 
     //transaction1.remove(this).commit();
     SettingsFragment FS = new SettingsFragment();
-    Bundle args = new Bundle();
-    args.putString("SlideshowFilenames", "plop");
-    args.putString("DEFAUT_PROJECT_KEY", getActivity().getApplicationContext()
-        .getSharedPreferences(null, Context.MODE_MULTI_PROCESS)
-        .getString("DEFAUT_PROJECT_KEY", "alsoNOKEY"));
-    FS.setArguments(args);
+
     //mParentView.findViewById(R.id.motherLayout).setVisibility(View.GONE);
     transaction.replace(R.id.startupScreenLinearLayout, FS, "MULTIFACETTE_Settings");
     // was working transaction.add(R.id.setupScreenLinearSourceLayout, FS, "MULTIFACETTE_Settings");
     //transaction.addToBackStack(null);
     transaction.commit();
   }
-/*
-  private boolean isInternetOk() {
-    //https://developer.android.com/training/monitoring-device-state/connectivity-status-type
-    ConnectivityManager cm =
-        (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BASE) {
-      Log.e("checkFile", "SDK>R");
 
-      Network activeNetwork = cm.getActiveNetwork();
-      return Objects.requireNonNull(cm.getNetworkCapabilities(activeNetwork))
-          .hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
-    } else {
-      Log.e("checkFile", "SDK<R");
-
-      NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-      return activeNetwork != null &&
-          activeNetwork.isConnected();
-    }
-  }
-*/
   /**
    * A function for check is file exists or is empty
-   *
-   * @param urlSource path where the file @name should be checked
+   *  @param urlSource path where the file @name should be checked
    * @param missingFileNamesArg name of the file to check
    */
-  public int repairMissingFiles(final String urlSource, ArrayList<String> missingFileNamesArg) {
+  public void repairMissingFiles(final String urlSource, ArrayList<String> missingFileNamesArg) {
     int downloadedFilesNumber = 0;
 
     if(missingFileNamesArg==null)
@@ -502,7 +473,7 @@ public class StartupFragment extends Fragment {
         "repairMissingFiles()  canceled cause no files to repair");
       sendMessage("dlFailed");
 
-      return -1;
+      return;
     }Log.e(CLASSNAME,
         "repairMissingFiles()  missing or broken " + missingFileNamesArg.size() + " files");
     //   checkFiles( urlSource);
@@ -518,10 +489,9 @@ public class StartupFragment extends Fragment {
         downloadedFilesNumber++;
       }
     }
-    if (thereIsMissingFiles == false) {
+    if (!thereIsMissingFiles) {
       sendMessage("dlComplete");
     }
-    return downloadedFilesNumber;
   }
 
   public void onResume() {
@@ -657,6 +627,7 @@ if(jsonFile==null)
       localFile.createNewFile();
     } catch (IOException e) {
       e.printStackTrace();
+      return null;
     }
 
     Log.d(CLASSNAME, "creating ..."
@@ -712,7 +683,7 @@ if(jsonFile==null)
     }
     catch (
   NetworkOnMainThreadException e) {
-    Log.e(CLASSNAME, "NO NET HAHAHAHAHA");
+    Log.e(CLASSNAME, "UNABLE TO REACH INTERNET!");
 
     e.printStackTrace();
     return null;
@@ -792,8 +763,8 @@ if(jsonFile==null)
   //wtf, on a un deja un runnable grabjson
   public File grabJson(String urlSource, boolean forced) {
     Log.d(CLASSNAME, "start grabJson FUNCTION with " + urlSource);
-    Log.d(CLASSNAME, "start grabJson FUNCTION with settings" + getContext().getSharedPreferences("",
-        Context.MODE_PRIVATE).getString("DEFAUT_PROJECT_KEY", "noheckingkey"));
+    /*Log.d(CLASSNAME, "start grabJson FUNCTION with settings" + getContext().getSharedPreferences("",
+        Context.MODE_PRIVATE).getString("DEFAULT_PROJECT_KEY", "noheckingkey"));*/
 
     if (!forced) {
       File file = new File(getActivity().getCacheDir().getAbsolutePath(),

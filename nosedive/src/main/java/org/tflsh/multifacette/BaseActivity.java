@@ -2,6 +2,8 @@ package org.tflsh.multifacette;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,6 +34,22 @@ public class BaseActivity extends AppCompatActivity {
     if (imm != null) {
       imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
+  }
+  @Override
+  public boolean onKeyDown(int keycode, KeyEvent event) {
+    Log.d("BaseActivity", "onKeyDown" + keycode);
+/*  if(mSlideshowFragment!=null)
+  {
+    mSlideshowFragment.cleanNext();
+  }*/
+
+    if (keycode == KeyEvent.KEYCODE_BACK) {
+      onResume();
+      hideKeyboard(getWindow().getDecorView());
+      return true;
+    }
+    return false;
+
   }
 
   @Override

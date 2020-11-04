@@ -6,11 +6,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.SystemClock;
 import android.util.Log;
-import android.util.LruCache;
+
 import android.widget.ImageView;
 import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
-import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,17 +30,11 @@ public class BackgroundImageDecoder extends Activity {
   final int screenHeight;
 
   //constructor: save the context for later uses
-  public BackgroundImageDecoder(Context ctx, int width, int height,
-      LruCache<String, Bitmap> memoryCacheArg, ExecutorService executorArg) {
+  public BackgroundImageDecoder(Context ctx, int width, int height, ExecutorService executorArg) {
     //    executor=executorArg;
     Log.d("asyncTaskManager", "starting helper with context");
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     mContext = ctx;
-    File mCacheDir = ctx.getCacheDir();
-    //tuxun: try lru cache for large bitmap
-    // Get max available VM memory, exceeding this amount will throw an
-    // OutOfMemory exception. Stored in kilobytes as LruCache takes an
-    // int in its constructor.
 
     screenWidth = width;
     screenHeight = height;
@@ -103,7 +96,7 @@ public class BackgroundImageDecoder extends Activity {
 
   //asynchronous thread  which should:
   // -1 download file list on https://server/project/index.php
-  // -2 save it under external_cache/filelist.json
+  // -2 save it under external_cache/files_list.json
   // -3 open it
   // -4 parse it,
   // -5 start the downloading of the missing images

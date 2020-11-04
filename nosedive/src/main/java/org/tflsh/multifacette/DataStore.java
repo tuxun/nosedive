@@ -21,15 +21,15 @@ import com.google.firebase.database.ValueEventListener;
     instance = new nosediveSettings();
   }
 
-  public String username = "defaultUserName";
-  public String email = "defaultUserMailAddress";
+//  public String username = "defaultUserName";
+ // public String email = "defaultUserMailAddress";
   public int DELAY_INTER_FRAME_SETTING = 750;
   //temps durant lequel on regarde une image proposé apres le menu (en multiple d'interframedelay)
   public int DELAY_GUESSING_SETTING = 5000;
   //temps durant lequel on peut choisir deux mots (en multiple d'interframedelay)
   public int DELAY_CHOICE_WORDS_SETTING = 10000;
   public long UI_ANIMATION_DELAY = 300;
-  public String DEFAUT_PROJECT_KEY = "rescatest";
+  public String DEFAULT_PROJECT_KEY = "rescatest";
   public String BASE_URL = "https://dev.tuxun.fr/nosedive/";
 
   public boolean syncProjectOnNextStartup = false;
@@ -42,11 +42,6 @@ import com.google.firebase.database.ValueEventListener;
     // Default constructor required for calls to DataSnapshot.getValue(User.class)
   }
 
-  public nosediveSettings(String username, String email) {
-    this.username = username;
-    this.email = email;
-  }
-
   public static nosediveSettings getInstance() {
     return instance;
   }
@@ -55,13 +50,12 @@ import com.google.firebase.database.ValueEventListener;
 public class DataStore extends PreferenceDataStore {
   private static final String TAG = "DataStore";
   private final FirebaseAuth mAuth;
-  nosediveSettings settings;
-  FirebaseUser user;
-  FirebaseDatabase database;
+  final nosediveSettings settings;
+  final FirebaseUser user;
+  final FirebaseDatabase database;
 
-  DatabaseReference usersPath;
-  DatabaseReference thisUserPath;
-  DatabaseReference dbusersPath;
+  final DatabaseReference usersPath;
+  final DatabaseReference thisUserPath;
 
   public DataStore() {
     super();
@@ -82,16 +76,17 @@ public class DataStore extends PreferenceDataStore {
     if (isUserConnected()) {
       thisUserPath = usersPath.child(user.getUid());
     } else {
-      thisUserPath = usersPath.child("nouser");
+      //could be null to avoid write mess in db
+      thisUserPath = usersPath.child("user_unset");
     }
 
     //  thisUserPath.keepSynced(true);
 
     //Firebase Database paths must not contain '.', '#', '$', '[', or ']'
-    DatabaseReference myRef = database.getReference("test");
+    DatabaseReference myRef = database.getReference("logs");
     myRef.setValue("test1");
     myRef.setValue("test2");
-    myRef = database.getReference("test_testjkjnk");
+    myRef = database.getReference("test_second");
     myRef.setValue("test3");
     myRef.setValue("test4");
     myRef = database.getReference("test_test");
@@ -120,7 +115,7 @@ public class DataStore extends PreferenceDataStore {
     }
   }
 
-  protected boolean getValue(String key, boolean value) {
+  protected boolean getValue(String key, boolean def) {
     switch (key) {
       case "syncProjectOnNextStartup":
         return settings.syncProjectOnNextStartup;
@@ -158,7 +153,7 @@ public class DataStore extends PreferenceDataStore {
     }
   }
 
-  protected int getValue(String key, int value) {
+  protected int getValue(String key,int def) {
     switch (key) {
       case "DELAY_INTER_FRAME_SETTING":
         return settings.DELAY_INTER_FRAME_SETTING;
@@ -187,21 +182,21 @@ public class DataStore extends PreferenceDataStore {
         settings.BASE_URL = value;
 
         break;
-      case "DEFAUT_PROJECT_KEY":
-        settings.DEFAUT_PROJECT_KEY = value;
+      case "DEFAULT_PROJECT_KEY":
+        settings.DEFAULT_PROJECT_KEY = value;
         break;
     }
   }
-
-  protected String getValue(String key, String value) {
+@Nullable
+  protected String getValue(String key, String def) {
     switch (key) {
       case "BASE_URL":
         return settings.BASE_URL;
-      case "DEFAUT_PROJECT_KEY":
-        return settings.DEFAUT_PROJECT_KEY;
+      case "DEFAULT_PROJECT_KEY":
+        return settings.DEFAULT_PROJECT_KEY;
 
       default:
-        return "voidstring";
+        return null;
     }
   }
 
@@ -211,67 +206,35 @@ public class DataStore extends PreferenceDataStore {
 
   //should set settings in db and file
   @Override
-  public void putString(String key, @Nullable String value) {
-    // Save the value somewhere
-
+  public void putString(String key,  String value) {
+     //we should set config locally then push to db
     setValue(key, value);
-    //thisUserPath.setValue(key,value);
-    //we should set config localy then push to db
-    Log.d(TAG, "wrote value to db " + user.getUid() + " " + key + " " + value);
-    Log.d(TAG, "szttings said:  " + getValue(key, "void"));
   }
 
   @Override
-  public void putBoolean(String key, @Nullable boolean value) {
+  public void putBoolean(String key,  boolean value) {
     // Save the value somewhere
     setValue(key, value);
-    Log.d(TAG, "wrote value to db " + user.getUid() + " " + key + " " + value);
-    Log.d(TAG, "szttings said:  " + getValue(key, false));
   }
 
   @Override
-  public void putInt(String key, @Nullable int value) {
+  public void putInt(String key,  int value) {
     // Save the value somewhere
     setValue(key, value);
 
-    Log.d(TAG, "szttings said:  " + getValue(key, 0));
-
-    Log.d(TAG, "wrote value to db " + user.getUid() + " " + key + " " + value);
   }
 
   //should get settings from db or file
   @Override
   @Nullable
-  public String getString(final String key, @Nullable String defValue) {
-    // Retrieve the value
-    final String[] post = new String[0];
-    post[0] = defValue;
+  public String getString(final String key,  String defValue) {
 
-    DatabaseReference myRef = database.getReference(user.getUid());
-    ValueEventListener postListener = new ValueEventListener() {
-      @Override
-      public void onDataChange(DataSnapshot dataSnapshot) {
-        // Get Post object and use the values to update the UI
-        post[0] = dataSnapshot.getValue(String.class);
-        setValue(key, dataSnapshot.getValue(boolean.class));
 
-        // ...
-      }
-
-      @Override
-      public void onCancelled(DatabaseError databaseError) {
-        // Getting Post failed, log a message
-        Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
-        // ...
-      }
-    };
-    myRef.addListenerForSingleValueEvent(postListener);
-
-    return post[0];
+    return getValue(key, defValue);
   }
 
   @Nullable
-  public boolean getBoolean(final String key, @Nullable final boolean defValue) {
+  public boolean getBoolean(final String key,  final boolean defValue) {
     final boolean[] post = new boolean[1];
     post[0] = defValue;
 
@@ -281,7 +244,7 @@ public class DataStore extends PreferenceDataStore {
       public void onDataChange(DataSnapshot dataSnapshot) {
         // Get Post object and use the values to update the UI
         Log.d(TAG,
-            "getBoolean grabbing " + key + " defvalue= " + dataSnapshot.getValue(boolean.class));
+            "getBoolean grabbing " + key + " default value= " + dataSnapshot.getValue(boolean.class));
         //!!! type change cause mess
         ///thisUserPath.child(key).setValue(dataSnapshot.getValue(boolean.class));
         // ...
@@ -300,58 +263,8 @@ public class DataStore extends PreferenceDataStore {
   }
 
   @Nullable
-  public int getInt(final String key, @Nullable int defValue) {
-
-    final int[] ret = { 0 };
-    DatabaseReference myRef = database.getReference(user.getUid());
-    ValueEventListener postListener = new ValueEventListener() {
-      @Override
-      public void onDataChange(DataSnapshot dataSnapshot) {
-        Log.d(TAG, "datachanged " + key);
-
-        // Get Post object and use the values to update the UI
-        //             thisUserPath.setValue(key,  dataSnapshot.getValue(nosediveSettings.class));
-        //!!! stop it overwrites db !!! thisUserPath.child(key).setValue(dataSnapshot.getValue(int.class));
-
-        //ret[0] =dataSnapshot.getValue(int.class);
-        // ...
-      }
-
-      @Override
-      public void onCancelled(DatabaseError databaseError) {
-        // Getting Post failed, log a message
-        Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
-        // ...
-      }
-    };
-    myRef.addListenerForSingleValueEvent(postListener);
+  public int getInt(final String key,  int defValue) {
 
     return getValue(key, defValue);
-  }
-
-  @Nullable
-  public nosediveSettings getSettings(final String key, @Nullable nosediveSettings defValue) {
-    Log.d(TAG, "getSettings " + key + " " + defValue);
-
-    DatabaseReference myRef = database.getReference(user.getUid());
-    ValueEventListener postListener = new ValueEventListener() {
-      @Override
-      public void onDataChange(DataSnapshot dataSnapshot) {
-        // Get Post object and use the values to update the UI
-        //        thisUserPath.setValue(key,  dataSnapshot.getValue(nosediveSettings.class));
-        Log.d(TAG, "datachanged " + dataSnapshot.getValue(nosediveSettings.class));
-        // ...
-      }
-
-      @Override
-      public void onCancelled(DatabaseError databaseError) {
-        // Getting Post failed, log a message
-        Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
-        // ...
-      }
-    };
-    thisUserPath.addListenerForSingleValueEvent(postListener);
-
-    return settings;
   }
 }

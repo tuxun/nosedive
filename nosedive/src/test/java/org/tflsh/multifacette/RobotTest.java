@@ -32,9 +32,10 @@ public class RobotTest {
   @Before
   public void createTest()
   {
-    Context appContext =InstrumentationRegistry.getInstrumentation().getTargetContext();
+    //Context appContext =InstrumentationRegistry.getInstrumentation().getTargetContext();
 
     //mTarget=new SlideshowActivity();
+    //noinspection deprecation
     activity = Robolectric.setupActivity(SlideshowActivity.class);
 
 
