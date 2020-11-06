@@ -2,10 +2,12 @@ package org.tflsh.multifacette;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.preference.EditTextPreference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
@@ -17,11 +19,17 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
-import com.google.firebase.remoteconfig.FirebaseRemoteConfigValue;
-import java.util.Map;
+import java.util.Objects;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements
     SharedPreferences.OnSharedPreferenceChangeListener {
+  private static final SettingsFragment instance=new SettingsFragment();
+
+
+  public static SettingsFragment getInstance() {
+    return instance;
+  }
+
   private static final String CLASSNAME = "SettingsFragment";
   DataStore datastore;
   private FirebaseRemoteConfig mFirebaseRemoteConfig;
@@ -67,7 +75,7 @@ return retPreference;
     //  delayFramePreference.update();
   }
 
-  @Override
+  @RequiresApi(api = Build.VERSION_CODES.P) @Override
   public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
     //?PreferenceManager.getDefaultSharedPreferences(getContext());
     // addPreferencesFromResource(R.xml.root_preferences);
@@ -105,7 +113,8 @@ return retPreference;
     if (datastore.isUserConnected()) {
       Log.d(CLASSNAME, "found connected user " + datastore.getUserName());
     }
-      PreferenceCategory timerCategory = new PreferenceCategory(getContext());
+      PreferenceCategory timerCategory = new PreferenceCategory(
+          Objects.requireNonNull(getContext()));
       timerCategory.setKey("timers");
       timerCategory.setTitle("Timers");
       screen.addPreference(timerCategory);
@@ -161,7 +170,7 @@ return retPreference;
     //TODO: this can occurs even after fragment left the screen
 
     mFirebaseRemoteConfig.fetchAndActivate()
-        .addOnCompleteListener(getActivity().getMainExecutor(), new OnCompleteListener<Boolean>() {
+        .addOnCompleteListener(Objects.requireNonNull(getActivity()).getMainExecutor(), new OnCompleteListener<Boolean>() {
           @Override
           public void onComplete(@NonNull Task<Boolean> task) {
             if (task.isSuccessful()) {

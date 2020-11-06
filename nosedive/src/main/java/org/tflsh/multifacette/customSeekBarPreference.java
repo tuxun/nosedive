@@ -29,9 +29,9 @@ public class customSeekBarPreference extends SeekBarPreference implements OnSeek
 
   /**
    * https://stackoverflow.com/questions/30170384/custom-inline-seekbarpreference-how-to-set-seekbar-progress-on-the-1st-run
-   * @param a
-   * @param index
-   * @return
+   * @param a see
+   * @param index stack post
+   * @return value
    */
   @Override
   protected Object onGetDefaultValue(TypedArray a, int index) {

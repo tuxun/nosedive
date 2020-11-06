@@ -1,41 +1,38 @@
 package org.tflsh.multifacette;
 
 import android.app.Activity;
-import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.SystemClock;
 import android.util.Log;
 
 import android.widget.ImageView;
 import androidx.annotation.Nullable;
-import androidx.core.content.res.ResourcesCompat;
 import java.lang.ref.WeakReference;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Executor;
 
 import static java.lang.System.currentTimeMillis;
 
 public class BackgroundImageDecoder extends Activity {
   static final String CLASSNAME = "BackgroundImageDecoder";
-  static final ExecutorService executor = Executors.newFixedThreadPool(1);
+  //static final ExecutorService executor = Executors.newFixedThreadPool(1);
   /**
    * Called when the user taps the Send button
    */
-  private final Context mContext;
-  private static int currentFile;
+//  private final Resources.Theme mContext;
+  //private static int currentFile;
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  private static int missingFilesNumber;
-  final int screenWidth;
-  final int screenHeight;
-
+  //private static int missingFilesNumber;
+  static  int screenWidth;
+  static  int screenHeight;
+//final Resources.Theme mTheme;
   //constructor: save the context for later uses
-  public BackgroundImageDecoder(Context ctx, int width, int height, ExecutorService executorArg) {
+  public BackgroundImageDecoder(Resources.Theme themeArg, int width, int height) {
     //    executor=executorArg;
     Log.d("asyncTaskManager", "starting helper with context");
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    mContext = ctx;
-
+    //mContext = ctx;
+//mTheme=themeArg;
     screenWidth = width;
     screenHeight = height;
   }
@@ -109,42 +106,45 @@ public class BackgroundImageDecoder extends Activity {
     super.onStop();
     Log.d(CLASSNAME, "onStop()");
 
-    executor.shutdown();
+    /*executor.shutdown();
     while (!executor.isTerminated()) {
       executor.shutdown();
 
       SystemClock.sleep(30);
       Log.d(CLASSNAME, "have a struggling task");
-    }
+    }*/
   }
 
-  public class ShowImageTask extends Thread {
+  public static class ShowImageTask extends Thread {
     static final String CLASSNAME = "showImageFileTask";
     final WeakReference<ImageView> bmImage;
     final int maxDelay;
     final String srcString;
     final long startTime;
+    private final Executor executor;
 
-    public ShowImageTask(ImageView bbmImage, @Nullable String urlSource,
+    public ShowImageTask(Executor executorArg, ImageView bbmImage, @Nullable String urlSource,
         int maxDelayParam) {
       this.bmImage = new WeakReference<>(bbmImage);
       this.maxDelay = maxDelayParam;
       this.srcString = urlSource;
       startTime = currentTimeMillis();
+      executor=executorArg;
     }
 
     protected void doInBackground() {
       try {
         //
-
+/*
         if (srcString.isEmpty()) {
           bmImage.get()
               .setImageDrawable(ResourcesCompat.getDrawable(getResources(),
-                  R.drawable.default_background, mContext.getTheme()));
+                  R.drawable.default_background, mTheme));
           Log.d(CLASSNAME, "default image took " + (currentTimeMillis() - startTime) + "ms");
 
           return;
         }
+  */
         final Bitmap result = decodeSampledBitmapFromFilepath(srcString);
 
         Runnable r = new Runnable() {
@@ -180,8 +180,9 @@ public class BackgroundImageDecoder extends Activity {
                 " took " + timer + "ms for decode " + srcString + " , waited " + delay + "ms");
           }
         };
-        //executor.execute(r);
-        runOnUiThread(r);
+        executor.execute(r);
+        //runOnUiThread(r);
+      //r.run();
       } catch (Exception e) {
         Log.e(CLASSNAME, "Exception in showImageFileTask.doInBackground()");
         e.printStackTrace();

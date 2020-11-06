@@ -3,7 +3,6 @@ package org.tflsh.multifacette;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,7 +10,6 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.LruCache;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,10 +21,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
@@ -38,17 +35,27 @@ import java.util.concurrent.Executors;
  * status bar and navigation/system bar) with user interaction.
  */
 public class SlideshowFragment extends Fragment {
+  private static final SlideshowFragment instance;
 
-  /**
+  static {
+    instance = new SlideshowFragment();
+  }
+
+//  private Resources.Theme mTheme;
+
+  public static SlideshowFragment getInstance() {
+    return instance;
+  }
+
+
+  /*
    * Whether or not the system UI should be auto-hidden after
    * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
    */
-  private static final boolean AUTO_HIDE = true;
-  /**
+  /*
    * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
    * user interaction before hiding the system UI.
    */
-  private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
   /**
    * Some older devices needs a small delay between UI widget updates
    * and a change of the status and navigation bar.
@@ -90,6 +97,7 @@ public class SlideshowFragment extends Fragment {
       }
     }
   };
+
   /**
    * Touch listener to use for in-layout UI controls to delay hiding the
    * system UI. This is to prevent the jarring behavior of controls going away
@@ -114,15 +122,14 @@ public class SlideshowFragment extends Fragment {
       if (actionBar != null) {
         actionBar.show();
       }
-      //!!!      mParentView.setVisibility(View.VISIBLE);
+      //!!!      requireView().setVisibility(View.VISIBLE);
     }
   };
-  BackgroundImageDecoder mBackgroundImageDecoder;
-  Context mContext;
+  //Context mContext;
   File mCacheDirPath;
   int screenWidth;
   int screenHeight;
-  Thread lastSlideLaunched;
+  //Thread lastSlideLaunched;
   DisplayMetrics screenMetrics;
   ArrayList<Button> mToggleButtonsArrayList = new ArrayList<>();
   private final Runnable cleanButtonRunnable = new Runnable() {
@@ -145,25 +152,17 @@ public class SlideshowFragment extends Fragment {
       }
     }
   };
-  private View mParentView;
   private int nextImageToShowIndex;
   private int buttonTextSize;
   private int pressMeTextSize;
   private int pressTwoWordsTextSize;
-  private ImageView mImageView;
+//  private ImageView mImageView;
   private int pwa = 0;
-  private TextView pressMeTextView;
+//  private TextView pressMeTextView;
   private int buttonVerticalPadding;
   private int buttonHorizontalPadding;
   private int buttonVerticalMargin;
   private int buttonHorizontalMargin;
-  private boolean mVisible;
-  private final Runnable mHideRunnable = new Runnable() {
-    @Override
-    public void run() {
-      hide();
-    }
-  };
   private final Runnable mStartSlideshowRunnable = new Runnable() {
 
     @Override
@@ -179,13 +178,13 @@ public class SlideshowFragment extends Fragment {
         //      mSlideshowHandler.removeCallbacks(mShowImageAfterTwoWordsRunnable);
 
         if (!mSlideshowIsRunning) {
-          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
+          ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(
               getResources().getColor(R.color.OurWhite, null));
 
-          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(
+          ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setText(
               getResources().getString(R.string.string_press_me));
 
-          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(
+          ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextSize(
               TypedValue.COMPLEX_UNIT_DIP,
               pressMeTextSize);
           mSlideshowIsRunning = true;
@@ -203,14 +202,13 @@ public class SlideshowFragment extends Fragment {
       }
 
       mSlideshowHandler.post(mHideMenuRunnable);
-      getView()
-          .findViewById(R.id.ui_centralLinearLayout)
+      requireView().findViewById(R.id.ui_centralLinearLayout)
           .setVisibility(View.VISIBLE);
-      //      ((LinearLayout)mParentView.findViewById(R.id.slideshowScreenLinearSourceLayout)).setLayoutMode(
+      //      ((LinearLayout)requireView().findViewById(R.id.slideshowScreenLinearSourceLayout)).setLayoutMode(
       //      LinearLayout.LayoutParams.MATCH_PARENT);
-      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
-      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
-      mParentView.findViewById(R.id.ui_press_meTextView).setVisibility(View.VISIBLE);
+      requireView().findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+      requireView().findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+      requireView().findViewById(R.id.ui_press_meTextView).setVisibility(View.VISIBLE);
     }
   };
   private ExecutorService executor;
@@ -230,9 +228,9 @@ public class SlideshowFragment extends Fragment {
         mToggleButtonsArrayList.get(i).setClickable(false);
         //?  mCheckedToggleButtonsArrayList.remove(mCheckedToggleButtonsArrayList.get(i));
       }
-      // mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
-      //mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
-      //mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
+      // requireView().findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+      //requireView().findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+      //requireView().findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
     }
   };
   private final Runnable mHideMenuRunnable = new Runnable() {
@@ -240,17 +238,17 @@ public class SlideshowFragment extends Fragment {
     public void run() {
       Log.e("mHideMenuRunnable", "visible ?");
       mSlideshowIsRunning = false;
-      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
+      requireView().findViewById(R.id.ui_centralLinearLayout).setVisibility(View.VISIBLE);
 
-      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
-      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
+      requireView().findViewById(R.id.leftMenuLinearLayout).setVisibility(View.GONE);
+      requireView().findViewById(R.id.rightMenuLinearLayout).setVisibility(View.GONE);
       mSlideshowHandler.post(cleanButtonRunnable);
     }
   };
   private long mLastClickTime = 0;
   private ArrayList<String> mSlideshowFilesName;
-  /**
-   * @Runnable showMenuRunnable
+  /*
+   * Runnable showMenuRunnable
    * replace the image from the slideshow, with menu
    */
   private final Runnable showMenuRunnable = new Runnable() {
@@ -265,7 +263,7 @@ public class SlideshowFragment extends Fragment {
       mSlideshowIsRunning = false;
       //hide image
 
-      mParentView.findViewById(R.id.ui_centralLinearLayout).setVisibility(View.GONE);
+      requireView().findViewById(R.id.ui_centralLinearLayout).setVisibility(View.GONE);
 
       //clean pending runnable
       mSlideshowHandler.removeCallbacks(showMenuRunnable);
@@ -276,37 +274,38 @@ public class SlideshowFragment extends Fragment {
       mSlideshowHandler.postDelayed(mStartSlideshowRunnable, DELAY_CHOICE_WORDS_SETTING);
 
 /* replaces it with placeholder?
-      ((ImageView) mParentView.findViewById(R.id.imageView)).setImageDrawable(
+      ((ImageView) requireView().findViewById(R.id.imageView)).setImageDrawable(
           getResources().getDrawable(R.drawable.white_background, null));
 */
 
       //hide text, modify text, then show it again with menu
-      mParentView.findViewById(R.id.ui_press_meTextView).setVisibility(View.GONE);
-      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextSize(
+      requireView().findViewById(R.id.ui_press_meTextView).setVisibility(View.GONE);
+      ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextSize(
           TypedValue.COMPLEX_UNIT_DIP, pressTwoWordsTextSize);
-      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
-      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setText(
+      ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(Color.BLACK);
+      ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setText(
           R.string.string_choose2word);
-      mParentView.findViewById(R.id.ui_press_meTextView).setVisibility(View.VISIBLE);
+      requireView().findViewById(R.id.ui_press_meTextView).setVisibility(View.VISIBLE);
 
       //show menu
-      mParentView.findViewById(R.id.leftMenuLinearLayout).setVisibility(View.VISIBLE);
-      mParentView.findViewById(R.id.rightMenuLinearLayout).setVisibility(View.VISIBLE);
+      requireView().findViewById(R.id.leftMenuLinearLayout).setVisibility(View.VISIBLE);
+      requireView().findViewById(R.id.rightMenuLinearLayout).setVisibility(View.VISIBLE);
 
       //trash/hack/glitch/poor fix: (works without)
-      //? ((ImageView) mParentView.findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.white_background,mContext.getTheme()));
+      //? ((ImageView) requireView().findViewById(R.id.imageView)).setImageDrawable(getResources().getDrawable(R.drawable.white_background,mContext.getTheme()));
 
     }
   };
   private long mLastMenuClickTime;
-  static int DELAY_INTER_FRAME_SETTING = 750;
+  static final int DELAY_INTER_FRAME_SETTING = 750;
 
-  public void cleanNext()
-  {
-    mSlideshowHandler.removeCallbacks(showNextRunnable);
-  }
+// --Commented out by Inspection START (04/11/20 23:47):
+//  public cleanNext()
+//  {
+//    mSlideshowHandler.removeCallbacks(showNextRunnable);
+//  }
+// --Commented out by Inspection STOP (04/11/20 23:47)
 
-  public StartupFragment mStartupFragment;
   public final Runnable showNextRunnable = new Runnable() {
     @Override
     public void run() {
@@ -321,23 +320,22 @@ public class SlideshowFragment extends Fragment {
       if (pwa < mSlideshowFilesName.size()) {
         if ((pwa % 2) == 0) {
 
-          executor.execute(
-              lastSlideLaunched = mBackgroundImageDecoder.new ShowImageTask(
-                  (ImageView) mParentView.findViewById(R.id.imageView),
-                  mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
-                  DELAY_INTER_FRAME_SETTING)
+          executor.execute(new BackgroundImageDecoder.ShowImageTask(ContextCompat.getMainExecutor(requireActivity()),
+              (ImageView) requireView().findViewById(R.id.imageView),
+              mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
+              DELAY_INTER_FRAME_SETTING)
           );
-          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
+          ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(
               getResources().getColor(R.color.OurWhite, null));
         } else {
 
           executor.execute(
-              lastSlideLaunched = mBackgroundImageDecoder.new ShowImageTask(
-                  ((ImageView) mParentView.findViewById(R.id.imageView)),
+              new BackgroundImageDecoder.ShowImageTask(ContextCompat.getMainExecutor(requireActivity()),
+                  ((ImageView) requireView().findViewById(R.id.imageView)),
                   mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
                   DELAY_INTER_FRAME_SETTING)
           );
-          ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
+          ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(
               getResources().getColor(R.color.OurPink, null));
         }
 
@@ -352,8 +350,8 @@ public class SlideshowFragment extends Fragment {
 
     // Code here will run in UI thread
   };
-  /**
-   * @Runnable mShowImageAfterTwoWordsRunnable
+  /*
+   * Runnable mShowImageAfterTwoWordsRunnable
    * replace the menu with a random image from the slideshow, wait for "delay", then restart
    * slideshow
    */
@@ -363,14 +361,14 @@ public class SlideshowFragment extends Fragment {
     public void run() {
       Log.d(CLASSNAME, "mShowImageAfterTwoWordsRunnable");
       // lastSlideLaunched.interrupt();
-      ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.WHITE);
+      ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(Color.WHITE);
 
       mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
       mSlideshowHandler.removeCallbacks(showNextRunnable);
 
       mSlideshowHandler.post(
-          lastSlideLaunched = mBackgroundImageDecoder.new ShowImageTask(
-              ((ImageView) mParentView.findViewById(R.id.imageView)),
+          new BackgroundImageDecoder.ShowImageTask(ContextCompat.getMainExecutor(requireActivity()),
+              ((ImageView) requireView().findViewById(R.id.imageView)),
               mCacheDirPath + "/" + mSlideshowFilesName.get(
                   new Random().nextInt(mSlideshowFilesName.size()))
               , 0
@@ -386,21 +384,21 @@ public class SlideshowFragment extends Fragment {
   };
   private boolean screenOrientationNormal;
   //temps durant lequel on regarde une image proposé apres le menu (en multiple d'interframedelay)
-  static int DELAY_GUESSING_SETTING = 5000;
+  static final int DELAY_GUESSING_SETTING = 5000;
   //temps durant lequel on peut choisir deux mots (en multiple d'interframedelay)
-  static int DELAY_CHOICE_WORDS_SETTING = 10000;
-  private static int UI_ANIMATION_DELAY = 300;
+  static final int DELAY_CHOICE_WORDS_SETTING = 10000;
+  private static final int UI_ANIMATION_DELAY = 300;
 
   @Nullable
   @Override
   public View onCreateView(@NonNull LayoutInflater inflater,
       @Nullable ViewGroup container,
       @Nullable Bundle savedInstanceState) {
-    mContext = getContext();
-    mCacheDirPath = mContext.getCacheDir();
-    Log.d(CLASSNAME, "DELAY_INTER_FRAME_SETTING" + DELAY_INTER_FRAME_SETTING);
+    mCacheDirPath = requireContext().getCacheDir();
+//    mTheme=requireContext().getTheme();
+  /*  Log.d(CLASSNAME, "DELAY_INTER_FRAME_SETTING" + DELAY_INTER_FRAME_SETTING);
 
-    UI_ANIMATION_DELAY = getActivity().getApplicationContext()
+    UI_ANIMATION_DELAY = requireContext().getApplicationContext()
         .getSharedPreferences("root", Context.MODE_PRIVATE)
         .getInt("UI_ANIMATION_DELAY", 300);
     DELAY_CHOICE_WORDS_SETTING = getActivity().getApplicationContext()
@@ -414,7 +412,7 @@ public class SlideshowFragment extends Fragment {
         .getInt("UI_ANIMATION_DELAY", 750);
 
     Log.d(CLASSNAME, "DELAY_INTER_FRAME_SETTING" + DELAY_INTER_FRAME_SETTING);
-
+*/
     if (savedInstanceState != null) {
       mSlideshowFilesName = savedInstanceState.getStringArrayList("SlideshowFilenames");
     }
@@ -429,9 +427,8 @@ public class SlideshowFragment extends Fragment {
     final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024);
     // Use maximum available memory for this memory cache.
     Log.d(CLASSNAME, " onCreate() creating a " + cacheSize / 1024 + "Mo LRU cache");
-    mParentView = getView();
 /*
-    mParentView.setOnLongClickListener(new View.OnLongClickListener() {
+    requireView().setOnLongClickListener(new View.OnLongClickListener() {
       @Override
       public boolean onLongClick(View view) {
         Log.d(TAG, "SlideshowFragment toggle fullscreen");
@@ -441,32 +438,21 @@ public class SlideshowFragment extends Fragment {
       }
     });
   */
-    // The cache size will be measured in kilobytes rather than
-    // number of items.
-    LruCache<String, Bitmap> memoryCache = new LruCache<String, Bitmap>(cacheSize) {
-      @Override
-      protected int sizeOf(String key, Bitmap bitmap) {
-        // The cache size will be measured in kilobytes rather than
-        // number of items.
-        return bitmap.getByteCount() / 1024;
-      }
-    };
+
     initScreenMetrics();
     if (savedInstanceState != null) {
           mSlideshowFilesName = savedInstanceState.getStringArrayList("SlideshowFilenames");
     }
-    mVisible = true;
-    executor = Executors.newFixedThreadPool(1);
-    mBackgroundImageDecoder =
-        new BackgroundImageDecoder(mContext, screenWidth, screenHeight,
-            executor);
-    //    mParentView = view.findViewById(R.id.fullscreen_content_controls);
+//    mVisible = true;
+    executor = Executors.newFixedThreadPool(2);
+
+    //    requireView() = view.findViewById(R.id.fullscreen_content_controls);
     //mControlsView = view.findViewById(R.id.SlideshowFragment);
 
     // Set up the user interaction to manually show or hide the system UI.
 
 
-/*    View iframe = mParentView.findViewById(R.id.startupScreenLinearLayout);
+/*    View iframe = requireView().findViewById(R.id.startupScreenLinearLayout);
     ViewGroup parent = (ViewGroup) iframe.getParent();
     parent.removeView(iframe);*/
     // Upon interacting with UI controls, delay any scheduled hide()
@@ -485,27 +471,29 @@ public class SlideshowFragment extends Fragment {
 
 
   private void makeImageNotClickable() {
-    mParentView.findViewById(R.id.slideshowLayout).setClickable(false);
+    requireView().findViewById(R.id.slideshowLayout).setClickable(false);
   }
 
   private void makeImageClickable() {
     Log.d(CLASSNAME, "makeImageClickable(): image is now clickable");
 
-    mParentView.findViewById(R.id.slideshowLayout).setOnClickListener(new View.OnClickListener() {
+    requireView().findViewById(R.id.slideshowLayout).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         mSlideshowHandler.removeCallbacks(showMenuRunnable);
 
         makeImageNotClickable();
-        ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(Color.WHITE);
+        ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(Color.WHITE);
 
         //lastSlideLaunched.interrupt();
         showMenuRunnable.run();
       }
     });
+
+    /*
     getActivity().getWindow()
         .findViewById(R.id.slideshowScreenLinearSourceLayout)
-        .setClickable(true);
+        .setClickable(true);*/
   }
 
   void makeButtons() {
@@ -533,7 +521,7 @@ public class SlideshowFragment extends Fragment {
 
     for (String buttonName : buttonNames) {
 
-      Button tempButton = new androidx.appcompat.widget.AppCompatButton(mContext) {
+      Button tempButton = new androidx.appcompat.widget.AppCompatButton(requireActivity()) {
         @Override public boolean performClick() {
           super.performClick();
           return true;
@@ -657,7 +645,7 @@ public class SlideshowFragment extends Fragment {
             mSlideshowHandler.post(blockMenuRunnable);
 
             //should only  happen when 2 DIFFERENT buttons are pressed
-            //   ((TextView) mParentView.findViewById(R.id.ui_press_meTextView)).setTextColor(
+            //   ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(
             // getResources().getColor(R.color.OurWhite));
 
             ((Button) view).setTextColor(Color.BLACK);
@@ -690,7 +678,7 @@ public class SlideshowFragment extends Fragment {
     //for the first 8 button, set in the left menu layout
     for (j = 0; j < buttonNames.length / 2; j++) {
 
-      ((LinearLayout) mParentView.findViewById(R.id.leftMenuLinearLayout)).addView(
+      ((LinearLayout) requireView().findViewById(R.id.leftMenuLinearLayout)).addView(
           mToggleButtonsArrayList.get(j));
     }
 
@@ -698,17 +686,17 @@ public class SlideshowFragment extends Fragment {
 
     for (; j < buttonNames.length; j++) {
 
-      ((LinearLayout) mParentView.findViewById(R.id.rightMenuLinearLayout)).addView(
+      ((LinearLayout) requireView().findViewById(R.id.rightMenuLinearLayout)).addView(
           mToggleButtonsArrayList.get(j));
     }
   }
 
   @Override
-  public void onAttach(Context context) {
+  public void onAttach(@NonNull Context context) {
     Log.d(CLASSNAME, " onAttach()");
 
     super.onAttach(context);
-    mContext = context;
+    //mContext = context;
   }
 
   @Override
@@ -741,7 +729,7 @@ public class SlideshowFragment extends Fragment {
   void initScreenMetrics() {
     screenMetrics = new DisplayMetrics();
 
-    getActivity().getWindowManager().getDefaultDisplay().getMetrics(screenMetrics);
+    requireActivity().getWindowManager().getDefaultDisplay().getMetrics(screenMetrics);
 
     // DPI 240.0 density 1.5
     //en dp
@@ -831,7 +819,7 @@ public class SlideshowFragment extends Fragment {
     //mStartupFragment.startGlobalCheckThread();
 
     Log.d(CLASSNAME,
-        " onResume() DEFAULT_PROJECT_KEY" + getArguments().getString("DEFAULT_PROJECT_KEY",
+        " onResume() DEFAULT_PROJECT_KEY" + requireArguments().getString("DEFAULT_PROJECT_KEY",
             "DEFAULT_PROJECT_KEY_NOT_FOUND"));
 
     // Trigger the initial hide() shortly after the activity has been
@@ -840,42 +828,31 @@ public class SlideshowFragment extends Fragment {
     //  startSlideshow(mSlideshowFilesName);
   }
 
-  @Override
-  public void onDestroy() {
-    super.onDestroy();
-    mParentView = null;
-  }
 
-  void toggle() {
-    if (mVisible) {
-      hide();
-    } else {
-      show();
-    }
-  }
-
-  protected void hide() {
-    // Hide UI first
-    Log.d(CLASSNAME, "Fragment.hide()");
-
-    ActionBar actionBar = getSupportActionBar();
-    if (actionBar != null) {
-      actionBar.hide();
-    }
-    //mControlsView.setVisibility(View.GONE);
-    mVisible = false;
-
-    // Schedule a runnable to remove the status and navigation bar after a delay
-    mSlideshowHandler.removeCallbacks(mShowPart2Runnable);
-    mSlideshowHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
-  }
+// --Commented out by Inspection START (05/11/20 00:14):
+//  protected void hide() {
+//    // Hide UI first
+//    Log.d(CLASSNAME, "Fragment.hide()");
+//
+//    ActionBar actionBar = getSupportActionBar();
+//    if (actionBar != null) {
+//      actionBar.hide();
+//    }
+//    //mControlsView.setVisibility(View.GONE);
+//    mVisible = false;
+//
+//    // Schedule a runnable to remove the status and navigation bar after a delay
+//    mSlideshowHandler.removeCallbacks(mShowPart2Runnable);
+//    mSlideshowHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
+//  }
+// --Commented out by Inspection STOP (05/11/20 00:14)
 
   private void show() {
     // Show the system bar
     requireView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
 
-    mVisible = true;
+    //mVisible = true;
     Log.d(CLASSNAME, "Fragment.show()");
     // Schedule a runnable to display UI elements after a delay
     mSlideshowHandler.removeCallbacks(mHidePart2Runnable);
@@ -889,12 +866,12 @@ public class SlideshowFragment extends Fragment {
   /**
    * Schedules a call to hide() in delay milliseconds, canceling any
    * previously scheduled calls.
-   */
+
   private void delayedHide() {
     mSlideshowHandler.removeCallbacks(mHideRunnable);
     mSlideshowHandler.postDelayed(mHideRunnable, 100);
   }
-
+   */
   @Nullable
   private ActionBar getSupportActionBar() {
     ActionBar actionBar = null;
@@ -905,20 +882,4 @@ public class SlideshowFragment extends Fragment {
     return actionBar;
   }
 
-  private void loadStartupFragment() {
-
-    Log.d(CLASSNAME, "loadStartupFragment()");
-    //Bundle args = new Bundle();
-    //args.putString("M_SERVER_DIRECTORY_URL", M_SERVER_DIRECTORY_URL);
-    //args.putStringArrayList("SlideshowFilenames", mSlideshowFilesName);
-    //mStartupFragment.setArguments(args);
-
-    @SuppressWarnings("deprecation") FragmentManager manager = getFragmentManager();
-    mStartupFragment = new StartupFragment();
-
-    FragmentTransaction transaction = manager.beginTransaction();
-    transaction.add(R.id.startupScreenLinearSourceLayout, mStartupFragment, "MULTIFACETTE_LOADING");
-    transaction.addToBackStack(null);
-    transaction.commit();
-  }
 }

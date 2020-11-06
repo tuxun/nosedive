@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-  <item android:id="@+id/progress">
+  <item>
     <clip>
       <shape>
         <gradient android:centerColor="@color/OurPink" android:endColor="@color/OurPink" android:gradientRadius="20dp" android:startColor="@color/OurPink" />

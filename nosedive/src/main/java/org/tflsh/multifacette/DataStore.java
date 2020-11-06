@@ -5,12 +5,10 @@ import androidx.annotation.Nullable;
 import androidx.preference.PreferenceDataStore;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
-import com.google.firebase.database.ValueEventListener;
+import java.util.Objects;
 
 // [END post_class]
 
@@ -74,7 +72,7 @@ public class DataStore extends PreferenceDataStore {
     usersPath = database.getReference("configs");
 
     if (isUserConnected()) {
-      thisUserPath = usersPath.child(user.getUid());
+      thisUserPath = usersPath.child(Objects.requireNonNull(user).getUid());
     } else {
       //could be null to avoid write mess in db
       thisUserPath = usersPath.child("user_unset");
@@ -127,7 +125,7 @@ public class DataStore extends PreferenceDataStore {
             settings.sync;
 
       default:
-        return false;
+        return def;
     }
   }
 
@@ -168,7 +166,7 @@ public class DataStore extends PreferenceDataStore {
         return (int)
             settings.UI_ANIMATION_DELAY;
       default:
-        return 0;
+        return def;
     }
   }
 
@@ -196,12 +194,12 @@ public class DataStore extends PreferenceDataStore {
         return settings.DEFAULT_PROJECT_KEY;
 
       default:
-        return null;
+        return def;
     }
   }
 
   protected String getUserName() {
-    return mAuth.getCurrentUser().getEmail();
+    return Objects.requireNonNull(mAuth.getCurrentUser()).getEmail();
   }
 
   //should set settings in db and file
@@ -233,36 +231,11 @@ public class DataStore extends PreferenceDataStore {
     return getValue(key, defValue);
   }
 
-  @Nullable
   public boolean getBoolean(final String key,  final boolean defValue) {
-    final boolean[] post = new boolean[1];
-    post[0] = defValue;
 
-    DatabaseReference myRef = database.getReference(user.getUid());
-    ValueEventListener postListener = new ValueEventListener() {
-      @Override
-      public void onDataChange(DataSnapshot dataSnapshot) {
-        // Get Post object and use the values to update the UI
-        Log.d(TAG,
-            "getBoolean grabbing " + key + " default value= " + dataSnapshot.getValue(boolean.class));
-        //!!! type change cause mess
-        ///thisUserPath.child(key).setValue(dataSnapshot.getValue(boolean.class));
-        // ...
-      }
-
-      @Override
-      public void onCancelled(DatabaseError databaseError) {
-        // Getting Post failed, log a message
-        Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
-        // ...
-      }
-    };
-    myRef.addListenerForSingleValueEvent(postListener);
-
-    return post[0];
+    return getValue(key, defValue);
   }
 
-  @Nullable
   public int getInt(final String key,  int defValue) {
 
     return getValue(key, defValue);

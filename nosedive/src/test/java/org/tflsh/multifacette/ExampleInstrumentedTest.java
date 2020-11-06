@@ -2,10 +2,8 @@
 package org.tflsh.multifacette;
 
 import android.app.Instrumentation;
-import android.content.Context;
 import android.os.Looper;
 import android.util.Log;
-import androidx.test.platform.app.InstrumentationRegistry;
 import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -26,19 +24,19 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class ExampleInstrumentedTest extends Instrumentation {
 
-  final String TAG = "ExampleInstrumentedTest";
-  final String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/" + "julia/";
+  final String CLASSNAME = "ExampleInstrumentedTest";
+  //final String mServerDirectoryURL = "https://dev.tuxun.fr/nosedive/" + "julia/";
   ArrayList<String> missingFilesNames;
   ArrayList<String> mSlideshowFilesNames;
-  Context appContext;
+  //Context appContext;
 
   @Before
   public void initVARS() {
-    Log.d("testing:", "BEFORE");
+    Log.d(CLASSNAME, "BEFORE");
 
     missingFilesNames = new ArrayList<>();
     mSlideshowFilesNames = new ArrayList<>();
-    appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+   // appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
     Looper.prepare();
   }
 /*

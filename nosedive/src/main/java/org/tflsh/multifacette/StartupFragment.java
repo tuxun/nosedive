@@ -48,7 +48,7 @@ import javax.net.ssl.SSLException;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link StartupFragment#newInstance} factory method to
+ * Use the {link StartupFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
 public class StartupFragment extends Fragment {
@@ -57,8 +57,8 @@ public class StartupFragment extends Fragment {
   static final String EXTRA_MESSAGE = "EXTRA_MESSAGE";
   // TODO: Rename parameter arguments, choose names that match
   // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-  private static final String ARG_PARAM1 = "param1";
-  private static final String ARG_PARAM2 = "param2";
+//  private static final String ARG_PARAM1 = "param1";
+  //private static final String ARG_PARAM2 = "param2";
   private static final String TAG = "StartupFragment";
   private static final String CLASSNAME = "StartupFragment";
   private static String M_SERVER_BASE_PROJECT_KEY = "rescatest";
@@ -89,13 +89,13 @@ public class StartupFragment extends Fragment {
     @Override public void run() {
 
       grabJson(M_SERVER_DIRECTORY_URL+M_SERVER_BASE_PROJECT_KEY, false);
-      checkFiles(M_SERVER_DIRECTORY_URL);
+      checkFiles();
       repairMissingFiles(M_SERVER_DIRECTORY_URL+M_SERVER_BASE_PROJECT_KEY, missingImagesNames);
     }
   });
   //waring ce runnable n'enoive plus d'intent, on tente de favoriser celes émises dans grabJson
 
-  /**
+  /*
    * @mGrabJsonRunnable runnable qui dl le json
    * intent good:NO_JSON,
    * intent bad: JSONok
@@ -147,7 +147,7 @@ public class StartupFragment extends Fragment {
   public StartupFragment() {
 
   }
-
+/*
   public static StartupFragment newInstance(String param1, ArrayList<String> param2) {
     StartupFragment fragment = new StartupFragment();
     Bundle args = new Bundle();
@@ -158,6 +158,7 @@ public class StartupFragment extends Fragment {
 
     return fragment;
   }
+*/
 
   /**
    * @param toTest path where the file @name should be checked
@@ -167,7 +168,12 @@ public class StartupFragment extends Fragment {
    * checkFile A function for check is file exists or delete it if it is empty
    */
   @Nullable
-  protected static File checkFile(File toTest) {
+  protected static File checkFile(@Nullable File toTest) {
+    if(null==toTest)
+    {
+          return null;
+
+    }
     if (toTest.exists()) {
       if (toTest.length() == 0) {
         Log.e("checkFile", "deleted empty file " + toTest.getAbsolutePath());
@@ -192,7 +198,7 @@ public class StartupFragment extends Fragment {
    * @return return true if file is looking fine, else return false
    *
    * NO INTENT!
-   * @checkSum A function for check if a file is corrupted
+   ** checkSum: A function for check if a file is corrupted
    */
   protected static boolean checkSum(String path, String originSum) {
     int read;
@@ -266,7 +272,7 @@ public class StartupFragment extends Fragment {
   }
 
   @Override
-  public void onAttach(Context context) {
+  public void onAttach(@NonNull Context context) {
     super.onAttach(context);
     mContext = context;
   }
@@ -318,7 +324,6 @@ public class StartupFragment extends Fragment {
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    final int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 1024);
     // Use maximum available memory for this memory cache.
 
     Log.d(TAG, "onCreate had arguments at start " + M_SERVER_DIRECTORY_URL);
@@ -343,7 +348,7 @@ public class StartupFragment extends Fragment {
       @Override
       public boolean onTouch(View view, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
-          //  view.performClick();
+            view.performClick();
 
           loadSettingFragment();
         }
@@ -426,7 +431,7 @@ public class StartupFragment extends Fragment {
               //  repairMissingFiles(
               //      M_SERVER_DIRECTORY_URL, missingImagesNames);
               grabJson(M_SERVER_DIRECTORY_URL+M_SERVER_BASE_PROJECT_KEY, true);
-              checkFiles(M_SERVER_DIRECTORY_URL);
+              checkFiles();
               repairMissingFiles(M_SERVER_DIRECTORY_URL+M_SERVER_BASE_PROJECT_KEY, missingImagesNames);
             }
           });
@@ -439,22 +444,18 @@ public class StartupFragment extends Fragment {
     view.findViewById(R.id.repairFilesButton).setEnabled(true);
   }
 
-  protected void startGlobalCheckThread() {
-    globalCheckThread.start();
-  }
-
   private void loadSettingFragment() {
 
     Log.d(TAG, "loadSettingFragment()");
 
     @SuppressWarnings("deprecation") FragmentManager manager = getFragmentManager();
-    FragmentTransaction transaction = manager.beginTransaction();
+    FragmentTransaction transaction = Objects.requireNonNull(manager).beginTransaction();
 
     //transaction1.remove(this).commit();
-    SettingsFragment FS = new SettingsFragment();
+    SettingsFragment settingsFragment = SettingsFragment.getInstance();
 
     //mParentView.findViewById(R.id.motherLayout).setVisibility(View.GONE);
-    transaction.replace(R.id.startupScreenLinearLayout, FS, "MULTIFACETTE_Settings");
+    transaction.replace(R.id.startupScreenLinearLayout, settingsFragment, "MULTIFACETTE_Settings");
     // was working transaction.add(R.id.setupScreenLinearSourceLayout, FS, "MULTIFACETTE_Settings");
     //transaction.addToBackStack(null);
     transaction.commit();
@@ -481,7 +482,7 @@ public class StartupFragment extends Fragment {
     for (final String name : missingFileNamesArg) {
       Log.e(CLASSNAME, "repairMissingFiles() grab missing or broken " + name + " files");
       if (getFile(urlSource, mCacheDirPath.getAbsolutePath(), name)==null) {
-        thereIsMissingFiles = true;
+        thereIsMissingFiles = false;
         Log.e(CLASSNAME, "unable to dl a file in repairMissingFiles()");
 
       }
@@ -509,19 +510,18 @@ public class StartupFragment extends Fragment {
    * Intent("filesMissing", filename);
    * Intent("JSON_ParseOk", filename);
    * Intent("filesFound", filename);
-   * @parseJson read existing Json file
+   * parseJson read existing Json file
    */
   //parse the json file, start the dl of missing files or of corrupted files
   protected List<String> parseJson(@Nullable File jsonFile) {
+    if (jsonFile == null) throw new AssertionError();
+
     try (
         JsonReader reader = new JsonReader(
             new InputStreamReader(new FileInputStream(jsonFile.getAbsolutePath())))
 
     ) {
-if(jsonFile==null)
-{
-  return null;
-}
+
       reader.beginArray();
 
       while (reader.hasNext()) {
@@ -613,7 +613,7 @@ if(jsonFile==null)
    * StartupFragment#grabJson(String, boolean)}
    *
    * Intent("dlReceived", filename);
-   * @getFile download a file from the project (Warning: NO CHECK: IT OVERWRITES FILES!)
+   * getFile download a file from the project (Warning: NO CHECK: IT OVERWRITES FILES!)
    * return null if no internet
    */
   /*return a array of string, naming the files downloaded, or found in the cache dir
@@ -624,6 +624,7 @@ if(jsonFile==null)
     protected File getFile(String urlSourceString, String pathDest, String nameDest) {
     File localFile = new File(pathDest, nameDest);
     try {
+      //noinspection ResultOfMethodCallIgnored
       localFile.createNewFile();
     } catch (IOException e) {
       e.printStackTrace();
@@ -690,7 +691,7 @@ if(jsonFile==null)
   } catch (
         SSLException e) {
       Log.e(CLASSNAME, "SSL exception " + getString(R.string.downloadError));
-      ((TextView) getView().findViewById(R.id.ui_dl_progressTextView)).setText(
+      ((TextView) requireView().findViewById(R.id.ui_dl_progressTextView)).setText(
           R.string.downloadError);
       e.printStackTrace();
       return localFile;
@@ -719,16 +720,15 @@ if(jsonFile==null)
   }
 
   /**
-   * @param urlSourceArg root url of the project: "https://server.tld/basedir/"
-   * @return return void, it send intents instead
+   * return return void, it send intents instead
    *
    * Made to be used with, {@link StartupFragment#repairMissingFiles(String, ArrayList)} and {@link
    * StartupFragment#grabJson(String, boolean)}
    *
    * Intent("dlReceived", filename);
-   * @checkFiles download a file from the project (Warning: NO CHECK: IT OVERWRITES FILES!)
+   * checkFiles download a file from the project (Warning: NO CHECK: IT OVERWRITES FILES!)
    */
-  public void checkFiles(String urlSourceArg) {
+  public void checkFiles() {
     sendMessage("checkStarted");
     //  urlSource = urlSourceArg;
 
@@ -767,7 +767,7 @@ if(jsonFile==null)
         Context.MODE_PRIVATE).getString("DEFAULT_PROJECT_KEY", "noheckingkey"));*/
 
     if (!forced) {
-      File file = new File(getActivity().getCacheDir().getAbsolutePath(),
+      File file = new File(requireActivity().getCacheDir().getAbsolutePath(),
           FILE_LIST_JSON);
       if (checkFile(file) == null) {
         Log.d(CLASSNAME,
@@ -781,8 +781,7 @@ if(jsonFile==null)
     }
     //if internet update not forced:
     else {
-      File file = getFile(urlSource, getActivity().getCacheDir().getAbsolutePath(),
-          FILE_LIST_JSON);
+      File file = getFile(urlSource, mCacheDirPath.getAbsolutePath(), FILE_LIST_JSON);
 
       Log.d(CLASSNAME, "grabJson update forced, url source=" + urlSource);
 
@@ -802,7 +801,7 @@ if(jsonFile==null)
     }
     return null;
   }
-
+/*
   public void sendMessageWithInt(String message, int params) {
     if (this.active) {
       Intent intent = new Intent(message);    //action: "msg"
@@ -812,4 +811,5 @@ if(jsonFile==null)
       mContext.sendBroadcast(intent);
     }
   }
+*/
 }

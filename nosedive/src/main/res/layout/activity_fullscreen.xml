@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/motherLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/AppTheme.Accent"
@@ -32,11 +31,11 @@
 
 
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/fragment2"
         android:name="org.tflsh.multifacette.StartupFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:tag="StartupFragment"
+        android:id="@+id/StartupFragment"
         tools:layout="@layout/fragment_startup"
 
 
@@ -44,15 +43,6 @@
 
   </LinearLayout>
 
-  <LinearLayout
-      android:id="@+id/settingScreenLinearSourceLayout"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:orientation="vertical"
-      >
-
-
-  </LinearLayout>
 
 
 </LinearLayout>

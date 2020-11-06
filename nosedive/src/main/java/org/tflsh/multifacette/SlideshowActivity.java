@@ -20,7 +20,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.res.ResourcesCompat;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import java.util.ArrayList;
@@ -66,7 +65,7 @@ public class SlideshowActivity extends AppCompatActivity {
   ////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////ATTRIBUTES////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////
-  ArrayList<Button> mToggleButtonsArrayList = new ArrayList<>();
+  //ArrayList<Button> mToggleButtonsArrayList = new ArrayList<>();
   //runnnable s'appelant lui meme a la fin du diapo qu'il lance
   //int screenHeight;
   ArrayList<String> missingFilesNames;
@@ -74,6 +73,8 @@ public class SlideshowActivity extends AppCompatActivity {
   int missingFilesNumber = 0;
   boolean filesChecked = false;
   private ProgressBar mDlProgressBar;
+  private ProgressBar mTotalFilesProgressBar;
+
   private ArrayList<String> mSlideshowFilesName;
 
   private int downloadedFilesNumber;
@@ -95,7 +96,7 @@ public class SlideshowActivity extends AppCompatActivity {
 
         case "dlComplete":
           Log.d(TAG, "intentReceiver got action dl complete");
-          mHaveInternet=true;
+//          mHaveInternet=true;
           filesChecked = true;
 
   /* (findViewById(R.id.button2)).setBackgroundColor(
@@ -196,7 +197,7 @@ public class SlideshowActivity extends AppCompatActivity {
                 view.performClick();
                 view.setEnabled(false);
                 view.setClickable(false);
-                ((ProgressBar) findViewById(R.id.uiTotalFilesProgressBar)).setProgress(0);
+                mTotalFilesProgressBar.setProgress(0);
                 //!!! pour checkfiles=missinf findViewById(R.id.button2).setVisibility(View.VISIBLE);
                 getFragmentManager().executePendingTransactions();
 
@@ -260,9 +261,9 @@ public class SlideshowActivity extends AppCompatActivity {
             filesChecked = true;
 
             findViewById(R.id.checkFilesButton).setVisibility(View.GONE);
-            findViewById(R.id.uiTotalFilesProgressBar).setBackground(
+            mTotalFilesProgressBar.setBackground(
                 ResourcesCompat.getDrawable(getResources(), R.drawable.ic_not_started_black, null));
-            findViewById(R.id.uiTotalFilesProgressBar).setVisibility(View.VISIBLE);
+            mTotalFilesProgressBar.setVisibility(View.VISIBLE);
             /*start button
             (findViewById(R.id.ui_dl_ProgressBar)).setOnTouchListener(new OnTouchListener() {
 
@@ -297,7 +298,7 @@ public class SlideshowActivity extends AppCompatActivity {
           mSlideshowFilesName.add(max);
           Log.d(TAG,
               "intentReceiver got action files found " + mSlideshowFilesName.size() + " " + max);
-          findViewById(R.id.uiTotalFilesProgressBar).setVisibility(View.VISIBLE);
+          mTotalFilesProgressBar.setVisibility(View.VISIBLE);
           if (missingFilesNames.size() > 0) {
             ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
                 (mSlideshowFilesName.size())
@@ -308,12 +309,12 @@ public class SlideshowActivity extends AppCompatActivity {
             ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
                 (mSlideshowFilesName.size()) + " photos ok");
           }
-          ((ProgressBar) findViewById(R.id.uiTotalFilesProgressBar)).setProgress(
+          mTotalFilesProgressBar.setProgress(
               mSlideshowFilesName.size());
 
           break;
         case "dlReceived":
-          mHaveInternet=true;
+          //mHaveInternet=true;
           String max1 = intent.getStringExtra(EXTRA_MESSAGE);
           Log.d(TAG, "intentReceiver got action dl received" + max1);
           mSlideshowFilesName.add(max1);
@@ -324,11 +325,11 @@ public class SlideshowActivity extends AppCompatActivity {
          /* findViewById(R.id.repairFilesButton).setBackground(
               ResourcesCompat.getDrawable(getResources(), R.drawable.white_background, null));*/
           downloadedFilesNumber++;
-          if (findViewById(R.id.uiVerticalMissingProgressBar) != null) {
-            ((ProgressBar) findViewById(R.id.uiVerticalMissingProgressBar)).incrementProgressBy(
+          if (mDlProgressBar != null) {
+            mDlProgressBar.incrementProgressBy(
                 -1);
 
-            ((ProgressBar) findViewById(R.id.uiTotalFilesProgressBar)).incrementProgressBy(1);
+            mTotalFilesProgressBar.incrementProgressBy(1);
 
 
           /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
@@ -349,7 +350,7 @@ public class SlideshowActivity extends AppCompatActivity {
               findViewById(R.id.repairFilesButton).setClickable(true);
               findViewById(R.id.repairFilesButton).setBackground(
                   getResources().getDrawable(R.drawable.ic_button_on_off, null));
-              boolean filesWereAlreadyFound = true;
+              //boolean filesWereAlreadyFound = true;
               ((Button) findViewById(R.id.repairFilesButton)).setText(
                   "Téléchargement complet! Lancer le diapo");
               findViewById(R.id.repairFilesButton).setOnClickListener(
@@ -388,11 +389,11 @@ public class SlideshowActivity extends AppCompatActivity {
           ((Button) findViewById(R.id.repairFilesButton)).setText(
               "Récupérer les " + (missingFilesNames.size())
                   + " photos manquantes");
-          findViewById(R.id.uiTotalFilesProgressBar).setVisibility(View.VISIBLE);
+          mTotalFilesProgressBar.setVisibility(View.VISIBLE);
           findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
-          ((ProgressBar) findViewById(R.id.uiVerticalMissingProgressBar)).setMax(
+          mDlProgressBar.setMax(
               missingFilesNames.size());
-          ((ProgressBar) findViewById(R.id.uiVerticalMissingProgressBar)).setProgress(
+          mTotalFilesProgressBar.setProgress(
               missingFilesNames.size());
 
           if (mSlideshowFilesName.size() > 0) {
@@ -405,7 +406,7 @@ public class SlideshowActivity extends AppCompatActivity {
                 + " manquantes"));
           }
 
-          ((ProgressBar) findViewById(R.id.uiTotalFilesProgressBar)).setMax(
+          mTotalFilesProgressBar.setMax(
               missingFilesNames.size());
           //    Log.d(TAG, "intentReceiver set progress bar " + missingFilesNames.size() + max2);
          /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
@@ -423,7 +424,9 @@ public class SlideshowActivity extends AppCompatActivity {
       }
     }
   };
-  protected boolean mHaveInternet = false;
+//  protected boolean mHaveInternet = false;
+  //private static final SettingsFragment mSettingsFragment=new SettingsFragment().getInstance();
+  private final SlideshowFragment mSlideshowFragment=SlideshowFragment.getInstance();
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //tools
@@ -473,16 +476,7 @@ public class SlideshowActivity extends AppCompatActivity {
     this.mSlideshowFilesName = new ArrayList<>();
     this.missingFilesNames = new ArrayList<>();
     this.missingFilesNumber = 0;
-    /************
 
-     View iframe=findViewById(R.id.motherLayout);
-     ViewGroup parent = (ViewGroup) iframe.getParent();
-     int index=parent.indexOfChild(iframe);
-     parent.removeView(iframe);
-     //inflate
-     View dlLayout=getLayoutInflater().inflate(R.layout.activity_dlfullscreen,parent,false);
-     parent.addView(dlLayout,index);
-     ********/
 
     filter = new IntentFilter("dlReceived");
     filter.addAction("dlStarted");
@@ -506,15 +500,16 @@ public class SlideshowActivity extends AppCompatActivity {
 
     //end try lru
 
-    //baseurl,projectcode, todo
+    //baseurl,projectcode, todo make static every fragment.get_instance()?
+    //mSettingsFragment = new SettingsFragment();
+    //mSlideshowFragment = new SlideshowFragment();
 
-    Fragment mSettingsFragment = new SettingsFragment();
     Log.d("activity", "onCreate" + getIntent());
    // View initView = getWindow().getDecorView();
   }
 
   @Override
-  public void onConfigurationChanged( Configuration newConfig) {
+  public void onConfigurationChanged( @NonNull Configuration newConfig) {
     super.onConfigurationChanged(newConfig);
     Log.d(TAG, "onConfigurationChanged" + getIntent());
     onResume();
@@ -561,6 +556,9 @@ public class SlideshowActivity extends AppCompatActivity {
     if (!filesChecked) {
       Log.d(TAG, "onResume: no bundle" + getIntent());
       //loadStartupFragment();
+      mDlProgressBar= findViewById(R.id.uiVerticalMissingProgressBar);
+      mTotalFilesProgressBar= findViewById(R.id.uiTotalFilesProgressBar);
+
 
      /* FragmentManager manager = getFragmentManager();
 
@@ -630,12 +628,6 @@ public class SlideshowActivity extends AppCompatActivity {
     transaction.commit();
   }
 
-  private void loadLoginFragment() {
-
-    Intent intent = new Intent(this, EmailPasswordActivity.class);
-    startActivity(intent);
-  }
-
   private void loadSlideshowFragment(String fromIntent) {
     if (mSlideshowFilesName.size() != 0) {
 
@@ -646,27 +638,21 @@ public class SlideshowActivity extends AppCompatActivity {
           + mSlideshowDownloadedFilesName.size());
 
       findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
-      SlideshowFragment mSlideshowFragment = new SlideshowFragment();
-          /*
-          getSupportFragmentManager().findFragmentByTag(
-              "SlideshowFragment");//new org.tflsh.nosedive.SlideshowFragment();
-*/
-
+   
       Log.d(TAG, "loadSlideshowFragment()");
       Bundle args = new Bundle();
       args.putStringArrayList("SlideshowFilenames", mSlideshowFilesName);
-      args.putString("DEFAULT_PROJECT_KEY",
-          getSharedPreferences("root", MODE_PRIVATE).getString("DEFAULT_PROJECT_KEY",
-              "MODE_PRIVATE"));
-
       mSlideshowFragment.setArguments(args);
+
       FragmentManager manager = getSupportFragmentManager();
       FragmentTransaction transaction = manager.beginTransaction();
       transaction.add(R.id.slideshowScreenLinearSourceLayout, mSlideshowFragment,
           "MULTIFACETTE_SLIDESHOW");
       transaction.addToBackStack(null);
       transaction.commit();
+
       mSlideshowFragment.startSlideshow(mSlideshowFilesName);
+
     } else {
       Log.e(TAG, "startSlideshow aborted cause array was empty, halt (no net?)"
           + mSlideshowFilesName.size());

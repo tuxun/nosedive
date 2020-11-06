@@ -1,10 +1,8 @@
 package org.tflsh.multifacette;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
-import androidx.test.platform.app.InstrumentationRegistry;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

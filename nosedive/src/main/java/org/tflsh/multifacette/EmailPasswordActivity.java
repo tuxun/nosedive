@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Google Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import java.util.Objects;
 //import org.tflsh.login.R;
 
 public class EmailPasswordActivity extends BaseActivity implements
@@ -168,7 +169,7 @@ public class EmailPasswordActivity extends BaseActivity implements
     // Send verification email
     // [START send_email_verification]
     final FirebaseUser user = mAuth.getCurrentUser();
-    user.sendEmailVerification()
+    Objects.requireNonNull(user).sendEmailVerification()
         .addOnCompleteListener(this, new OnCompleteListener<Void>() {
           @Override
           public void onComplete(@NonNull Task<Void> task) {
