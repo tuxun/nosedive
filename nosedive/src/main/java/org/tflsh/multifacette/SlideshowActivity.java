@@ -23,6 +23,7 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Objects;
 
 public class SlideshowActivity extends AppCompatActivity {
@@ -144,7 +145,7 @@ public class SlideshowActivity extends AppCompatActivity {
           findViewById(R.id.repairFilesButton).setClickable(true);
 
           findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
-          ((Button)findViewById(R.id.repairFilesButton)).setText("Pas de fichiers, activez le wifi et réessayez");
+          ((Button)findViewById(R.id.repairFilesButton)).setText(getText(R.string.there_is_no_files));
 
           findViewById(R.id.repairFilesButton).setBackground(
               ResourcesCompat.getDrawable(getResources(), R.drawable.ic_button_on_off, null));
@@ -247,7 +248,7 @@ public class SlideshowActivity extends AppCompatActivity {
         case "JSON_LocalOnly":
           Log.d(TAG, "intentReceiver got JSON_LocalOnly");
           ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-              "Liste des photos ok");
+              R.string.files_list_ok);
 
           break;
 
@@ -301,13 +302,11 @@ public class SlideshowActivity extends AppCompatActivity {
           mTotalFilesProgressBar.setVisibility(View.VISIBLE);
           if (missingFilesNames.size() > 0) {
             ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-                (mSlideshowFilesName.size())
-                    + " photos ok, "
-                    + missingFilesNames.size()
-                    + " manquantes");
+                String.format(Locale.FRANCE,"%d photos ok, %d manquantes", mSlideshowFilesName.size(),
+                    missingFilesNames.size()));
           } else {
             ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-                (mSlideshowFilesName.size()) + " photos ok");
+                String.format(Locale.FRANCE,"%d photos ok", mSlideshowFilesName.size()));
           }
           mTotalFilesProgressBar.setProgress(
               mSlideshowFilesName.size());
@@ -336,23 +335,20 @@ public class SlideshowActivity extends AppCompatActivity {
            "il manque " + (missingFilesNames.size()-((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
             ) + " fichiers");*/
             ((Button) findViewById(R.id.repairFilesButton)).setText(
-                getString(R.string.dl_progressText)
-                    + " de "
-                    + (missingFilesNames.size() - downloadedFilesNumber)
-                    + " "
-                    + getString(R.string.files));
+                String.format(Locale.FRANCE,"%s %d %s", getString(R.string.dl_progressText),
+                    missingFilesNames.size() - downloadedFilesNumber, getString(R.string.files)));
             if (mSlideshowDownloadedFilesName.size() == missingFilesNames.size()) {
               Log.e(TAG, "intentReceiver got action dl received, starting slideshow"
                   + mSlideshowFilesName.size());
               ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-                  "Téléchargement complet! Lancer le diapo");
+                  R.string.download_files_ended);
               findViewById(R.id.repairFilesButton).setEnabled(true);
               findViewById(R.id.repairFilesButton).setClickable(true);
               findViewById(R.id.repairFilesButton).setBackground(
                   getResources().getDrawable(R.drawable.ic_button_on_off, null));
               //boolean filesWereAlreadyFound = true;
               ((Button) findViewById(R.id.repairFilesButton)).setText(
-                  "Téléchargement complet! Lancer le diapo");
+                  getText(R.string.download_files_ended));
               findViewById(R.id.repairFilesButton).setOnClickListener(
                   new View.OnClickListener() {
                     @Override public void onClick(View view) {
@@ -368,8 +364,9 @@ public class SlideshowActivity extends AppCompatActivity {
                       - downloadedFilesNumber));
 
               ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-                  (mSlideshowFilesName.size()) + " photos ok, " + (missingFilesNames.size()
-                      - downloadedFilesNumber) + " manquantes");
+                  String.format(Locale.FRANCE,"%d photos ok, %d manquantes", mSlideshowFilesName.size(),
+                      missingFilesNames.size()
+                          - downloadedFilesNumber));
             } else {
               ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(("Aucune photo, "
                   + (missingFilesNames.size() - downloadedFilesNumber)
@@ -387,8 +384,7 @@ public class SlideshowActivity extends AppCompatActivity {
           Log.d(TAG, "intentReceiver got action files missing " + max2);
 
           ((Button) findViewById(R.id.repairFilesButton)).setText(
-              "Récupérer les " + (missingFilesNames.size())
-                  + " photos manquantes");
+              String.format(Locale.FRANCE,"Récupérer les %d photos manquantes", missingFilesNames.size()));
           mTotalFilesProgressBar.setVisibility(View.VISIBLE);
           findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
           mDlProgressBar.setMax(
@@ -398,8 +394,9 @@ public class SlideshowActivity extends AppCompatActivity {
 
           if (mSlideshowFilesName.size() > 0) {
             ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-                (mSlideshowFilesName.size()) + " photos ok, " + (missingFilesNames.size()
-                    - downloadedFilesNumber) + " manquantes");
+                String.format(Locale.FRANCE,"%d photos ok, %d manquantes", mSlideshowFilesName.size(),
+                    missingFilesNames.size()
+                        - downloadedFilesNumber));
           } else {
             ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(("Aucune photo, "
                 + (missingFilesNames.size() - downloadedFilesNumber)

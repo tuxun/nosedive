@@ -79,7 +79,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_gravity="center"
         android:gravity="center"
         android:orientation="vertical"
@@ -89,8 +89,8 @@
       <TextView
           android:id="@+id/ui_press_meTextView"
           android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-android:text="default_text_slideshow_fragment"
+          android:layout_height="match_parent"
+          android:textColor="@color/OurPink"
           android:gravity="center"
           android:visibility="visible"
           />

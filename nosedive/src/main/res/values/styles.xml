@@ -7,7 +7,7 @@
     <item name="colorPrimaryDark">@color/OurPink</item>
     <item name="colorAccent">@color/colorAccent</item>
     -->
-
+        <item name="android:actionBarStyle">@style/AppTheme.BarTheme</item>
     <item name="windowActionBarOverlay">true</item>
     <item name="android:windowBackground">@color/OurWhite</item>
     <item name="colorPrimary">@color/OurWhite</item>
@@ -26,7 +26,9 @@
     <item name="android:textColor">@color/OurBlack</item> <!-- Whatever color you want-->
     <item name="android:color">@color/OurWhite</item> <!-- Whatever color you want-->
     <item name="background">@color/OurWhite</item>
-
-
   </style>
+
+  <style name="AppTheme.BarTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:background">@color/OurBlack</item>
+    </style>
 </resources>

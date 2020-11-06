@@ -36,7 +36,7 @@
   <string name="buttonLabel_kind">gentille</string>
   <string name="buttonLabel_strong">forte</string>
   <string name="portrait_de_julia">portrait de julia</string>
-  <string name="dl_progressText">Téléchargement en cours</string>
+  <string name="dl_progressText">Téléchargement en cours de</string>
   <string name="pleaseRestartWithInternet">activez le wifi</string>
   <string name="files">fichiers</string>
   <string name="pleaseCheckFiles">Vérifier les photos</string>
@@ -58,5 +58,8 @@
   <string name="attachment_summary_off">Only download attachments when manually requested</string>
   <string name="showSettingsImageButton">accéder aux réglages de l\'application</string>
   <string name="downloadError">Erreur de téléchargement, vérifier le wifi et relancer l\'application</string>
+  <string name="there_is_no_files">Pas de fichiers, activez le wifi et réessayez</string>
+  <string name="files_list_ok">Liste des photos OK</string>
+  <string name="download_files_ended">Téléchargement complet! Lancez le diapo</string>
 
 </resources>
