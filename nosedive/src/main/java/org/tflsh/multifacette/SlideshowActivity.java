@@ -1,6 +1,7 @@
 package org.tflsh.multifacette;
 
 import android.app.ActionBar;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -426,7 +427,6 @@ public class SlideshowActivity extends AppCompatActivity {
   private final SlideshowFragment mSlideshowFragment=SlideshowFragment.getInstance();
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //tools
 
   @Override
   protected void onStop() {

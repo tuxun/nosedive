@@ -9,7 +9,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+
+import static org.junit.Assert.assertEquals;
+import static org.robolectric.Shadows.shadowOf;
 
 @Config(sdk = { Build.VERSION_CODES.O_MR1})
 @RunWith(RobolectricTestRunner.class)
@@ -50,63 +54,69 @@ public class RobotTest {
 
   @Test public void testGrabImage()
   {
-    //activity.findViewById(R.id.login).performClick();
+    activity.findViewById(R.id.repairFilesButton).performClick();
+
+    Log.d(TAG+"testFragment", "testing " + activity.toString());
     try {
       Thread.sleep(5000);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
+
+    assertEquals(dlOkIntent, activity.getIntent());
+
+  }
+  @Test public void testLaunchLoginActivity()
+  {
+    activity.findViewById(R.id.loginImageButton).performClick();
+
     Log.d(TAG+"testFragment", "testing " + activity.toString());
+    try {
+      Thread.sleep(5000);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+        Intent expectedIntent = new Intent(activity, EmailPasswordActivity.class);
+        Intent actual = shadowOf(RuntimeEnvironment.application).getNextStartedActivity();
+    Log.d(TAG+"testFragment", "testing " + dlOkIntent.getComponent());
+    Log.d(TAG+"testFragment", "testing " + activity.getIntent().getComponent());
 
-
-    Assert.assertEquals(dlOkIntent, activity.getIntent());
-
+  //  Assert.assertEquals(dlOkIntent.getComponent(), activity.getIntent().getComponent());
+    assertEquals(expectedIntent.getComponent(), actual.getComponent());
   }
 
 
 
   @Test public void testGrabJson()
   {
-    //activity.findViewById(R.id.login).performClick();
-    try {
-      Thread.sleep(5000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
+    activity.findViewById(R.id.repairFilesButton).performClick();
+
     Log.d(TAG+"testFragment", "testing " + activity.toString());
 
-    Assert.assertEquals(dlFailedIntent, activity.getIntent());
+    assertEquals(dlFailedIntent, activity.getIntent());
 
   }
 
   @Test public void testParseJson()
   {
-    //activity.findViewById(R.id.login).performClick();
-    try {
-      Thread.sleep(5000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
+    activity.findViewById(R.id.repairFilesButton).performClick();
+
     Log.d(TAG+"testFragment", "testing " + activity.toString());
 
 
-    Assert.assertEquals(expectedIntent.getComponent(), activity.getIntent().getComponent());
+    assertEquals(expectedIntent.getComponent(), activity.getIntent().getComponent());
 
 
 
   }
   @Test public void testDecodeImage()
   {
-    //activity.findViewById(R.id.login).performClick();
-    try {
-      Thread.sleep(5000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
+    activity.findViewById(R.id.repairFilesButton).performClick();
+
     Log.d(TAG+"testFragment", "testing " + activity.toString());
 
-//tyodo create 4th intent
-//    Assert.assertEquals(dlOkIntent, activity.getIntent());
+//todo create 4th intent
+    assertEquals(dlOkIntent, activity.getIntent());
 
   }
 

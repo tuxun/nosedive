@@ -13,6 +13,7 @@ import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
+import androidx.preference.SeekBarPreference;
 import androidx.preference.SwitchPreferenceCompat;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -24,7 +25,7 @@ import java.util.Objects;
 public class SettingsFragment extends PreferenceFragmentCompat implements
     SharedPreferences.OnSharedPreferenceChangeListener {
   private static final SettingsFragment instance=new SettingsFragment();
-
+  private String defaultProjectKey;
 
   public static SettingsFragment getInstance() {
     return instance;
@@ -40,8 +41,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
     super.onCreate(savedInstanceState);
     if (savedInstanceState != null) {
 //get uid?
-      FirebaseDatabase.getInstance().setPersistenceEnabled(true);
     }
+
   }
 
   public EditTextPreference makeEditTextPreference(Context contextArg, String keyArg) {
@@ -58,11 +59,11 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
 
   }
 
-    public customSeekBarPreference makeSeekBar(Context contextArg, String keyArg,int defValue, int maxValue,boolean showValueArg) {
+    public CustomSeekBarPreference makeSeekBar(Context contextArg, String keyArg,int defValue, int maxValue,boolean showValueArg) {
 
-    customSeekBarPreference retPreference = new customSeekBarPreference(contextArg);
-    int value =datastore.getValue(keyArg, defValue);
-
+    CustomSeekBarPreference retPreference = new CustomSeekBarPreference(contextArg);
+    int value =datastore.getInt(keyArg, defValue,retPreference);
+//getPreferenceManager().getSharedPreferences().edit().putInt(keyArg,value);
     retPreference.setKey(keyArg);
     retPreference.setMax(maxValue);
 
@@ -72,81 +73,58 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
 
     retPreference.setTitle(keyArg + " original value: "+value);
 return retPreference;
-    //  delayFramePreference.update();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.P) @Override
   public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-    //?PreferenceManager.getDefaultSharedPreferences(getContext());
-    // addPreferencesFromResource(R.xml.root_preferences);
-    //setPreferencesFromResource(R.xml.root_preferences, rootKey);
-   /*
-    Context context = getPreferenceManager().getContext();
-    //screen.getSharedPreferences();
-
-
-
-    PreferenceCategory notificationCategory = new PreferenceCategory(context);
-    notificationCategory.setKey("notifications_category");
-    notificationCategory.setTitle("Notifications");
-    screen.addPreference(notificationCategory);
-    notificationCategory.addPreference(notificationPreference);
-
-    Preference feedbackPreference = new Preference(context);
-    feedbackPreference.setKey("feedback");
-    feedbackPreference.setTitle("Send feedback");
-    feedbackPreference.setSummary("Report technical issues or suggest new features");
-    getPreferenceManager().getSharedPreferences().edit().putString("feedback","Send feedback");
-
-
-    helpCategory.addPreference(feedbackPreference);
-
-    SharedPreferences prefs =  getPreferenceManager().getSharedPreferences();
- */
     datastore = new DataStore();
 
-    //!!!!addPreferencesFromResource(R.xml.root_preferences);
+    PreferenceManager preferenceManager = getPreferenceManager();
 
-    PreferenceScreen screen = /*getPreferenceScreen();*/
-        getPreferenceManager().createPreferenceScreen(getContext());
+    PreferenceScreen screen =    preferenceManager.createPreferenceScreen(getContext());
+    preferenceManager.setPreferenceDataStore(datastore);
 
     if (datastore.isUserConnected()) {
       Log.d(CLASSNAME, "found connected user " + datastore.getUserName());
     }
       PreferenceCategory timerCategory = new PreferenceCategory(
-          Objects.requireNonNull(getContext()));
+          requireContext());
       timerCategory.setKey("timers");
       timerCategory.setTitle("Timers");
       screen.addPreference(timerCategory);
 
 
+      CustomSeekBarPreference
+          delayFramePreference = makeSeekBar(getContext(),"DELAY_INTER_FRAME_SETTING",666,10000,true);
 
-
-      customSeekBarPreference delayFramePreference = makeSeekBar(getContext(),"DELAY_INTER_FRAME_SETTING",750,10000,true);
       screen.addPreference(delayFramePreference);
 
-      customSeekBarPreference SeekBarPreference = makeSeekBar(getContext(),"DELAY_GUESSING_SETTING",5000,30000,true);
-      screen.addPreference(SeekBarPreference);
+      CustomSeekBarPreference
+          seekBarPreference = makeSeekBar(getContext(),"DELAY_GUESSING_SETTING",5000,30000,true);
+      screen.addPreference(seekBarPreference);
 
-      customSeekBarPreference delayGuessingPreference = makeSeekBar(getContext(),"DELAY_CHOICE_WORDS_SETTING",10000,30000,true);
+      CustomSeekBarPreference
+          delayGuessingPreference = makeSeekBar(getContext(),"DELAY_CHOICE_WORDS_SETTING",10000,30000,true);
       screen.addPreference(delayGuessingPreference);
 
-      customSeekBarPreference delayUIPreference = makeSeekBar(getContext(),"UI_ANIMATION_DELAY",300,1000,true);
+      CustomSeekBarPreference
+          delayUIPreference = makeSeekBar(getContext(),"UI_ANIMATION_DELAY",300,1000,true);
       screen.addPreference(delayUIPreference);
 
     EditTextPreference
         baseUrlPreference = makeEditTextPreference(getContext(),"BASE_URL");
     screen.addPreference(baseUrlPreference);
 
+    defaultProjectKey = "DEFAULT_PROJECT_KEY";
     EditTextPreference
-        baseProjectPreference = makeEditTextPreference(getContext(),"DEFAULT_PROJECT_KEY");
+        baseProjectPreference = makeEditTextPreference(getContext(), defaultProjectKey);
     screen.addPreference(baseProjectPreference);
 
 
 
       SwitchPreferenceCompat notificationPreference = new SwitchPreferenceCompat(getContext());
       notificationPreference.setKey("logout");
-      notificationPreference.setTitle("url" + datastore.getValue("DEFAULT_PROJECT_KEY", "null"));
+      notificationPreference.setTitle("url" + datastore.getValue(defaultProjectKey, "null"));
       screen.addPreference(notificationPreference);
 
       PreferenceCategory helpCategory = new PreferenceCategory(getContext());
@@ -156,18 +134,15 @@ return retPreference;
 
       setPreferenceScreen(screen);
 
-    PreferenceManager preferenceManager = getPreferenceManager();
 
-    preferenceManager.setPreferenceDataStore(datastore);
-
+/*
     mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
     FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
-        .setMinimumFetchIntervalInSeconds(60)/*3600*/
+        .setMinimumFetchIntervalInSeconds(60)
         .build();
 
     mFirebaseRemoteConfig.setConfigSettingsAsync(configSettings);
     mFirebaseRemoteConfig.setDefaultsAsync(R.xml.root_preferences);
-    //TODO: this can occurs even after fragment left the screen
 
     mFirebaseRemoteConfig.fetchAndActivate()
         .addOnCompleteListener(Objects.requireNonNull(getActivity()).getMainExecutor(), new OnCompleteListener<Boolean>() {
@@ -191,23 +166,12 @@ return retPreference;
             Log.d(CLASSNAME,
                 String.valueOf(mFirebaseRemoteConfig.getBoolean("resetSettingsOnNextStartup")));
             Log.d(CLASSNAME,
-                mFirebaseRemoteConfig.getString("DEFAULT_PROJECT_KEY"));
-          /*  Log.d("settingsFrament",
-                getPreferenceScreen().findPreference("DEFAULT_PROJECT_KEY").getSharedPreferences().getString("DEFAULT_PROJECT_KEY","proutnokey"));
+                mFirebaseRemoteConfig.getString(defaultProjectKey));
 
-
-            getPreferenceScreen().findPreference("DEFAULT_PROJECT_KEY").getSharedPreferences().edit().putString("DEFAULT_PROJECT_KEY",
-                 mFirebaseRemoteConfig.getString("DEFAULT_PROJECT_KEY"));
-            getPreferenceScreen().findPreference("DEFAULT_PROJECT_KEY").getSharedPreferences().edit().apply();
-*/
           }
         });
     mFirebaseRemoteConfig.setDefaultsAsync(R.xml.root_preferences);
-
-
-    //mFirebaseRemoteConfig.fetch(5);
-
-    //mFirebaseRemoteConfig.getString("DEFAULT_PROJECT_KEY");
+*/
 
   }
 
@@ -215,73 +179,30 @@ return retPreference;
     super.onPause();
     Log.d(CLASSNAME, "onPause");
 
-    /*getPreferenceScreen().getSharedPreferences()
-        .unregisterOnSharedPreferenceChangeListener(this);*/
   }
 
   @Override public void onResume() {
     super.onResume();
     Log.d(CLASSNAME, "onResume");
 
-/*    getPreferenceScreen().getSharedPreferences()
-        .registerOnSharedPreferenceChangeListener(this);
-  */
   }
 
-  @Override
-  public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-      String key) {
-  /*  switch (key) {
-
-      case "DELAY_CHOICE_WORDS_SETTING":
-      case "DELAY_GUESSING_SETTING":
-      case "DELAY_INTER_FRAME_SETTING": {
-        PreferenceManager pfm = getPreferenceManager();
-        pfm.getSharedPreferences()
-            .edit()
-            .putInt(key, sharedPreferences.getInt(key, 999));
-        //mFirebaseRemoteConfig.getKeysByPrefix("DELAY
-        getActivity().getSharedPreferences("", Context.MODE_PRIVATE)
-            .edit().commit();
-      }
-
-      case "BASE_URL":
-      case "DEFAULT_PROJECT_KEY": {
-        getPreferenceScreen().getSharedPreferences()
-            .edit()
-            .putString(key, mFirebaseRemoteConfig.getString(key));
-        getActivity().getSharedPreferences("", Context.MODE_PRIVATE).edit().apply();
-
-        getActivity().getSharedPreferences("", Context.MODE_PRIVATE)
-            .edit()
-            .putString(key, mFirebaseRemoteConfig.getString(key));
-
-
-        getActivity().getSharedPreferences("", Context.MODE_PRIVATE)
-            .edit().commit();
-        //mFirebaseRemoteConfig.getKeysByPrefix("DELAY
-      }
-    }
-    //        (int) SettingArg.get("DELAY_INTER_FRAME_SETTING").asDouble());
-    Log.d("settingfragmennt", "Config params updated: " + key);
-    getActivity().getSharedPreferences("", Context.MODE_PRIVATE)
-        .edit().apply();
+  /**
+   * Called when a shared preference is changed, added, or removed. This
+   * may be called even if a preference is set to its existing value.
+   *
+   * <p>This callback will be run on your main thread.
+   *
+   * <p><em>See also
+   * {@link DataStore}.</em>
+   *
+   * @param sharedPreferences The {@link SharedPreferences} that received
+   * the change.
+   * @param key The key of the preference that was changed, added, or
    */
+  @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+//method mandatory to extend from @FragmentPreferencesCompat, but we use firebase module instead
   }
-
-
-
-/*
-  @Nullable
-  @Override
-  public View onCreateView(@NonNull LayoutInflater inflater,
-      @Nullable ViewGroup container,
-      @Nullable Bundle savedInstanceState) {
-    //return getListView();
-    return inflater.inflate(R.layout.fragment_settings, container, false);
-
-  }
-*/
 }
 
 /*A PreferenceFragmentCompat is the entry point to using the Preference library.

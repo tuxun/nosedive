@@ -21,18 +21,19 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import java.util.Objects;
-//import org.tflsh.login.R;
 
-public class EmailPasswordActivity extends BaseActivity implements
+public class EmailPasswordActivity extends FragmentActivity implements
     View.OnClickListener {
 
   private static final String TAG = "EmailPassword";
@@ -115,6 +116,23 @@ public class EmailPasswordActivity extends BaseActivity implements
           }
         });
     // [END create_user_with_email]
+  }
+  //tools
+  private static ProgressBar mProgressDialog = null;
+
+  public void showProgressDialog() {
+    if (mProgressDialog == null) {
+      mProgressDialog = new ProgressBar(this);
+      mProgressDialog.setIndeterminate(true);
+    }
+
+    mProgressDialog.setVisibility(View.VISIBLE);
+  }
+
+  public void hideProgressDialog() {
+    if (mProgressDialog != null && mProgressDialog.isShown()) {
+      mProgressDialog.setVisibility(View.GONE);
+    }
   }
 
   private void signIn(String email, String password) {

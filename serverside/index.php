@@ -2,8 +2,10 @@
 
 //see https://stackoverflow.com/questions/15870159/list-files-on-directory-and-print-result-as-json
 
+const FILELISTNAME="files_list.json";
+const OLDFILELISTNAME="filelist.json";
 //main: return the json file if found, else create it
-$json_db_file=fopen("files_list.json","r");
+$json_db_file=fopen(FILELISTNAME,"r");
     if(!$json_db_file)
         {
             create_json_file();
@@ -11,7 +13,7 @@ $json_db_file=fopen("files_list.json","r");
      else
         {
             header('Content-Type: application/json');
-	        echo fread($json_db_file,filesize("files_list.json"));
+	        echo fread($json_db_file,filesize(FILELISTNAME));
             fclose($json_db_file);
         }
 //end main
@@ -20,7 +22,7 @@ $json_db_file=fopen("files_list.json","r");
 
 function create_json_file()
     {
-	    $json_db_file=fopen("files_list.json","w");
+	    $json_db_file=fopen(FILELISTNAME,"w");
         //create json array
         $dir = "./"; //path
         $list = array(); //main array
@@ -29,10 +31,10 @@ function create_json_file()
             {
                 if($dh = opendir($dir))
                     {
-                        while(($file = readdir($dh)) != false)
+                        while($file = readdir($dh))
                             {
 
-                                if($file == "." or $file == ".." or $file == "filelist.json" or $file == "files_list.json" or $file == "index.php")
+                                if($file == "." || $file == ".." || $file == OLDFILELISTNAME || $file == FILELISTNAME || $file == "index.php")
                                 {
                                 //dont parse theses files
                                 }

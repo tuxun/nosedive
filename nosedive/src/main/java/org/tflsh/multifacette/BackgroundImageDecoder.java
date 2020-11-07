@@ -23,8 +23,7 @@ public class BackgroundImageDecoder extends Activity {
   //private static int currentFile;
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //private static int missingFilesNumber;
-  static  int screenWidth;
-  static  int screenHeight;
+
 //final Resources.Theme mTheme;
   //constructor: save the context for later uses
   public BackgroundImageDecoder(Resources.Theme themeArg, int width, int height) {
@@ -33,8 +32,6 @@ public class BackgroundImageDecoder extends Activity {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //mContext = ctx;
 //mTheme=themeArg;
-    screenWidth = width;
-    screenHeight = height;
   }
 
   public static int calculateInSampleSize(
@@ -122,14 +119,17 @@ public class BackgroundImageDecoder extends Activity {
     final String srcString;
     final long startTime;
     private final Executor executor;
-
+    final int      screenWidth;
+     final  int       screenHeight;
     public ShowImageTask(Executor executorArg, ImageView bbmImage, @Nullable String urlSource,
-        int maxDelayParam) {
+        int maxDelayParam,int screenHeightArg, int screenWidthArg) {
       this.bmImage = new WeakReference<>(bbmImage);
       this.maxDelay = maxDelayParam;
       this.srcString = urlSource;
       startTime = currentTimeMillis();
       executor=executorArg;
+       screenWidth=screenWidthArg;
+          screenHeight=screenHeightArg;
     }
 
     protected void doInBackground() {

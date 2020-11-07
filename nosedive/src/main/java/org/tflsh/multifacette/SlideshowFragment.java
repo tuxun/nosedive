@@ -297,7 +297,6 @@ public class SlideshowFragment extends Fragment {
     }
   };
   private long mLastMenuClickTime;
-  static final int DELAY_INTER_FRAME_SETTING = 750;
 
 // --Commented out by Inspection START (04/11/20 23:47):
 //  public cleanNext()
@@ -323,7 +322,7 @@ public class SlideshowFragment extends Fragment {
           executor.execute(new BackgroundImageDecoder.ShowImageTask(ContextCompat.getMainExecutor(requireActivity()),
               (ImageView) requireView().findViewById(R.id.imageView),
               mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
-              DELAY_INTER_FRAME_SETTING)
+              DELAY_INTER_FRAME_SETTING,screenHeight,screenWidth)
           );
           ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(
               getResources().getColor(R.color.OurWhite, null));
@@ -333,7 +332,7 @@ public class SlideshowFragment extends Fragment {
               new BackgroundImageDecoder.ShowImageTask(ContextCompat.getMainExecutor(requireActivity()),
                   ((ImageView) requireView().findViewById(R.id.imageView)),
                   mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
-                  DELAY_INTER_FRAME_SETTING)
+                  DELAY_INTER_FRAME_SETTING,screenHeight,screenWidth)
           );
           ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(
               getResources().getColor(R.color.OurPink, null));
@@ -371,7 +370,7 @@ public class SlideshowFragment extends Fragment {
               ((ImageView) requireView().findViewById(R.id.imageView)),
               mCacheDirPath + "/" + mSlideshowFilesName.get(
                   new Random().nextInt(mSlideshowFilesName.size()))
-              , 0
+              , 0,screenHeight,screenWidth
           ));
 
       mSlideshowHandler.postDelayed(mHideMenuRunnable, UI_ANIMATION_DELAY * 2);
@@ -384,10 +383,11 @@ public class SlideshowFragment extends Fragment {
   };
   private boolean screenOrientationNormal;
   //temps durant lequel on regarde une image proposé apres le menu (en multiple d'interframedelay)
-  static final int DELAY_GUESSING_SETTING = 5000;
+  static int DELAY_GUESSING_SETTING = 5000;
   //temps durant lequel on peut choisir deux mots (en multiple d'interframedelay)
-  static final int DELAY_CHOICE_WORDS_SETTING = 10000;
-  private static final int UI_ANIMATION_DELAY = 300;
+  static int DELAY_CHOICE_WORDS_SETTING = 10000;
+  private static int UI_ANIMATION_DELAY = 300;
+  static int DELAY_INTER_FRAME_SETTING = 750;
 
   @Nullable
   @Override
@@ -411,8 +411,13 @@ public class SlideshowFragment extends Fragment {
         .getSharedPreferences("root", Context.MODE_PRIVATE)
         .getInt("UI_ANIMATION_DELAY", 750);
 
-    Log.d(CLASSNAME, "DELAY_INTER_FRAME_SETTING" + DELAY_INTER_FRAME_SETTING);
 */
+    DELAY_CHOICE_WORDS_SETTING=new DataStore().getValue("DELAY_CHOICE_WORDS_SETTING",0);
+    DELAY_GUESSING_SETTING=new DataStore().getValue("DELAY_GUESSING_SETTING",0);
+    DELAY_INTER_FRAME_SETTING=new DataStore().getValue("DELAY_INTER_FRAME_SETTING",0);
+    UI_ANIMATION_DELAY=new DataStore().getValue("UI_ANIMATION_DELAY",0);
+    Log.d(CLASSNAME, "DELAY_INTER_FRAME_SETTING" + DELAY_INTER_FRAME_SETTING);
+
     if (savedInstanceState != null) {
       mSlideshowFilesName = savedInstanceState.getStringArrayList("SlideshowFilenames");
     }

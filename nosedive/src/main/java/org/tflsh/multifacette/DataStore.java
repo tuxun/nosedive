@@ -1,46 +1,51 @@
 package org.tflsh.multifacette;
 
+import android.content.Context;
 import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceDataStore;
+import androidx.preference.SeekBarPreference;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
+import com.google.firebase.database.ValueEventListener;
 import java.util.Objects;
+
+import static java.security.AccessController.getContext;
 
 // [END post_class]
 
-@IgnoreExtraProperties class nosediveSettings {
-  private static final nosediveSettings instance;
+@IgnoreExtraProperties class NosediveSettings {
+  private static final NosediveSettings instance;
 
   static {
-    instance = new nosediveSettings();
+    instance = new NosediveSettings();
   }
 
-//  public String username = "defaultUserName";
- // public String email = "defaultUserMailAddress";
-  public int DELAY_INTER_FRAME_SETTING = 750;
+  protected int interFrameDelay = 750;
   //temps durant lequel on regarde une image proposé apres le menu (en multiple d'interframedelay)
-  public int DELAY_GUESSING_SETTING = 5000;
+  protected int guessingDelay = 5000;
   //temps durant lequel on peut choisir deux mots (en multiple d'interframedelay)
-  public int DELAY_CHOICE_WORDS_SETTING = 10000;
-  public long UI_ANIMATION_DELAY = 300;
-  public String DEFAULT_PROJECT_KEY = "rescatest";
-  public String BASE_URL = "https://dev.tuxun.fr/nosedive/";
+  protected int choiceDelay = 10000;
+  protected long uiDelay = 300;
+  protected String projectKey = "rescatest";
+  protected String baseUrl = "https://dev.tuxun.fr/nosedive/";
 
-  public boolean syncProjectOnNextStartup = false;
+  protected boolean syncProjectOnNextStartup = false;
 
-  public boolean syncCloud = false;
-  public boolean sync = false;
+  protected boolean syncCloud = false;
+  protected boolean sync = false;
 
   //nevr call this, use getinstance
-  public nosediveSettings() {
+  public NosediveSettings() {
     // Default constructor required for calls to DataSnapshot.getValue(User.class)
   }
 
-  public static nosediveSettings getInstance() {
+  public static NosediveSettings getInstance() {
     return instance;
   }
 }
@@ -48,7 +53,7 @@ import java.util.Objects;
 public class DataStore extends PreferenceDataStore {
   private static final String TAG = "DataStore";
   private final FirebaseAuth mAuth;
-  final nosediveSettings settings;
+  final NosediveSettings settings;
   final FirebaseUser user;
   final FirebaseDatabase database;
 
@@ -58,7 +63,7 @@ public class DataStore extends PreferenceDataStore {
   public DataStore() {
     super();
     //get auth for id in db
-    settings = nosediveSettings.getInstance();
+    settings = NosediveSettings.getInstance();
 
     Log.d(TAG, "DataStore creating new settings");
 
@@ -67,6 +72,7 @@ public class DataStore extends PreferenceDataStore {
     user = mAuth.getCurrentUser();
     // Write a message to the database
     database = FirebaseDatabase.getInstance();
+    FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
     //dbusersPath =
     usersPath = database.getReference("configs");
@@ -78,7 +84,6 @@ public class DataStore extends PreferenceDataStore {
       thisUserPath = usersPath.child("user_unset");
     }
 
-    //  thisUserPath.keepSynced(true);
 
     //Firebase Database paths must not contain '.', '#', '$', '[', or ']'
     DatabaseReference myRef = database.getReference("logs");
@@ -110,6 +115,8 @@ public class DataStore extends PreferenceDataStore {
       case "sync":
         settings.sync = value;
         break;
+        default:
+
     }
   }
 
@@ -124,8 +131,7 @@ public class DataStore extends PreferenceDataStore {
         return
             settings.sync;
 
-      default:
-        return def;
+      default: return def;
     }
   }
 
@@ -136,35 +142,36 @@ public class DataStore extends PreferenceDataStore {
 
     switch (key) {
       case "DELAY_INTER_FRAME_SETTING":
-        settings.DELAY_INTER_FRAME_SETTING = value;
+        settings.interFrameDelay = value;
         break;
       case "DELAY_GUESSING_SETTING":
-        settings.DELAY_GUESSING_SETTING = value;
+        settings.guessingDelay = value;
         break;
 
       case "DELAY_CHOICE_WORDS_SETTING":
-        settings.DELAY_CHOICE_WORDS_SETTING = value;
+        settings.choiceDelay = value;
         break;
       case "UI_ANIMATION_DELAY":
-        settings.UI_ANIMATION_DELAY = value;
+        settings.uiDelay = value;
         break;
+      default:
     }
   }
 
   protected int getValue(String key,int def) {
     switch (key) {
       case "DELAY_INTER_FRAME_SETTING":
-        return settings.DELAY_INTER_FRAME_SETTING;
+        return settings.interFrameDelay;
       case "DELAY_GUESSING_SETTING":
-        return settings.DELAY_GUESSING_SETTING;
+        return settings.guessingDelay;
 
       case "DELAY_CHOICE_WORDS_SETTING":
         return
-            settings.DELAY_CHOICE_WORDS_SETTING;
+            settings.choiceDelay;
 
       case "UI_ANIMATION_DELAY":
         return (int)
-            settings.UI_ANIMATION_DELAY;
+            settings.uiDelay;
       default:
         return def;
     }
@@ -177,21 +184,22 @@ public class DataStore extends PreferenceDataStore {
 
     switch (key) {
       case "BASE_URL":
-        settings.BASE_URL = value;
+        settings.baseUrl = value;
 
         break;
       case "DEFAULT_PROJECT_KEY":
-        settings.DEFAULT_PROJECT_KEY = value;
+        settings.projectKey = value;
         break;
+      default:
     }
   }
 @Nullable
   protected String getValue(String key, String def) {
     switch (key) {
       case "BASE_URL":
-        return settings.BASE_URL;
+        return settings.baseUrl;
       case "DEFAULT_PROJECT_KEY":
-        return settings.DEFAULT_PROJECT_KEY;
+        return settings.projectKey;
 
       default:
         return def;
@@ -207,6 +215,7 @@ public class DataStore extends PreferenceDataStore {
   public void putString(String key,  String value) {
      //we should set config locally then push to db
     setValue(key, value);
+
   }
 
   @Override
@@ -230,14 +239,43 @@ public class DataStore extends PreferenceDataStore {
 
     return getValue(key, defValue);
   }
-
+  @Override
   public boolean getBoolean(final String key,  final boolean defValue) {
 
     return getValue(key, defValue);
   }
 
-  public int getInt(final String key,  int defValue) {
+  public int getInt(final String key,  int defValue,  final  CustomSeekBarPreference seekBarPreference) {
+ValueEventListener postListener = new ValueEventListener() {
+      @Override
+      public void onDataChange(DataSnapshot dataSnapshot) {
+        // Get Post object and use the values to update the UI
+        int value=dataSnapshot.getValue(int.class);
+        Log.d(TAG,
+            "getBoolean grabbing " + key + " default value= " + value);
+        //!!! type change cause mess
+     //   thisUserPath.child(key).setValue(dataSnapshot.getValue(int.class));
+  //putInt(key,dataSnapshot.getValue(int.class));
 
+
+
+
+        seekBarPreference.setValue(value);
+      seekBarPreference.setDefaultValue(value);
+seekBarPreference.callChangeListener(value);
+        synchronized(seekBarPreference){
+          seekBarPreference.notify();
+        }
+      }
+
+      @Override
+      public void onCancelled(DatabaseError databaseError) {
+        // Getting Post failed, log a message
+        Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+        // ...
+      }
+    };
+    thisUserPath.child(key).addListenerForSingleValueEvent(postListener);
     return getValue(key, defValue);
   }
 }
