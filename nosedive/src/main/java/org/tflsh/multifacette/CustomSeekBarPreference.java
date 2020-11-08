@@ -64,17 +64,14 @@ public class CustomSeekBarPreference extends SeekBarPreference implements OnSeek
 
   @Override
   public void setValue(int value) {
-    Log.d(CLASS_NAME, "setvalue" + mProgress + " " + getPersistedInt(mProgress)+" "+ value);
-    if (shouldPersist()) {
-    }
+    Log.d(CLASS_NAME, "setValue" + mProgress + " " + getPersistedInt(mProgress)+" "+ value);
+   
     persistInt(value);
     mProgress = value;
     setDefaultValue(mProgress);
 
     notifyChanged();
-    if (value != mProgress) {
 
-    }
   }
 }
 

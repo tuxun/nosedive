@@ -2,9 +2,11 @@ package org.tflsh.multifacette;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceDataStore;
-import androidx.preference.SeekBarPreference;
+import androidx.preference.PreferenceScreen;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -13,9 +15,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.ValueEventListener;
-import java.util.Objects;
 
-import static java.security.AccessController.getContext;
+import static java.util.Objects.requireNonNull;
 
 // [END post_class]
 
@@ -55,13 +56,14 @@ public class DataStore extends PreferenceDataStore {
   private final FirebaseAuth mAuth;
   final NosediveSettings settings;
   final FirebaseUser user;
-  final FirebaseDatabase database;
+ final FirebaseDatabase database;
 
   final DatabaseReference usersPath;
   final DatabaseReference thisUserPath;
-
-  public DataStore() {
+final Context mContext;
+  public DataStore(Context context) {
     super();
+    mContext=context;
     //get auth for id in db
     settings = NosediveSettings.getInstance();
 
@@ -72,13 +74,13 @@ public class DataStore extends PreferenceDataStore {
     user = mAuth.getCurrentUser();
     // Write a message to the database
     database = FirebaseDatabase.getInstance();
-    FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+   // FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
     //dbusersPath =
     usersPath = database.getReference("configs");
 
     if (isUserConnected()) {
-      thisUserPath = usersPath.child(Objects.requireNonNull(user).getUid());
+      thisUserPath = usersPath.child(requireNonNull(user).getUid());
     } else {
       //could be null to avoid write mess in db
       thisUserPath = usersPath.child("user_unset");
@@ -135,10 +137,14 @@ public class DataStore extends PreferenceDataStore {
     }
   }
 
-  protected void setValue(String key, int value) {
-    Log.d(TAG, thisUserPath + "setValue " + value);
-
-    thisUserPath.child(key).setValue(value);
+  protected void setValue(String key, int value,Context context) {
+    Log.d(TAG, thisUserPath + " setValue " + value);
+if(isUserConnected())
+{    thisUserPath.child(key).setValue(value);}
+else { thisUserPath.child(key).setValue(value);
+  Toast.makeText(context, "Login to save values",
+      Toast.LENGTH_SHORT).show();
+}
 
     switch (key) {
       case "DELAY_INTER_FRAME_SETTING":
@@ -207,7 +213,7 @@ public class DataStore extends PreferenceDataStore {
   }
 
   protected String getUserName() {
-    return Objects.requireNonNull(mAuth.getCurrentUser()).getEmail();
+    return requireNonNull(mAuth.getCurrentUser()).getEmail();
   }
 
   //should set settings in db and file
@@ -227,7 +233,7 @@ public class DataStore extends PreferenceDataStore {
   @Override
   public void putInt(String key,  int value) {
     // Save the value somewhere
-    setValue(key, value);
+    setValue(key, value,mContext);
 
   }
 
@@ -245,27 +251,30 @@ public class DataStore extends PreferenceDataStore {
     return getValue(key, defValue);
   }
 
-  public int getInt(final String key,  int defValue,  final  CustomSeekBarPreference seekBarPreference) {
+  public int getInt(final String key,  int defValue,  final  CustomSeekBarPreference seekBarPreference,
+      final PreferenceScreen screen)
+  {
 ValueEventListener postListener = new ValueEventListener() {
       @Override
-      public void onDataChange(DataSnapshot dataSnapshot) {
+      public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
         // Get Post object and use the values to update the UI
-        int value=dataSnapshot.getValue(int.class);
+         int value=requireNonNull(dataSnapshot.getValue(int.class));
         Log.d(TAG,
             "getBoolean grabbing " + key + " default value= " + value);
         //!!! type change cause mess
      //   thisUserPath.child(key).setValue(dataSnapshot.getValue(int.class));
   //putInt(key,dataSnapshot.getValue(int.class));
-
-
-
-
+seekBarPreference.setValue(value);
+screen.addPreference(seekBarPreference);
+/*
         seekBarPreference.setValue(value);
       seekBarPreference.setDefaultValue(value);
 seekBarPreference.callChangeListener(value);
         synchronized(seekBarPreference){
           seekBarPreference.notify();
         }
+
+ */
       }
 
       @Override

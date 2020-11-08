@@ -409,8 +409,8 @@ public class StartupFragment extends Fragment {
       public boolean onTouch(View view, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
           Log.d(TAG, "repairFilesButton()");
-          M_SERVER_DIRECTORY_URL=new DataStore().getValue("BASE_URL","startup fragment button but no url");
-          M_SERVER_BASE_PROJECT_KEY=new DataStore().getValue("DEFAULT_PROJECT_KEY","startup fragment button but no project key")+"/";
+          M_SERVER_DIRECTORY_URL=new DataStore(getContext()).getValue("BASE_URL","startup fragment button but no url");
+          M_SERVER_BASE_PROJECT_KEY=new DataStore(getContext()).getValue("DEFAULT_PROJECT_KEY","startup fragment button but no project key")+"/";
 
         /*  view.findViewById(R.id.repairFilesButton).setBackground(
               ResourcesCompat.getDrawable(getResources(), R.color.OurWhite, null));*/

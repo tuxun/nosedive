@@ -118,7 +118,7 @@ public class EmailPasswordActivity extends FragmentActivity implements
     // [END create_user_with_email]
   }
   //tools
-  private static ProgressBar mProgressDialog = null;
+  private ProgressBar mProgressDialog = null;
 
   public void showProgressDialog() {
     if (mProgressDialog == null) {

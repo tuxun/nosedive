@@ -412,10 +412,11 @@ public class SlideshowFragment extends Fragment {
         .getInt("UI_ANIMATION_DELAY", 750);
 
 */
-    DELAY_CHOICE_WORDS_SETTING=new DataStore().getValue("DELAY_CHOICE_WORDS_SETTING",0);
-    DELAY_GUESSING_SETTING=new DataStore().getValue("DELAY_GUESSING_SETTING",0);
-    DELAY_INTER_FRAME_SETTING=new DataStore().getValue("DELAY_INTER_FRAME_SETTING",0);
-    UI_ANIMATION_DELAY=new DataStore().getValue("UI_ANIMATION_DELAY",0);
+    DataStore dataStore=new DataStore(getContext());
+    DELAY_CHOICE_WORDS_SETTING=dataStore.getValue("DELAY_CHOICE_WORDS_SETTING",0);
+    DELAY_GUESSING_SETTING=dataStore.getValue("DELAY_GUESSING_SETTING",0);
+    DELAY_INTER_FRAME_SETTING=dataStore.getValue("DELAY_INTER_FRAME_SETTING",0);
+    UI_ANIMATION_DELAY=dataStore.getValue("UI_ANIMATION_DELAY",0);
     Log.d(CLASSNAME, "DELAY_INTER_FRAME_SETTING" + DELAY_INTER_FRAME_SETTING);
 
     if (savedInstanceState != null) {

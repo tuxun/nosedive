@@ -5,27 +5,19 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.preference.EditTextPreference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
-import androidx.preference.SeekBarPreference;
 import androidx.preference.SwitchPreferenceCompat;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
-import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import java.util.Objects;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements
     SharedPreferences.OnSharedPreferenceChangeListener {
   private static final SettingsFragment instance=new SettingsFragment();
-  private String defaultProjectKey;
+  //private String defaultProjectKey;
 
   public static SettingsFragment getInstance() {
     return instance;
@@ -33,19 +25,17 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
 
   private static final String CLASSNAME = "SettingsFragment";
   DataStore datastore;
-  private FirebaseRemoteConfig mFirebaseRemoteConfig;
+  // --Commented out by Inspection (08/11/20 09:02):private FirebaseRemoteConfig mFirebaseRemoteConfig;
 
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    if (savedInstanceState != null) {
-//get uid?
-    }
+
 
   }
 
-  public EditTextPreference makeEditTextPreference(Context contextArg, String keyArg) {
+  public void makeEditTextPreference(Context contextArg, String keyArg) {
     EditTextPreference retPreference = new EditTextPreference(contextArg);
     String value =datastore.getValue(keyArg, "makeEditTextPreference no data with key "+keyArg);
 
@@ -55,29 +45,27 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
     retPreference.setDefaultValue(value);
 
     retPreference.setTitle(keyArg + " original value: "+value);
-    return retPreference;
-
   }
 
-    public CustomSeekBarPreference makeSeekBar(Context contextArg, String keyArg,int defValue, int maxValue,boolean showValueArg) {
+    public void makeSeekBar(Context contextArg, PreferenceScreen scr, String keyArg,int defValue, int maxValue,boolean showValueArg) {
 
     CustomSeekBarPreference retPreference = new CustomSeekBarPreference(contextArg);
-    int value =datastore.getInt(keyArg, defValue,retPreference);
 //getPreferenceManager().getSharedPreferences().edit().putInt(keyArg,value);
     retPreference.setKey(keyArg);
     retPreference.setMax(maxValue);
+      retPreference.setShowSeekBarValue(showValueArg);
+      int value =datastore.getInt(keyArg, defValue,retPreference,scr);
 
-    retPreference.setValue(value);
-    retPreference.setDefaultValue(value);
-    retPreference.setShowSeekBarValue(showValueArg);
+    //retPreference.setValue(value);
+    //retPreference.setDefaultValue(value);
 
     retPreference.setTitle(keyArg + " original value: "+value);
-return retPreference;
+//return retPreference;
   }
 
   @RequiresApi(api = Build.VERSION_CODES.P) @Override
   public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-    datastore = new DataStore();
+    datastore = new DataStore(getContext());
 
     PreferenceManager preferenceManager = getPreferenceManager();
 
@@ -94,40 +82,34 @@ return retPreference;
       screen.addPreference(timerCategory);
 
 
-      CustomSeekBarPreference
-          delayFramePreference = makeSeekBar(getContext(),"DELAY_INTER_FRAME_SETTING",666,10000,true);
+   makeSeekBar(getContext(),screen,"DELAY_INTER_FRAME_SETTING",666,10000,true);
 
-      screen.addPreference(delayFramePreference);
+      //screen.addPreference(delayFramePreference);
 
-      CustomSeekBarPreference
-          seekBarPreference = makeSeekBar(getContext(),"DELAY_GUESSING_SETTING",5000,30000,true);
-      screen.addPreference(seekBarPreference);
+ makeSeekBar(getContext(),screen,"DELAY_GUESSING_SETTING",5000,30000,true);
+    //  screen.addPreference(seekBarPreference);
 
-      CustomSeekBarPreference
-          delayGuessingPreference = makeSeekBar(getContext(),"DELAY_CHOICE_WORDS_SETTING",10000,30000,true);
-      screen.addPreference(delayGuessingPreference);
+   makeSeekBar(getContext(),screen,"DELAY_CHOICE_WORDS_SETTING",10000,30000,true);
+      //screen.addPreference(delayGuessingPreference);
+makeSeekBar(getContext(),screen,"UI_ANIMATION_DELAY",300,1000,true);
+      //screen.addPreference(delayUIPreference);
 
-      CustomSeekBarPreference
-          delayUIPreference = makeSeekBar(getContext(),"UI_ANIMATION_DELAY",300,1000,true);
-      screen.addPreference(delayUIPreference);
+  makeEditTextPreference(getContext(),"BASE_URL");
+    //screen.addPreference(baseUrlPreference);
 
-    EditTextPreference
-        baseUrlPreference = makeEditTextPreference(getContext(),"BASE_URL");
-    screen.addPreference(baseUrlPreference);
-
-    defaultProjectKey = "DEFAULT_PROJECT_KEY";
-    EditTextPreference
-        baseProjectPreference = makeEditTextPreference(getContext(), defaultProjectKey);
-    screen.addPreference(baseProjectPreference);
+    String defaultProjectKey = "DEFAULT_PROJECT_KEY";
+makeEditTextPreference(getContext(), defaultProjectKey);
+//    screen.addPreference(baseProjectPreference);
 
 
 
-      SwitchPreferenceCompat notificationPreference = new SwitchPreferenceCompat(getContext());
+      SwitchPreferenceCompat notificationPreference = new SwitchPreferenceCompat(requireContext());
       notificationPreference.setKey("logout");
       notificationPreference.setTitle("url" + datastore.getValue(defaultProjectKey, "null"));
       screen.addPreference(notificationPreference);
 
-      PreferenceCategory helpCategory = new PreferenceCategory(getContext());
+      PreferenceCategory helpCategory = new PreferenceCategory(
+          Objects.requireNonNull(requireContext()));
       helpCategory.setKey("help");
       helpCategory.setTitle("Help");
       screen.addPreference(helpCategory);
