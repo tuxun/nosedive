@@ -25,10 +25,12 @@
     <item name="android:shadowColor">@color/OurWhite</item> <!-- Whatever color you want-->
     <item name="android:textColor">@color/OurBlack</item> <!-- Whatever color you want-->
     <item name="android:color">@color/OurWhite</item> <!-- Whatever color you want-->
-    <item name="background">@color/OurWhite</item>
+    <item name="background">@color/OurBlack</item>
   </style>
 
   <style name="AppTheme.BarTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <item name="android:background">@color/OurBlack</item>
-    </style>
+    <item name="android:color">@color/OurWhite</item> <!-- Whatever color you want-->
+    <item name="android:textColor">@color/OurBlack</item>
+
+    <item name="android:background">@color/OurWhite</item></style>
 </resources>

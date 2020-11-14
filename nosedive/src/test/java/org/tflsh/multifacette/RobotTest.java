@@ -3,7 +3,6 @@ package org.tflsh.multifacette;
 import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,11 +56,6 @@ public class RobotTest {
     activity.findViewById(R.id.repairFilesButton).performClick();
 
     Log.d(TAG+"testFragment", "testing " + activity.toString());
-    try {
-      Thread.sleep(5000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
 
     assertEquals(dlOkIntent, activity.getIntent());
 
@@ -71,11 +65,7 @@ public class RobotTest {
     activity.findViewById(R.id.loginImageButton).performClick();
 
     Log.d(TAG+"testFragment", "testing " + activity.toString());
-    try {
-      Thread.sleep(5000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
+
         Intent expectedIntent = new Intent(activity, EmailPasswordActivity.class);
         Intent actual = shadowOf(RuntimeEnvironment.application).getNextStartedActivity();
     Log.d(TAG+"testFragment", "testing " + dlOkIntent.getComponent());

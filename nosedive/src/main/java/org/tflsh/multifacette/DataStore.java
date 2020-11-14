@@ -56,11 +56,14 @@ public class DataStore extends PreferenceDataStore {
   private final FirebaseAuth mAuth;
   final NosediveSettings settings;
   final FirebaseUser user;
- final FirebaseDatabase database;
+
+  final FirebaseDatabase database;
 
   final DatabaseReference usersPath;
   final DatabaseReference thisUserPath;
 final Context mContext;
+  private String setValue;
+
   public DataStore(Context context) {
     super();
     mContext=context;
@@ -74,9 +77,7 @@ final Context mContext;
     user = mAuth.getCurrentUser();
     // Write a message to the database
     database = FirebaseDatabase.getInstance();
-   // FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
-    //dbusersPath =
     usersPath = database.getReference("configs");
 
     if (isUserConnected()) {
@@ -99,13 +100,19 @@ final Context mContext;
     myRef.setValue("test6");
   }
 
-  protected boolean isUserConnected() {
+  public boolean isUserConnected() {
     return mAuth.getCurrentUser() != null;
   }
 
-  protected void setValue(String key, boolean value) {
-    thisUserPath.child(key).setValue(value);
-
+  protected void setValue(String key, boolean value,Context context) {
+    setValue = "setValue";
+    Log.d(TAG, thisUserPath + " " + setValue + " " + value);
+    if(isUserConnected())
+    {    thisUserPath.child(key).setValue(value);}
+    else {
+      Toast.makeText(context, mContext.getString(R.string.loginTosaveConfigAcrossDevices),
+          Toast.LENGTH_SHORT).show();
+    }
     switch (key) {
       case "syncProjectOnNextStartup":
         settings.syncProjectOnNextStartup = value;
@@ -138,11 +145,11 @@ final Context mContext;
   }
 
   protected void setValue(String key, int value,Context context) {
-    Log.d(TAG, thisUserPath + " setValue " + value);
+    Log.d(TAG, thisUserPath + " " + setValue + " " + value);
 if(isUserConnected())
 {    thisUserPath.child(key).setValue(value);}
-else { thisUserPath.child(key).setValue(value);
-  Toast.makeText(context, "Login to save values",
+else {
+  Toast.makeText(context, mContext.getString(R.string.loginTosaveConfigAcrossDevices),
       Toast.LENGTH_SHORT).show();
 }
 
@@ -183,11 +190,15 @@ else { thisUserPath.child(key).setValue(value);
     }
   }
 
-  protected void setValue(String key, String value) {
-    Log.d(TAG, "setValue " + value);
+  protected void setValue(String key, String value,Context context) {
 
-    thisUserPath.child(key).setValue(value);
-
+    Log.d(TAG, thisUserPath + " " + setValue + " " + value);
+    if(isUserConnected())
+    {    thisUserPath.child(key).setValue(value);}
+    else {
+      Toast.makeText(context, mContext.getString(R.string.loginTosaveConfigAcrossDevices),
+          Toast.LENGTH_SHORT).show();
+    }
     switch (key) {
       case "BASE_URL":
         settings.baseUrl = value;
@@ -199,8 +210,7 @@ else { thisUserPath.child(key).setValue(value);
       default:
     }
   }
-@Nullable
-  protected String getValue(String key, String def) {
+@Nullable public String getValue(String key, String def) {
     switch (key) {
       case "BASE_URL":
         return settings.baseUrl;
@@ -212,7 +222,7 @@ else { thisUserPath.child(key).setValue(value);
     }
   }
 
-  protected String getUserName() {
+  public String getUserName() {
     return requireNonNull(mAuth.getCurrentUser()).getEmail();
   }
 
@@ -220,14 +230,14 @@ else { thisUserPath.child(key).setValue(value);
   @Override
   public void putString(String key,  String value) {
      //we should set config locally then push to db
-    setValue(key, value);
+    setValue(key, value,mContext);
 
   }
 
   @Override
   public void putBoolean(String key,  boolean value) {
     // Save the value somewhere
-    setValue(key, value);
+    setValue(key, value,mContext);
   }
 
   @Override
@@ -251,6 +261,8 @@ else { thisUserPath.child(key).setValue(value);
     return getValue(key, defValue);
   }
 
+
+
   public int getInt(final String key,  int defValue,  final  CustomSeekBarPreference seekBarPreference,
       final PreferenceScreen screen)
   {
@@ -261,27 +273,18 @@ ValueEventListener postListener = new ValueEventListener() {
          int value=requireNonNull(dataSnapshot.getValue(int.class));
         Log.d(TAG,
             "getBoolean grabbing " + key + " default value= " + value);
-        //!!! type change cause mess
-     //   thisUserPath.child(key).setValue(dataSnapshot.getValue(int.class));
-  //putInt(key,dataSnapshot.getValue(int.class));
+
+
 seekBarPreference.setValue(value);
 screen.addPreference(seekBarPreference);
-/*
-        seekBarPreference.setValue(value);
-      seekBarPreference.setDefaultValue(value);
-seekBarPreference.callChangeListener(value);
-        synchronized(seekBarPreference){
-          seekBarPreference.notify();
-        }
 
- */
       }
 
       @Override
       public void onCancelled(DatabaseError databaseError) {
         // Getting Post failed, log a message
         Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
-        // ...
+
       }
     };
     thisUserPath.child(key).addListenerForSingleValueEvent(postListener);

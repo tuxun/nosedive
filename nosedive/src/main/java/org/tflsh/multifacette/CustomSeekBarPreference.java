@@ -47,11 +47,10 @@ public class CustomSeekBarPreference extends SeekBarPreference implements OnSeek
   public void onStopTrackingTouch(SeekBar seekBar) {
     // not used
   }
-  /** @deprecated
-   * important workaround to missing default values https://stackoverflow.com/questions/30170384/custom-inline-seekbarpreference-how-to-set-seekbar-progress-on-the-1st-run
+  /** @deprecated important workaround to missing default values https://stackoverflow.com/questions/30170384/custom-inline-seekbarpreference-how-to-set-seekbar-progress-on-the-1st-run
+   *
    */
- @SuppressWarnings("deprecation") @Deprecated
-  @Override
+@SuppressWarnings("deprecation") @Deprecated  @Override
   protected void onSetInitialValue(boolean restoreValue, Object defaultValue) {
     Log.d(CLASS_NAME,
         "onSetInitialValue" + mProgress + " " + restoreValue + " " + getPersistedInt(mProgress));

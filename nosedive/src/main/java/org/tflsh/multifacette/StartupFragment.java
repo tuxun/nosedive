@@ -2,6 +2,7 @@ package org.tflsh.multifacette;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.NetworkOnMainThreadException;
 import android.os.SystemClock;
@@ -30,6 +31,7 @@ import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -42,10 +44,6 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 
-//import com.google.firebase.quickstart.auth.java.EmailPasswordActivity;
-//import com.google.firebase.quickstart.auth.java.EmailPasswordActivity;
-//import com.google.firebase.auth.EmailAuthCredential;
-
 /**
  * A simple {@link Fragment} subclass.
  * Use the {link StartupFragment#newInstance} factory method to
@@ -55,60 +53,18 @@ public class StartupFragment extends Fragment {
   public static final String FILE_LIST_JSON = "files_list.json";
   public static final String NO_JSON = "noJson";
   static final String EXTRA_MESSAGE = "EXTRA_MESSAGE";
-  // TODO: Rename parameter arguments, choose names that match
-  // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-//  private static final String ARG_PARAM1 = "param1";
-  //private static final String ARG_PARAM2 = "param2";
+
   private static final String TAG = "StartupFragment";
   private static final String CLASSNAME = "StartupFragment";
-  private static String M_SERVER_BASE_PROJECT_KEY = "rescatest";
-  // private static List<String> everyImagesNames;
-  private static int currentFile;
-  private static String M_SERVER_DIRECTORY_URL;
-  protected final Runnable mGrabJsonRunnable;
-  ArrayList<String> everyImagesNames;
-  ArrayList<String> missingImagesNames;
-  List<String> result;
-  /*/**
-   * Use this factory method to create a new instance of
-   * this fragment using the provided parameters.
-   *
-   * @param param1 Parameter 1.
-   * @param param2 Parameter 2.
-   * @return A new instance of fragment StartupFragment.
-   */
-  // TODO: Rename and change types and number of parameters
-  private Context mContext;
-  private boolean active;
-  // TODO: Rename and change types of parameters
-  //    private String M_SERVER_DIRECTORY_URL;
-  //   private ArrayList<String> missingImagesNames;
-  private File mCacheDirPath;
-  private ExecutorService executor;
-  private Thread globalCheckThread = new Thread(new Runnable() {
-    @Override public void run() {
-
-      grabJson(M_SERVER_DIRECTORY_URL+M_SERVER_BASE_PROJECT_KEY, false);
-      checkFiles();
-      repairMissingFiles(M_SERVER_DIRECTORY_URL+M_SERVER_BASE_PROJECT_KEY, missingImagesNames);
-    }
-  });
-  //waring ce runnable n'enoive plus d'intent, on tente de favoriser celes émises dans grabJson
-
-  /*
-   * @mGrabJsonRunnable runnable qui dl le json
-   * intent good:NO_JSON,
-   * intent bad: JSONok
-   * intent strange: JSON_ParseOk, JSON_LocalOnly
-   */ {
-    mGrabJsonRunnable = new Runnable() {
+  private  String mServerBaseProjectKey = "rescatest";
+  private  String mServerDirectoryUrl;
+  protected final Runnable mGrabJsonRunnable = new Runnable() {
       @Override
       public void run() {
 
         try {
-          File localJsonFile = checkFile(grabJson(M_SERVER_DIRECTORY_URL+M_SERVER_BASE_PROJECT_KEY,true));
+          File localJsonFile = checkFile(grabJson(mServerDirectoryUrl + mServerBaseProjectKey,true));
 
-          //TODO: grabjson still return an empty file somewhere.
           if (localJsonFile==null) {
 
             Log.d(CLASSNAME, "mGrabJsonRunnable unable to create json, we gave up");
@@ -125,40 +81,52 @@ public class StartupFragment extends Fragment {
           if (result.isEmpty()) {
 
             Log.e(CLASSNAME, "EMPTY json file!!!");
-            //sendMessage(NO_JSON);
             Log.e(CLASSNAME,
                 "no results: unable to get json from internet or to create files");
           } else {
             Log.d(CLASSNAME, "found this total number of images :"
-                    + result.size()
-                           /* + " (missing:) "
-                            + missingImagesNames.size()*/);
-            //            getView().setVisibility(View.VISIBLE);
-            //sendMessageWithString("filesMissing", localJsonFile.getAbsolutePath());
-            //sendMessage("JSON_ParseOk");
+                + result.size());
+
           }
         } catch (Exception ex) {
           ex.printStackTrace();
         }
       }
     };
-  }
 
-  public StartupFragment() {
+  ArrayList<String> everyImagesNames;
+  ArrayList<String> missingImagesNames;
+  List<String> result;
+  /*/**
+   * Use this factory method to create a new instance of
+   * this fragment using the provided parameters.
+   *
+   * @param param1 Parameter 1.
+   * @param param2 Parameter 2.
+   * @return A new instance of fragment StartupFragment.
+   */
+  private Context mContext;
+  private boolean active;
 
-  }
-/*
-  public static StartupFragment newInstance(String param1, ArrayList<String> param2) {
-    StartupFragment fragment = new StartupFragment();
-    Bundle args = new Bundle();
-    args.putString(ARG_PARAM1, param1);
-    args.putStringArrayList(ARG_PARAM2, param2);
-    fragment.setArguments(args);
-    //M_SERVER_DIRECTORY_URL=getActivity().getSharedPreferences("root",Context.MODE_PRIVATE).getString("DEFAULT_PROJECT_KEY","nokey");
+  private File mCacheDirPath;
+  private ExecutorService executor;
+  private Thread globalCheckThread = new Thread(new Runnable() {
+    @Override public void run() {
 
-    return fragment;
-  }
-*/
+      grabJson(mServerDirectoryUrl + mServerBaseProjectKey, false);
+      checkFiles();
+      repairMissingFiles(mServerDirectoryUrl + mServerBaseProjectKey, missingImagesNames);
+    }
+  });
+  //waring ce runnable n'enoive plus d'intent, on tente de favoriser celes émises dans grabJson
+
+  /*
+   * @mGrabJsonRunnable runnable qui dl le json
+   * intent good:NO_JSON,
+   * intent bad: JSONok
+   * intent strange: JSON_ParseOk, JSON_LocalOnly
+   */
+
 
   /**
    * @param toTest path where the file @name should be checked
@@ -176,17 +144,21 @@ public class StartupFragment extends Fragment {
     }
     if (toTest.exists()) {
       if (toTest.length() == 0) {
-        Log.e("checkFile", "deleted empty file " + toTest.getAbsolutePath());
+        Log.e(CLASSNAME, "deleted empty file " + toTest.getAbsolutePath());
 
-        //noinspection ResultOfMethodCallIgnored
-        toTest.delete();
-        return null;
+       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+          try {
+            Files.delete(toTest.toPath());
+            return null;
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+
       }
-      Log.e("checkFile", "found file " + toTest.getAbsolutePath() + toTest.length());
+      Log.e(CLASSNAME, "found file " + toTest.getAbsolutePath() + toTest.length());
 
       return toTest;
-    } else {
-      Log.e("checkFile", " empty file, return null" + toTest.getAbsolutePath());
     }
 
     return null;
@@ -218,7 +190,6 @@ public class StartupFragment extends Fragment {
       computedSum = computedSum.replace(' ', '0');
 
       if ((originSum.equals(computedSum))) {
-        //Log.d("fs_sum", "found one file ok");
         return true;
       } else {
         Log.e("fs_sum", "found one  broken file " + path);
@@ -276,48 +247,17 @@ public class StartupFragment extends Fragment {
     super.onAttach(context);
     mContext = context;
   }
-  //should never occur
-
-/*
-            //if the images list don't exists, download and save it
-            if (ListImageTask.checkFile(mCacheDir.getAbsolutePath(), FILE_LIST_JSON)) {
-                Log.d(CLASSNAME, "grabJson got local file,update skipped");
-                sendMessage("JSON_LocalOnly");
-
-                return new File(mCacheDir.getAbsolutePath(), FILELIST_JSON);
-
-            } else {
-
-                if (!isInternetOk())
-                {
-                    Log.d(CLASSNAME, "grabJson did not find local file+no internet");
-
-
-                sendMessage(NO_JSON);
-
-                return null;
-            }
-                else {
-                return
-                    ListImageTask.getFile(urlSource, mCacheDir.getAbsolutePath(),
-                        FILELIST_JSON);
-            }}
-
-        }
-*/
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
-    // mContext=container.getContext();
     active = true;
     mCacheDirPath = mContext.getCacheDir();
     executor = Executors.newFixedThreadPool(1);
-    Log.d(CLASSNAME, "onCreateView start grabJson with " + M_SERVER_DIRECTORY_URL);
+    Log.d(CLASSNAME, "onCreateView start grabJson with " + mServerDirectoryUrl);
 
 
-    //Log.d(CLASSNAME," added to "+container.toString());
-    // Inflate the layout for this fragment
+
     return inflater.inflate(R.layout.fragment_startup, container, false);
   }
 
@@ -326,18 +266,13 @@ public class StartupFragment extends Fragment {
     super.onViewCreated(view, savedInstanceState);
     // Use maximum available memory for this memory cache.
 
-    Log.d(TAG, "onCreate had arguments at start " + M_SERVER_DIRECTORY_URL);
-    //Log.e("lastchance",getArguments().getString("DEFAULT_PROJECT_KEY"));
+    Log.d(TAG, "onCreate had arguments at start " + mServerDirectoryUrl);
 
     Log.d(TAG, " onViewCreated()");
     setupButtons(view);
-    //  view.findViewById(R.id.repairFilesButton).setEnabled(false);
-    // view.findViewById(R.id.repairFilesButton).setClickable(false);
     everyImagesNames = new ArrayList<>();
     missingImagesNames = new ArrayList<>();
 
-    //avant on lancait le thread de check d'ici.
-    //  sendMessage("StartupViewOk");
 
   }
 
@@ -358,29 +293,7 @@ public class StartupFragment extends Fragment {
     });
 
     view.findViewById(R.id.aboutImageButton);
-    /*view.setOnTouchListener(new View.OnTouchListener() {
 
-      @Override
-      public boolean onTouch(View view, MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_UP) {
-          view.performClick();
-          Intent intent = null;
-          intent = new Intent(getActivity(), EmailPasswordActivity.class);
-
-          String message = "editText.getText().toString()";
-          //    intent.putExtra(EXTRA_MESSAGE, message);
-
-          startActivity(intent);
-        }
-        return true;
-      }
-    });
-
-
-
-
-
-     */
 
     /*login show activity button*/
 
@@ -394,9 +307,6 @@ public class StartupFragment extends Fragment {
 
           Log.d(TAG, "EmailPasswordActivity()");
 
-          // String message = "editText.getText().toString()";
-          //    intent.putExtra(EXTRA_MESSAGE, message);
-
           startActivity(intent);
         }
         return true;
@@ -409,30 +319,21 @@ public class StartupFragment extends Fragment {
       public boolean onTouch(View view, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
           Log.d(TAG, "repairFilesButton()");
-          M_SERVER_DIRECTORY_URL=new DataStore(getContext()).getValue("BASE_URL","startup fragment button but no url");
-          M_SERVER_BASE_PROJECT_KEY=new DataStore(getContext()).getValue("DEFAULT_PROJECT_KEY","startup fragment button but no project key")+"/";
+          mServerDirectoryUrl =new DataStore(getContext()).getValue("BASE_URL","startup fragment button but no url");
+          mServerBaseProjectKey =new DataStore(getContext()).getValue("DEFAULT_PROJECT_KEY","startup fragment button but no project key")+"/";
 
-        /*  view.findViewById(R.id.repairFilesButton).setBackground(
-              ResourcesCompat.getDrawable(getResources(), R.color.OurWhite, null));*/
           view.setClickable(false);
           view.setEnabled(false);
 
-       /*   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            view.findViewById(R.id.repairFilesButton)
-                .setOutlineAmbientShadowColor(R.color.OurWhite);
-          }*/
+
           view.performClick();
-/*                    (view.findViewById(R.id.checkFilesButton)).setBackgroundColor(
-                        getResources().getColor(R.color.OurWhite, null));
-*/
+
           globalCheckThread = new Thread(new Runnable() {
             @Override public void run() {
 
-              //  repairMissingFiles(
-              //      M_SERVER_DIRECTORY_URL, missingImagesNames);
-              grabJson(M_SERVER_DIRECTORY_URL+M_SERVER_BASE_PROJECT_KEY, true);
+              grabJson(mServerDirectoryUrl + mServerBaseProjectKey, true);
               checkFiles();
-              repairMissingFiles(M_SERVER_DIRECTORY_URL+M_SERVER_BASE_PROJECT_KEY, missingImagesNames);
+              repairMissingFiles(mServerDirectoryUrl + mServerBaseProjectKey, missingImagesNames);
             }
           });
           globalCheckThread.start();
@@ -451,13 +352,9 @@ public class StartupFragment extends Fragment {
     @SuppressWarnings("deprecation") FragmentManager manager = getFragmentManager();
     FragmentTransaction transaction = Objects.requireNonNull(manager).beginTransaction();
 
-    //transaction1.remove(this).commit();
     SettingsFragment settingsFragment = SettingsFragment.getInstance();
 
-    //mParentView.findViewById(R.id.motherLayout).setVisibility(View.GONE);
     transaction.replace(R.id.startupScreenLinearLayout, settingsFragment, "MULTIFACETTE_Settings");
-    // was working transaction.add(R.id.setupScreenLinearSourceLayout, FS, "MULTIFACETTE_Settings");
-    //transaction.addToBackStack(null);
     transaction.commit();
   }
 
@@ -466,8 +363,7 @@ public class StartupFragment extends Fragment {
    *  @param urlSource path where the file @name should be checked
    * @param missingFileNamesArg name of the file to check
    */
-  public void repairMissingFiles(final String urlSource, ArrayList<String> missingFileNamesArg) {
-    int downloadedFilesNumber = 0;
+  public void repairMissingFiles(final String urlSource, List<String> missingFileNamesArg) {
 
     if(missingFileNamesArg==null)
     {Log.e(CLASSNAME,
@@ -477,7 +373,6 @@ public class StartupFragment extends Fragment {
       return;
     }Log.e(CLASSNAME,
         "repairMissingFiles()  missing or broken " + missingFileNamesArg.size() + " files");
-    //   checkFiles( urlSource);
     boolean thereIsMissingFiles = true;
     for (final String name : missingFileNamesArg) {
       Log.e(CLASSNAME, "repairMissingFiles() grab missing or broken " + name + " files");
@@ -486,15 +381,13 @@ public class StartupFragment extends Fragment {
         Log.e(CLASSNAME, "unable to dl a file in repairMissingFiles()");
 
       }
-      else {
-        downloadedFilesNumber++;
-      }
+
     }
     if (!thereIsMissingFiles) {
       sendMessage("dlComplete");
     }
   }
-
+@Override
   public void onResume() {
     Log.e(CLASSNAME, "onResume");
     super.onResume();
@@ -542,12 +435,6 @@ public class StartupFragment extends Fragment {
               sum)) {
             Log.e(CLASSNAME, "grabbing file, it was corrupted");
 
-            //todo in another fonction:
-            //
-                            /*
-                            getFile(downloadSrcUrl, mCacheDir.getAbsolutePath(),
-
-                                everyImagesNames.get(everyImagesNames.size() - 1));    */
             missingImagesNames.add(
                 everyImagesNames.get(everyImagesNames.size() - 1));
             sendMessageWithString("filesMissing", newIn);
@@ -557,24 +444,16 @@ public class StartupFragment extends Fragment {
         } else {
           Log.e(CLASSNAME, "on dl le file");
           missingImagesNames.add(everyImagesNames.get(everyImagesNames.size() - 1));
-                        /*todo in another function
-                           getFile(downloadSrcUrl, mCacheDir.getAbsolutePath(),
-                            everyImagesNames.get(everyImagesNames.size() - 1));*/
+
           sendMessageWithString("filesMissing", newIn);
 
           reader.nextName();
           reader.nextString();
           reader.nextName();
           reader.nextString();
-          //  Thread.sleep(50);
         }
         reader.endObject();
       }
-      Log.d(CLASSNAME, "ok synchronizing "
-              + currentFile //+ "enabling button"
-               /* + " of "
-                + missingImagesNames.size()*/
-      );
       sendMessage("JSON_ParseOk");
       return everyImagesNames;
     } catch (FileNotFoundException e) {
@@ -590,7 +469,6 @@ public class StartupFragment extends Fragment {
       e.printStackTrace();
       return Collections.emptyList();
 
-      // sendMessage(NO_JSON);
     } catch (Exception e) {
       Log.e(CLASSNAME, "unknown exception" + Objects.requireNonNull(e.getMessage()));
       e.printStackTrace();
@@ -609,7 +487,7 @@ public class StartupFragment extends Fragment {
    * @param nameDest name of the file to get (string is to urlSourceString and pathDest to obtain
    * complete path
    * @return return null if we are unable to grab the file, or the file directly.
-   * Made to be used with, {@link StartupFragment#repairMissingFiles(String, ArrayList)} and {@link
+   * Made to be used with, {@link StartupFragment#repairMissingFiles(String, List)} and {@link
    * StartupFragment#grabJson(String, boolean)}
    *
    * Intent("dlReceived", filename);
@@ -624,8 +502,15 @@ public class StartupFragment extends Fragment {
     protected File getFile(String urlSourceString, String pathDest, String nameDest) {
     File localFile = new File(pathDest, nameDest);
     try {
-      //noinspection ResultOfMethodCallIgnored
-      localFile.createNewFile();
+      if(localFile.createNewFile())
+      {
+                Log.d(CLASSNAME, "created " + localFile.getAbsolutePath());
+
+      }
+      else {
+        Log.d(CLASSNAME, "file was already existing: replacing it. " + localFile.getAbsolutePath());
+
+      }
     } catch (IOException e) {
       e.printStackTrace();
       return null;
@@ -646,7 +531,7 @@ public class StartupFragment extends Fragment {
             new URL(urlSourceString + nameDest).openStream())
 
     ) {
-      Thread.sleep(2000);
+      Thread.sleep(500);
 
       byte[] bitmapBytesData = new byte[1024];
       int read;
@@ -655,9 +540,7 @@ public class StartupFragment extends Fragment {
       while ((read = is.read(bitmapBytesData)) != -1) {
         fos.write(bitmapBytesData, 0, read);
       }
-      // SystemClock.sleep(1000);
       fos.flush();
-      fos.close();
       if (!localFile.exists()) {
         Log.d(CLASSNAME, "unable to create " + localFile.getAbsolutePath());
 
@@ -665,15 +548,8 @@ public class StartupFragment extends Fragment {
       }
       if (!localFile.getName().contains("json")) {
 
-               /*
-                Log.d(CLASSNAME, "ok synchronizing "
-                    + currentFile
-                    + " of "
-                    +  missingImagesNames.size()
-                    + " "
-                    + localFile.getAbsolutePath());*/
+
         sendMessageWithString("dlReceived", localFile.getName());
-        currentFile++;
       }
     } catch (
         FileNotFoundException e) {
@@ -711,10 +587,10 @@ public class StartupFragment extends Fragment {
       Log.e(CLASSNAME, "Unable to download json file from internet");
       e.printStackTrace();
 
-      // sendMessage(NO_JSON);
       return localFile;
     } catch (InterruptedException e) {
       e.printStackTrace();
+      Thread.currentThread().interrupt();
     }
     return localFile;
   }
@@ -722,7 +598,7 @@ public class StartupFragment extends Fragment {
   /**
    * return return void, it send intents instead
    *
-   * Made to be used with, {@link StartupFragment#repairMissingFiles(String, ArrayList)} and {@link
+   * Made to be used with, {@link StartupFragment#repairMissingFiles(String, List)} and {@link
    * StartupFragment#grabJson(String, boolean)}
    *
    * Intent("dlReceived", filename);
@@ -730,7 +606,6 @@ public class StartupFragment extends Fragment {
    */
   public void checkFiles() {
     sendMessage("checkStarted");
-    //  urlSource = urlSourceArg;
 
     FutureTask<String>
         futureTask1 = new FutureTask<>(mGrabJsonRunnable,
@@ -763,8 +638,6 @@ public class StartupFragment extends Fragment {
   //wtf, on a un deja un runnable grabjson
   public File grabJson(String urlSource, boolean forced) {
     Log.d(CLASSNAME, "start grabJson FUNCTION with " + urlSource);
-    /*Log.d(CLASSNAME, "start grabJson FUNCTION with settings" + getContext().getSharedPreferences("",
-        Context.MODE_PRIVATE).getString("DEFAULT_PROJECT_KEY", "noheckingkey"));*/
 
     if (!forced) {
       File file = new File(requireActivity().getCacheDir().getAbsolutePath(),
@@ -772,7 +645,6 @@ public class StartupFragment extends Fragment {
       if (checkFile(file) == null) {
         Log.d(CLASSNAME,
             "grabJson update forced was canceled and we had no local json");
-        // sendMessage(NO_JSON);
         Log.d(CLASSNAME, "grabJson update NOT forced, url source=" + urlSource);
       } else {
         sendMessage("JSON_LocalOnly");
@@ -801,15 +673,5 @@ public class StartupFragment extends Fragment {
     }
     return null;
   }
-/*
-  public void sendMessageWithInt(String message, int params) {
-    if (this.active) {
-      Intent intent = new Intent(message);    //action: "msg"
-      intent.setPackage(mContext.getPackageName());
 
-      intent.putExtra(EXTRA_MESSAGE, params);
-      mContext.sendBroadcast(intent);
-    }
-  }
-*/
 }

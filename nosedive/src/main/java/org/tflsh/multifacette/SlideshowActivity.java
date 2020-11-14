@@ -9,9 +9,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -29,46 +27,13 @@ import java.util.Objects;
 public class SlideshowActivity extends AppCompatActivity {
   public static final String EXTRA_MESSAGE = "EXTRA_MESSAGE";
   private static final String TAG = "SlideshowActivity";
+  public static final String FILES_ALL_OK = "filesAllOk";
+  public static final String DL_RECEIVED = "dlReceived";
 
-  // static final String M_SERVER_DIRECTORY_URL = "https://dev.tuxun.fr/nosedive/" + "rescatest/";
-  //temps unitaire (base de temps), sert a définir le delai entre deux images
-  /*
-
-  final ArrayList<Button> mCheckedToggleButtonsArrayList = new ArrayList<>();
-
-
-  private final Handler mHideHandler = new Handler();
-  private final Runnable mSetFullscreenOnRunnable = new Runnable() {
-    @Override
-    public void run() {
-      // Delayed removal of status and navigation bar
-
-      // Note that some of these constants are new as of API 16 (Jelly Bean)
-      // and API 19 (KitKat). It is safe to use them, as they are inlined
-      // at compile-time and do nothing on earlier devices.
-      Log.e("SlideshowActivity", "mShowPart2Runnable ENTER FULLSCREEN");
-      // Hide UI first
-      android.app.ActionBar actionBar = getActionBar();
-      if (actionBar != null) {
-        actionBar.hide();
-      }
-
-      getWindow().getDecorView()
-          .setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-              | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-              | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-              | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-              | View.SYSTEM_UI_FLAG_FULLSCREEN
-              | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-    }
-  };
-   */
   ////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////ATTRIBUTES////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////
-  //ArrayList<Button> mToggleButtonsArrayList = new ArrayList<>();
-  //runnnable s'appelant lui meme a la fin du diapo qu'il lance
-  //int screenHeight;
+
   ArrayList<String> missingFilesNames;
   IntentFilter filter;
   int missingFilesNumber = 0;
@@ -93,50 +58,10 @@ public class SlideshowActivity extends AppCompatActivity {
           missingFilesNumber++;
 
           break;
-        //todo: we now also receive filename as string
 
         case "dlComplete":
           Log.d(TAG, "intentReceiver got action dl complete");
-//          mHaveInternet=true;
           filesChecked = true;
-
-  /* (findViewById(R.id.button2)).setBackgroundColor(
-              getResources().getColor(R.color.OurPink, null));*/
-         //   findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
-
-           // findViewById(R.id.repairFilesButton).setVisibility(View.GONE);
-            //startSlideshow("dlComplete");
-          /*
-          findViewById(R.id.ui_dl_ProgressBar).setBackground(
-              getDrawable(R.drawable.ic_not_started_black));
-          (findViewById(R.id.ui_dl_ProgressBar)).setOnTouchListener(new OnTouchListener() {
-
-            @Override
-            public boolean onTouch(View view, MotionEvent event) {
-              if (event.getAction() == MotionEvent.ACTION_UP) {
-                fileschecked = true;
-                view.performClick();
-                ((View) findViewById(R.id.startupScreenLinearSourceLayout)).setVisibility(
-                    View.GONE);
-                ((View) findViewById(R.id.ui_press_meTextView)).setVisibility(View.VISIBLE);
-                //getFragmentManager().findFragmentByTag("StartupFragment").onDestroy();
-
-                mSlideshowFragment.toggle();
-                mSlideshowFragment.startSlideshow(mSlideshowFilesName);
-
-        }
-              return true;
-            }
-          });
-          findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);
-   */
-        /*  } else {
-            findViewById(R.id.repairFilesButton).setVisibility(View.VISIBLE);
-            findViewById(R.id.repairFilesButton).setEnabled(true);
-            findViewById(R.id.repairFilesButton).setClickable(true);
-            findViewById(R.id.repairFilesButton).setBackground(
-                getResources().getDrawable(R.drawable.ic_button_on_off, null));
-          }*/
           break;
 
         case "noJson":
@@ -154,9 +79,7 @@ public class SlideshowActivity extends AppCompatActivity {
               new Thread(new Runnable() {
                 @Override public void run() {
 
-                 /* !!! mSlideshowFragment.mStartupFragment.grabJson(
-                      StartupFragment.M_SERVER_DIRECTORY_URL,
-                      true);*/
+onResume();
                 }
               });
             }
@@ -173,72 +96,19 @@ public class SlideshowActivity extends AppCompatActivity {
         case "StartupViewOk":
           Log.d(TAG, "intentReceiver got action StartupViewOk, starting startup fragment");
 
-          //!!! ((SlideshowFragment)  getFragmentManager().findFragmentByTag("SlideshowFragment")).setBaseUrl(M_SERVER_DIRECTORY_URL);
 
           break;
         case "checkStarted":
           Log.d(TAG, "intentReceiver got action StartupViewOk,starting startup fragment");
 
-          //!!! ((SlideshowFragment)  getFragmentManager().findFragmentByTag("SlideshowFragment")).setBaseUrl(M_SERVER_DIRECTORY_URL);
           findViewById(R.id.repairFilesButton).setEnabled(false);
           findViewById(R.id.repairFilesButton).setClickable(false);
-         /* findViewById(R.id.repairFilesButton).setBackground(
-              ResourcesCompat.getDrawable(getResources(), R.drawable.white_background, null));
-          */
+
           break;
-        //TODO: fix!
         case "JSON_ParseOk":
           Log.d(TAG, "intentReceiver got action JSON_ParseOk");
-/*
-          findViewById(R.id.repairFilesButton).setOnTouchListener(new OnTouchListener() {
-
-            @Override
-            public boolean onTouch(View view, MotionEvent event) {
-              if (event.getAction() == MotionEvent.ACTION_UP) {
-                view.performClick();
-                view.setEnabled(false);
-                view.setClickable(false);
-                mTotalFilesProgressBar.setProgress(0);
-                //!!! pour checkfiles=missinf findViewById(R.id.button2).setVisibility(View.VISIBLE);
-                //getFragmentManager().executePendingTransactions();
-
-                new Thread(new Runnable() {
-                  @Override public void run() {
-                    try {
-                      Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                      e.printStackTrace();
-                    }
-                    //     missingFilesNames.clear();
-
-                    //   mSlideshowFilesName.clear();
-
-                    Log.d(TAG, "StartupFragment.checkFiles()");
-                    if (getFragmentManager().findFragmentByTag("SlideshowFragment") == null) {
-                      Log.d(TAG, "SlideshowFragment.void()");
-                    } else {
-                      Log.d(TAG, "SlideshowFragment.found in SlideshowActivity()");
-                    }
-                    if (getFragmentManager().findFragmentByTag("StartupFragment") == null) {
-                      Log.d(TAG, "StartupFragment.void()");
-                    } else {
-                      Log.d(TAG, "StartupFragment.found in SlideshowActivity()");
-                    }
-
-                     */
-                    //F! do nothing cause it not the fragment Startup!
-                    /*((SlideshowFragment) getFragmentManager().findFragmentByTag(
-                        "SlideshowFragment")).exec(
-                        M_SERVER_DIRECTORY_URL);
-                  }
-                }).start();
-              }
-              return true;
-            }
-          });*/
           ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(R.string.updatedJsonOK);
-         // findViewById(R.id.repairFilesButton).setEnabled(true);
-          //findViewById(R.id.repairFilesButton).setClickable(true);
+
           loadSlideshowFragment("jsonOk");
 
           break;
@@ -255,12 +125,9 @@ public class SlideshowActivity extends AppCompatActivity {
 
           break;
 
-        //TODO:
-        case "filesAllOk":
+        case FILES_ALL_OK:
           Log.d(TAG, "intentReceiver got action all files ok");
 
-          //(findViewById(R.id.checkFilesButton)).setBackgroundColor(
-          // getResources().getColor(R.color.OurPink, null));
           if (!mSlideshowFilesName.isEmpty()) {
             filesChecked = true;
 
@@ -268,31 +135,13 @@ public class SlideshowActivity extends AppCompatActivity {
             mTotalFilesProgressBar.setBackground(
                 ResourcesCompat.getDrawable(getResources(), R.drawable.ic_not_started_black, null));
             mTotalFilesProgressBar.setVisibility(View.VISIBLE);
-            /*start button
-            (findViewById(R.id.ui_dl_ProgressBar)).setOnTouchListener(new OnTouchListener() {
 
-              @Override
-              public boolean onTouch(View view, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_UP) {
-                  fileschecked = true;
-                  view.performClick();
-                  findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
-                  findViewById(R.id.ui_press_meTextView).setVisibility(View.VISIBLE);
-                  //getFragmentManager().findFragmentByTag("StartupFragment").onDestroy();
-
-                  mSlideshowFragment.toggle();
-                  mSlideshowFragment.startSlideshow(mSlideshowFilesName);
-                }
-                return true;
-              }
-            });*/
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            loadSlideshowFragment("filesAllOk");
+            loadSlideshowFragment(FILES_ALL_OK);
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////
           } else {
             Log.d(TAG, "intentReceiver got action all files ok but slideshow file names was empty");
 
-            //§!! findViewById(R.id.repairFilesButton).setEnabled(true);
           }
 
           break;
@@ -308,24 +157,21 @@ public class SlideshowActivity extends AppCompatActivity {
             ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
                 String.format(Locale.FRANCE,"%d photos ok", mSlideshowFilesName.size()));    } else {
             ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-                String.format(Locale.FRANCE,"%d photos ok, %d manquantes", mSlideshowFilesName.size(),
+                String.format(Locale.FRANCE,
+                    getResources().getQuantityString(R.plurals.missing_files_update_string,mSlideshowFilesName.size()), mSlideshowFilesName.size(),
                     missingFilesNames.size()));
           }
           mTotalFilesProgressBar.setProgress(
               mSlideshowFilesName.size());
 
           break;
-        case "dlReceived":
-          //mHaveInternet=true;
+        case DL_RECEIVED:
           String max1 = intent.getStringExtra(EXTRA_MESSAGE);
           Log.d(TAG, "intentReceiver got action dl received" + max1);
           mSlideshowFilesName.add(max1);
           mSlideshowDownloadedFilesName.add(max1);
-          //!!! ((SlideshowFragment)  getFragmentManager().findFragmentByTag("SlideshowFragment")).setBaseUrl(M_SERVER_DIRECTORY_URL);
           findViewById(R.id.repairFilesButton).setEnabled(false);
           findViewById(R.id.repairFilesButton).setClickable(false);
-         /* findViewById(R.id.repairFilesButton).setBackground(
-              ResourcesCompat.getDrawable(getResources(), R.drawable.white_background, null));*/
           downloadedFilesNumber++;
           if (mDlProgressBar != null) {
             mDlProgressBar.incrementProgressBy(
@@ -334,9 +180,6 @@ public class SlideshowActivity extends AppCompatActivity {
             mTotalFilesProgressBar.incrementProgressBy(1);
 
 
-          /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-           "il manque " + (missingFilesNames.size()-((ProgressBar) findViewById(R.id.ui_dl_ProgressBar)).getProgress()
-            ) + " fichiers");*/
             ((Button) findViewById(R.id.repairFilesButton)).setText(
                 String.format(Locale.FRANCE,"%s %d %s", getString(R.string.dl_progressText),
                     missingFilesNames.size() - downloadedFilesNumber, getString(R.string.files)));
@@ -349,16 +192,14 @@ public class SlideshowActivity extends AppCompatActivity {
               findViewById(R.id.repairFilesButton).setClickable(true);
               findViewById(R.id.repairFilesButton).setBackground(
                   ResourcesCompat.getDrawable(getResources(),R.drawable.ic_button_on_off, null));
-              //boolean filesWereAlreadyFound = true;
               ((Button) findViewById(R.id.repairFilesButton)).setText(
                   getText(R.string.download_files_ended));
               findViewById(R.id.repairFilesButton).setOnClickListener(
                   new View.OnClickListener() {
                     @Override public void onClick(View view) {
-                      loadSlideshowFragment("dlReceived");
+                      loadSlideshowFragment(DL_RECEIVED);
 
                       findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
-                      //mSlideshowFragment.startSlideshow(mSlideshowFilesName);
                     }
                   });
             } else if (mSlideshowFilesName.isEmpty()) {
@@ -371,7 +212,7 @@ public class SlideshowActivity extends AppCompatActivity {
                       - downloadedFilesNumber));
 
               ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-                  String.format(Locale.FRANCE,"%d photos ok, %d manquantes", mSlideshowFilesName.size(),
+                  String.format(Locale.FRANCE,getResources().getQuantityString(R.plurals.missing_files_update_string,mSlideshowFilesName.size()), mSlideshowFilesName.size(),
                       missingFilesNames.size()
                           - downloadedFilesNumber));
             }
@@ -401,19 +242,15 @@ public class SlideshowActivity extends AppCompatActivity {
                 + (missingFilesNames.size() - downloadedFilesNumber)
                 + " manquantes"));    } else {
             ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-                String.format(Locale.FRANCE,"%d photos ok, %d manquantes", mSlideshowFilesName.size(),
+                String.format(Locale.FRANCE,
+                    getResources().getQuantityString(R.plurals.missing_files_update_string,mSlideshowFilesName.size()), mSlideshowFilesName.size(),
                     missingFilesNames.size()
                         - downloadedFilesNumber));
           }
 
           mTotalFilesProgressBar.setMax(
               missingFilesNames.size());
-          //    Log.d(TAG, "intentReceiver set progress bar " + missingFilesNames.size() + max2);
-         /* ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-              "il manque " + missingFilesNames.size() + " fichiers");
-          ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-              "il manque " + missingFilesNames.size() + " fichiers");
-          findViewById(R.id.ui_dl_ProgressBar).setVisibility(View.VISIBLE);*/
+
 
           break;
 
@@ -424,8 +261,6 @@ public class SlideshowActivity extends AppCompatActivity {
       }
     }
   };
-//  protected boolean mHaveInternet = false;
-  //private static final SettingsFragment mSettingsFragment=new SettingsFragment().getInstance();
   private final SlideshowFragment mSlideshowFragment=SlideshowFragment.getInstance();
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -477,11 +312,11 @@ public class SlideshowActivity extends AppCompatActivity {
     this.missingFilesNumber = 0;
 
 
-    filter = new IntentFilter("dlReceived");
+    filter = new IntentFilter(DL_RECEIVED);
     filter.addAction("dlStarted");
     filter.addAction("dlComplete");
     filter.addAction("filesFound");
-    filter.addAction("filesAllOk");
+    filter.addAction(FILES_ALL_OK);
     filter.addAction("filesMissing");
     filter.addAction("StartupViewOk");
 
@@ -496,15 +331,7 @@ public class SlideshowActivity extends AppCompatActivity {
         AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM); //For night mode theme
 
     setContentView(R.layout.activity_fullscreen);
-
-    //end try lru
-
-    //baseurl,projectcode, todo make static every fragment.get_instance()?
-    //mSettingsFragment = new SettingsFragment();
-    //mSlideshowFragment = new SlideshowFragment();
-
     Log.d("activity", "onCreate" + getIntent());
-   // View initView = getWindow().getDecorView();
   }
 
   @Override
@@ -525,15 +352,11 @@ public class SlideshowActivity extends AppCompatActivity {
   public boolean onKeyDown(int keycode, KeyEvent event) {
   Log.d(TAG, "onKeyDown" + keycode);
     hideKeyboard(getWindow().getDecorView());
-/*  if(mSlideshowFragment!=null)
-  {
-    mSlideshowFragment.cleanNext();
-  }*/
 
   if (keycode == KeyEvent.KEYCODE_BACK) {
-    this.onRestart();
-    //loadStartupFragment();
-   // onResume();
+    mSlideshowFragment.onStop();
+
+
     return true;
   }
 
@@ -543,32 +366,12 @@ public class SlideshowActivity extends AppCompatActivity {
   protected void onResume() {
     super.onResume();
     Log.d(TAG, "Activity.resume()");
-    //mSlideshowFilesName.clear();
     registerReceiver(intentReceiver, filter);
-
-    //!!! mHideHandler.postDelayed(mSetFullscreenOnRunnable, UI_ANIMATION_DELAY);
-
-    // mSlideshowFragment.setBaseUrl(M_SERVER_DIRECTORY_URL);
-
-    //!!!StartupFragment.newInstance(M_SERVER_DIRECTORY_URL,missingFilesNames);
-
     if (!filesChecked) {
       Log.d(TAG, "onResume: no bundle" + getIntent());
-      //loadStartupFragment();
       mDlProgressBar= findViewById(R.id.uiVerticalMissingProgressBar);
       mTotalFilesProgressBar= findViewById(R.id.uiTotalFilesProgressBar);
 
-
-     /* FragmentManager manager = getFragmentManager();
-
-      FragmentTransaction transaction = manager.beginTransaction();
-      transaction.attach(new StartupFragment());
-      transaction.addToBackStack(null);
-      transaction.commit();
-      mAsyncTaskManager =
-          new BackgroundImageDecoder(getApplicationContext(), screenWidth, screenHeight, memoryCache,
-              executor);
-      */
 
       ActionBar actionBar = getActionBar();
 
@@ -578,33 +381,17 @@ public class SlideshowActivity extends AppCompatActivity {
 
       Log.d(TAG,
           "ListImageTask missing file after 5second and an intent? = " + missingFilesNames.size());
-      //!!!  loadStartupFragment();
-     // fileschecked = true;
+
     } else {
       Log.e("onResume", "files were already ALL OK");
 
       loadSlideshowFragment("ActivityResumeOk");
-/*
-      if (findViewById(R.id.imageView) == null) {
-        Log.e("onResume", "loading fragment");
-        //!!!  loadSlideshowFragment();
-      } else {
-        Log.e("onResume", "loading startup screen");
-        View iframe = findViewById(R.id.slideshowLayout);
 
-     ViewGroup parent = (ViewGroup) iframe.getParent();
-        parent.removeView(iframe);
-        //grgr.setContentView(R.layout.activity_fullscreen);
-        ((ImageView) findViewById(R.id.imageView)).setImageDrawable(
-            getResources().getDrawable(R.drawable.default_background, null));
-        */
-      //  startSlideshow("onresume");
     }
   }
 
   /**
    * create the slideshow fragment with slideshow filenames as argument
-   * TODO: it uses a setArguments()
    */
 
   private void loadSlideshowFragment(String fromIntent) {
@@ -640,8 +427,7 @@ public class SlideshowActivity extends AppCompatActivity {
       transaction.commit();
 
       mSlideshowFragment.startSlideshow(mSlideshowFilesName);
-      //
-      // stop  we prob dont have internet onResume();
+
     }
   }
 

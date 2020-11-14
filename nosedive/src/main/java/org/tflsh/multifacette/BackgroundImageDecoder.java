@@ -1,11 +1,9 @@
 package org.tflsh.multifacette;
 
 import android.app.Activity;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
-
 import android.widget.ImageView;
 import androidx.annotation.Nullable;
 import java.lang.ref.WeakReference;
@@ -15,23 +13,16 @@ import static java.lang.System.currentTimeMillis;
 
 public class BackgroundImageDecoder extends Activity {
   static final String CLASSNAME = "BackgroundImageDecoder";
-  //static final ExecutorService executor = Executors.newFixedThreadPool(1);
   /**
    * Called when the user taps the Send button
    */
-//  private final Resources.Theme mContext;
-  //private static int currentFile;
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //private static int missingFilesNumber;
 
-//final Resources.Theme mTheme;
   //constructor: save the context for later uses
-  public BackgroundImageDecoder(Resources.Theme themeArg, int width, int height) {
-    //    executor=executorArg;
+  public BackgroundImageDecoder() {
     Log.d("asyncTaskManager", "starting helper with context");
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //mContext = ctx;
-//mTheme=themeArg;
+
   }
 
   public static int calculateInSampleSize(
@@ -68,7 +59,7 @@ public class BackgroundImageDecoder extends Activity {
   /**
    * scope: package-private
    */
-  public static Bitmap decodeSampledBitmapFromFilepath(String res) {
+  public static Bitmap decodeSampledBitmapFromFilepath(String res, int width,int height) {
 
     // First decode with inJustDecodeBounds=true to check dimensions
     final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -76,15 +67,13 @@ public class BackgroundImageDecoder extends Activity {
     BitmapFactory.decodeFile(res, options);
 
     // Calculate inSampleSize
-    options.inSampleSize = calculateInSampleSize(options, options.outWidth, options.outHeight);
+    options.inSampleSize = calculateInSampleSize(options, width, height);
 
     // Decode bitmap with inSampleSize set
     options.inJustDecodeBounds = false;
-    return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res, options), options.outWidth,
-        options.outHeight, true);
-    //! return BitmapFactory.decodeFile(res,   options);
+    return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res, options), width,
+       height, true);
 
-    //! return BitmapFactory.decodeFile(res,   options);
   }
 
 
@@ -103,13 +92,6 @@ public class BackgroundImageDecoder extends Activity {
     super.onStop();
     Log.d(CLASSNAME, "onStop()");
 
-    /*executor.shutdown();
-    while (!executor.isTerminated()) {
-      executor.shutdown();
-
-      SystemClock.sleep(30);
-      Log.d(CLASSNAME, "have a struggling task");
-    }*/
   }
 
   public static class ShowImageTask extends Thread {
@@ -134,33 +116,22 @@ public class BackgroundImageDecoder extends Activity {
 
     protected void doInBackground() {
       try {
-        //
-/*
-        if (srcString.isEmpty()) {
-          bmImage.get()
-              .setImageDrawable(ResourcesCompat.getDrawable(getResources(),
-                  R.drawable.default_background, mTheme));
-          Log.d(CLASSNAME, "default image took " + (currentTimeMillis() - startTime) + "ms");
 
-          return;
-        }
-  */
-        final Bitmap result = decodeSampledBitmapFromFilepath(srcString);
+        final Bitmap result = decodeSampledBitmapFromFilepath(srcString,screenWidth,screenHeight);
 
         Runnable r = new Runnable() {
           public void run() {
             long timer = currentTimeMillis() - startTime;
             long delay = maxDelay - timer;
-            if (maxDelay != 0) {
               if (delay > 0) {
                 try {
                   Thread.sleep(delay);
                 } catch (InterruptedException e) {
                   e.printStackTrace();
+                  Thread.currentThread().interrupt();
+
                 }
               }
-            }
-            if (bmImage != null) {
               if (bmImage.get().isShown()) {
                 bmImage.get().setImageBitmap(result);
                 bmImage.get().setAdjustViewBounds(true);
@@ -172,17 +143,15 @@ public class BackgroundImageDecoder extends Activity {
                 }
               } else {
                 Log.e(CLASSNAME, "tentative d'affichage d'une image sur un composant caché");
-                //  bmImage.get().setImageDrawable(mContext.getResources().getDrawable(R.drawable.whitebackground,mContext.getTheme()));
 
               }
-            }
+
             Log.d(CLASSNAME,
                 " took " + timer + "ms for decode " + srcString + " , waited " + delay + "ms");
           }
         };
         executor.execute(r);
-        //runOnUiThread(r);
-      //r.run();
+
       } catch (Exception e) {
         Log.e(CLASSNAME, "Exception in showImageFileTask.doInBackground()");
         e.printStackTrace();

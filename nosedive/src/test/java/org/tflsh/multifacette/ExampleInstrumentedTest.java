@@ -2,12 +2,15 @@
 package org.tflsh.multifacette;
 
 import android.app.Instrumentation;
-import android.os.Looper;
-import android.util.Log;
+import android.widget.ImageView;
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import static org.junit.Assert.assertNotEquals;
 /*state of the app:
    TOUPDATE=APPVIERGE, NOINTERNET for grab it
    TOCONNECT=on a un json mais il manque des images et internet pour les recup
@@ -32,31 +35,35 @@ public class ExampleInstrumentedTest extends Instrumentation {
 
   @Before
   public void initVARS() {
-    Log.d(CLASSNAME, "BEFORE");
+//    Log.d(CLASSNAME, "BEFORE");
 
     missingFilesNames = new ArrayList<>();
     mSlideshowFilesNames = new ArrayList<>();
    // appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-    Looper.prepare();
+//    Looper.prepare();
   }
-/*
+
   //ce test doit passser si on a internet, et echouer si on l'a
   @Test
   public void testListImageTaskWithInternetWhileGRABBING() {
+/*
+    public ShowImageTask(Executor executorArg, ImageView bbmImage, @Nullable String urlSource,
+        int maxDelayParam,int screenHeightArg, int screenWidthArg)*/
+//Uri path = Uri.parse("android.resource://org.tflsh.multifacette/@drawable/default_background" + R.drawable.default_background);
+    ImageView img=new ImageView(null);
+//    assertEquals(img.getWidth(), 0);
 
-    AsyncTaskManager asm = new AsyncTaskManager(appContext);
-    asm.new ListImageTask(missingFilesNames, mSlideshowFilesNames).execute(mServerDirectoryURL);
-    try {
-      Thread.sleep(5 * 1000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
+    BackgroundImageDecoder.ShowImageTask asm = new BackgroundImageDecoder.ShowImageTask(
+        Executors.newFixedThreadPool(2)
+, img, "android.resource://org.tflsh.multifacette/@drawable/default_background",
+    750,600,800);
+
     //pendant un listing fructeux, on a des  missingimg
-    assertNotEquals(missingFilesNames.size(), 0);
+    assertNotEquals(asm, null);
     //par contre un a un nombre d'image different de zero
-    assertNotEquals(mSlideshowFilesNames.size(), 0);
+  //  assertNotEquals(img.getWidth(), 0);
   }
-
+/*
   @Test
   public void testListImageTaskWithInternet() {
 

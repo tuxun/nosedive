@@ -61,5 +61,9 @@
   <string name="there_is_no_files">Pas de fichiers, activez le wifi et réessayez</string>
   <string name="files_list_ok">Liste des photos OK</string>
   <string name="download_files_ended">Téléchargement complet! Lancez le diapo</string>
-
+  <plurals name="missing_files_update_string">
+        <item quantity="one">%d photo OK, %d manquantes</item>
+        <item quantity="other">%d photos OK, %d manquantes</item>
+    </plurals>
+  <string name="loginTosaveConfigAcrossDevices">Login to save config acoss devices</string>
 </resources>
