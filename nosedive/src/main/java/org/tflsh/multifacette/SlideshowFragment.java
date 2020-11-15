@@ -207,7 +207,7 @@ Log.d(CLASSNAME, "makeImageClickable(): image is now clickable");
               TypedValue.COMPLEX_UNIT_DIP,
               pressMeTextSize);
           mSlideshowIsRunning = true;
-          ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setVisibility(View.VISIBLE);
+          requireView().findViewById(R.id.ui_press_meTextView).setVisibility(View.VISIBLE);
 
           for (long i = 0; i < mSlideshowFilesName.size() + 1; i++) {
             mSlideshowHandler.postDelayed(showNextRunnable, i * interFrameDelay);
@@ -287,18 +287,21 @@ Log.d(CLASSNAME, "makeImageClickable(): image is now clickable");
         if ((pwa % 2) == 0) {
 
         new BackgroundImageDecoder.ShowImageTask(ContextCompat.getMainExecutor(requireActivity()),
-              (ImageView) requireView().findViewById(R.id.imageView),
-              mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
-              interFrameDelay,screenHeight,screenWidth).start();
+            getContext(),
+            (ImageView) requireView().findViewById(R.id.imageView),
+            mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
+            interFrameDelay, screenHeight, screenWidth).start();
 
           ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(
               getResources().getColor(R.color.OurWhite, requireActivity().getTheme()));
         } else {
 
           new BackgroundImageDecoder.ShowImageTask(ContextCompat.getMainExecutor(requireActivity()),
+
+              getContext(),
               (ImageView) requireView().findViewById(R.id.imageView),
               mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
-              interFrameDelay,screenHeight,screenWidth).start();
+              interFrameDelay, screenHeight, screenWidth).start();
 
           ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(
               getResources().getColor(R.color.OurPink, requireActivity().getTheme()));
@@ -356,14 +359,15 @@ Log.d(CLASSNAME, "makeImageClickable(): image is now clickable");
     @Override
     public void run() {
       Log.d(CLASSNAME, "mShowImageAfterTwoWordsRunnable");
-      ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setVisibility(View.GONE);
+      requireView().findViewById(R.id.ui_press_meTextView).setVisibility(View.GONE);
 
       mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
       mSlideshowHandler.removeCallbacks(showNextRunnable);
       new BackgroundImageDecoder.ShowImageTask(ContextCompat.getMainExecutor(requireActivity()),
+          getContext(),
           (ImageView) requireView().findViewById(R.id.imageView),
           mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
-          0,screenHeight,screenWidth).start();
+          0, screenHeight, screenWidth).start();
 
       mSlideshowHandler.postDelayed(mHideMenuRunnable, uiDelay);
 

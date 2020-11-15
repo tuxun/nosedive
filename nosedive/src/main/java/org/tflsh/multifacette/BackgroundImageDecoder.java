@@ -1,11 +1,19 @@
 package org.tflsh.multifacette;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.util.Log;
 import android.widget.ImageView;
 import androidx.annotation.Nullable;
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executor;
 
@@ -72,11 +80,26 @@ public class BackgroundImageDecoder extends Activity {
     // Decode bitmap with inSampleSize set
     options.inJustDecodeBounds = false;
     return Bitmap.createScaledBitmap(BitmapFactory.decodeFile(res, options), width,
-       height, true);
-
+        height, true);
   }
 
+  public static Bitmap drawableToBitmap(Drawable drawable) {
+    if (drawable instanceof BitmapDrawable) {
+      return ((BitmapDrawable) drawable).getBitmap();
+    }
 
+    int width = drawable.getIntrinsicWidth();
+    width = width > 0 ? width : 1;
+    int height = drawable.getIntrinsicHeight();
+    height = height > 0 ? height : 1;
+
+    Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+    Canvas canvas = new Canvas(bitmap);
+    drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+    drawable.draw(canvas);
+
+    return bitmap;
+  }
   //asynchronous thread  which should:
   // -1 download file list on https://server/project/index.php
   // -2 save it under external_cache/files_list.json
@@ -97,27 +120,57 @@ public class BackgroundImageDecoder extends Activity {
   public static class ShowImageTask extends Thread {
     static final String CLASSNAME = "showImageFileTask";
     final WeakReference<ImageView> bmImage;
-    final int maxDelay;
+    private final Resources mResources;
     final String srcString;
     final long startTime;
     private final Executor executor;
-    final int      screenWidth;
-     final  int       screenHeight;
-    public ShowImageTask(Executor executorArg, ImageView bbmImage, @Nullable String urlSource,
-        int maxDelayParam,int screenHeightArg, int screenWidthArg) {
-      this.bmImage = new WeakReference<>(bbmImage);
+    final int screenWidth;
+    final int screenHeight;
+    private final Context mContext;
+    int maxDelay;
+
+    public ShowImageTask(Executor executorArg, Context ctxArg, ImageView bbmImage,
+        @Nullable String urlSource,
+        int maxDelayParam, int screenHeightArg, int screenWidthArg) {
+      this.bmImage = new WeakReference<ImageView>(bbmImage);
       this.maxDelay = maxDelayParam;
+      this.mResources = ctxArg.getResources();
+      this.mContext = ctxArg;
       this.srcString = urlSource;
       startTime = currentTimeMillis();
-      executor=executorArg;
-       screenWidth=screenWidthArg;
-          screenHeight=screenHeightArg;
+      executor = executorArg;
+      screenWidth = screenWidthArg;
+      screenHeight = screenHeightArg;
     }
 
     protected void doInBackground() {
       try {
+        Log.e(CLASSNAME, "trying to decode " + srcString);
+        final Bitmap result;
 
-        final Bitmap result = decodeSampledBitmapFromFilepath(srcString,screenWidth,screenHeight);
+        if (srcString.contains("MP4")) {
+          result = drawableToBitmap(mResources.getDrawable(R.drawable.ic_not_started_black, null));
+          Uri myUri = Uri.fromFile(new File(srcString));
+          MediaPlayer mediaPlayer = new MediaPlayer();
+  /*mediaPlayer.setAudioAttributes(
+      AudioAttributes.Builder()
+          .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+          .setUsage(AudioAttributes.USAGE_MEDIA)
+          .build()
+  );*/
+          mediaPlayer.setDataSource(mContext, myUri);
+          mediaPlayer.prepare();
+          mediaPlayer.start();
+
+          try {
+            Thread.sleep(10000);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+          }
+        } else {
+          result = decodeSampledBitmapFromFilepath(srcString, screenWidth, screenHeight);
+        }
 
         Runnable r = new Runnable() {
           public void run() {

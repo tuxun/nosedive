@@ -56,8 +56,8 @@ public class StartupFragment extends Fragment {
 
   private static final String TAG = "StartupFragment";
   private static final String CLASSNAME = "StartupFragment";
-  private  String mServerBaseProjectKey = "rescatest";
-  private  String mServerDirectoryUrl;
+  private String mServerBaseProjectKey = "mp4";
+  private String mServerDirectoryUrl;
   protected final Runnable mGrabJsonRunnable = new Runnable() {
       @Override
       public void run() {
@@ -112,6 +112,7 @@ public class StartupFragment extends Fragment {
   private ExecutorService executor;
   private Thread globalCheckThread = new Thread(new Runnable() {
     @Override public void run() {
+      Log.e(CLASSNAME, "globalCheckThread ");
 
       grabJson(mServerDirectoryUrl + mServerBaseProjectKey, false);
       checkFiles();
@@ -330,6 +331,7 @@ public class StartupFragment extends Fragment {
 
           globalCheckThread = new Thread(new Runnable() {
             @Override public void run() {
+              Log.e(CLASSNAME, "globalCheckThread repairFilesButton");
 
               grabJson(mServerDirectoryUrl + mServerBaseProjectKey, true);
               checkFiles();

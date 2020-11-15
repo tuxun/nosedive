@@ -109,6 +109,7 @@ onResume();
           Log.d(TAG, "intentReceiver got action JSON_ParseOk");
           ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(R.string.updatedJsonOK);
 
+         //we should do that elsewhere
           loadSlideshowFragment("jsonOk");
 
           break;
@@ -184,7 +185,7 @@ onResume();
                 String.format(Locale.FRANCE,"%s %d %s", getString(R.string.dl_progressText),
                     missingFilesNames.size() - downloadedFilesNumber, getString(R.string.files)));
             if (mSlideshowDownloadedFilesName.size() == missingFilesNames.size()) {
-              Log.e(TAG, "intentReceiver got action dl received, starting slideshow"
+              Log.d(TAG, "intentReceiver got action dl received, starting slideshow"
                   + mSlideshowFilesName.size());
               ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
                   R.string.download_files_ended);
@@ -197,7 +198,7 @@ onResume();
               findViewById(R.id.repairFilesButton).setOnClickListener(
                   new View.OnClickListener() {
                     @Override public void onClick(View view) {
-                      loadSlideshowFragment(DL_RECEIVED);
+                      loadSlideshowFragment("bouton clicked after " + DL_RECEIVED);
 
                       findViewById(R.id.startupScreenLinearSourceLayout).setVisibility(View.GONE);
                     }
@@ -207,12 +208,14 @@ onResume();
               ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(("Aucune photo, "
                   + (missingFilesNames.size() - downloadedFilesNumber)
                   + " manquantes"));     } else {
-              Log.e(TAG,
-                  "(missingFilesNames.size()-downloadedFilesNumber" + (missingFilesNames.size()
+              Log.d(TAG,
+                  "(missingFilesNames.size()-downloadedFilesNumber:  " + (missingFilesNames.size()
                       - downloadedFilesNumber));
 
               ((TextView) findViewById(R.id.ui_dl_progressTextView)).setText(
-                  String.format(Locale.FRANCE,getResources().getQuantityString(R.plurals.missing_files_update_string,mSlideshowFilesName.size()), mSlideshowFilesName.size(),
+                  String.format(Locale.FRANCE,
+                      getResources().getQuantityString(R.plurals.missing_files_update_string,
+                          mSlideshowFilesName.size()), mSlideshowFilesName.size(),
                       missingFilesNames.size()
                           - downloadedFilesNumber));
             }
@@ -406,9 +409,9 @@ onResume();
           + "received, mSlideshowDownloadedFilesName"
           + mSlideshowDownloadedFilesName.size());
     } else {
-      Log.e(TAG, fromIntent + "received, mSlideshowFilesName" + mSlideshowFilesName.size());
-      Log.e(TAG, fromIntent + "received, missingFilesNames" + missingFilesNames.size());
-      Log.e(TAG, fromIntent
+      Log.d(TAG, fromIntent + "received, mSlideshowFilesName" + mSlideshowFilesName.size());
+      Log.d(TAG, fromIntent + "received, missingFilesNames" + missingFilesNames.size());
+      Log.d(TAG, fromIntent
           + "received, mSlideshowDownloadedFilesName"
           + mSlideshowDownloadedFilesName.size());
 

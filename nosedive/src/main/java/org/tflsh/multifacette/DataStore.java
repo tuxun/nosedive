@@ -33,7 +33,7 @@ import static java.util.Objects.requireNonNull;
   //temps durant lequel on peut choisir deux mots (en multiple d'interframedelay)
   protected int choiceDelay = 10000;
   protected long uiDelay = 300;
-  protected String projectKey = "rescatest";
+  protected String projectKey = "mp4";
   protected String baseUrl = "https://dev.tuxun.fr/nosedive/";
 
   protected boolean syncProjectOnNextStartup = false;

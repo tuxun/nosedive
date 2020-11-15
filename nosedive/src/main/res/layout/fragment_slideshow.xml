@@ -52,6 +52,14 @@
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="match_parent"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/portrait_de_julia"
+            android:scaleType="fitStart"
+            android:src="@drawable/default_background"
+            />
+        <TextureView
+            android:id="@+id/videoView"
+            android:layout_width="match_parent"
             android:layout_height="500dp"
             android:adjustViewBounds="true"
             android:contentDescription="@string/portrait_de_julia"
@@ -59,7 +67,6 @@
             android:src="@drawable/default_background"
             android:maxHeight="500dp"
             />
-
 
       </LinearLayout>
       <LinearLayout
