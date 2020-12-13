@@ -66,3 +66,7 @@ t
 Dnosedive/src/main/java/org/tflsh/multifacette/SlideshowFragment.java,9/6/966136dcd0a8e8160839ed7d9d7d97d9755a463c
 x
 Hnosedive/src/main/java/org/tflsh/multifacette/EmailPasswordActivity.java,0/1/01267afac6804c89628657999c304d4b9cc1fd76
+o
+?nosedive/src/main/java/org/tflsh/multifacette/VideoDecoder.java,d/b/dbec6fdb93867106757d3bf64a30abdb8ab31430
+p
+@nosedive/src/main/java/org/tflsh/multifacette/VideoActivity.java,0/f/0f683fb10b69e1a14088d73cec33e5fa5a925386

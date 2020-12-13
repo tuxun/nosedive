@@ -8,12 +8,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.util.Log;
+import android.view.TextureView;
 import android.widget.ImageView;
 import androidx.annotation.Nullable;
-import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executor;
 
@@ -127,12 +125,15 @@ public class BackgroundImageDecoder extends Activity {
     final int screenWidth;
     final int screenHeight;
     private final Context mContext;
+    private final WeakReference<TextureView> textureView;
     int maxDelay;
 
     public ShowImageTask(Executor executorArg, Context ctxArg, ImageView bbmImage,
+        TextureView textureViewArg,
         @Nullable String urlSource,
         int maxDelayParam, int screenHeightArg, int screenWidthArg) {
       this.bmImage = new WeakReference<ImageView>(bbmImage);
+      this.textureView = new WeakReference<TextureView>(textureViewArg);
       this.maxDelay = maxDelayParam;
       this.mResources = ctxArg.getResources();
       this.mContext = ctxArg;
@@ -148,29 +149,8 @@ public class BackgroundImageDecoder extends Activity {
         Log.e(CLASSNAME, "trying to decode " + srcString);
         final Bitmap result;
 
-        if (srcString.contains("MP4")) {
-          result = drawableToBitmap(mResources.getDrawable(R.drawable.ic_not_started_black, null));
-          Uri myUri = Uri.fromFile(new File(srcString));
-          MediaPlayer mediaPlayer = new MediaPlayer();
-  /*mediaPlayer.setAudioAttributes(
-      AudioAttributes.Builder()
-          .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-          .setUsage(AudioAttributes.USAGE_MEDIA)
-          .build()
-  );*/
-          mediaPlayer.setDataSource(mContext, myUri);
-          mediaPlayer.prepare();
-          mediaPlayer.start();
 
-          try {
-            Thread.sleep(10000);
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-            Thread.currentThread().interrupt();
-          }
-        } else {
           result = decodeSampledBitmapFromFilepath(srcString, screenWidth, screenHeight);
-        }
 
         Runnable r = new Runnable() {
           public void run() {

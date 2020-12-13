@@ -31,6 +31,7 @@ import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -564,32 +565,37 @@ public class StartupFragment extends Fragment {
   NetworkOnMainThreadException e) {
     Log.e(CLASSNAME, "UNABLE TO REACH INTERNET!");
 
-    e.printStackTrace();
+      // e.printStackTrace();
     return null;
   } catch (
         SSLException e) {
       Log.e(CLASSNAME, "SSL exception " + getString(R.string.downloadError));
       ((TextView) requireView().findViewById(R.id.ui_dl_progressTextView)).setText(
           R.string.downloadError);
-      e.printStackTrace();
-      return localFile;
+      //e.printStackTrace();
+      return null;//localFile;
     } catch (
         MalformedURLException e) {
       Log.e(CLASSNAME, "bad url");
 
-      e.printStackTrace();
-      return localFile;
+      //e.printStackTrace();
+      return null;//localFile;
     } catch (ConnectException e) {
       Log.e(CLASSNAME,
           "Unable to download json file from internet (we think we have internet but we dont");
-      e.printStackTrace();
+      // e.printStackTrace();
+      return null;
+    } catch (
+        UnknownHostException e) {
+      Log.e(CLASSNAME, "Unable to download json file from internet");
+      //  e.printStackTrace();
+
       return null;
     } catch (
         IOException e) {
       Log.e(CLASSNAME, "Unable to download json file from internet");
-      e.printStackTrace();
 
-      return localFile;
+      return null;
     } catch (InterruptedException e) {
       e.printStackTrace();
       Thread.currentThread().interrupt();

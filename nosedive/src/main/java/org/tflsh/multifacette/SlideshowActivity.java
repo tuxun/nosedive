@@ -333,7 +333,7 @@ onResume();
     AppCompatDelegate.setDefaultNightMode(
         AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM); //For night mode theme
 
-    setContentView(R.layout.activity_fullscreen);
+    setContentView(R.layout.activity_main_fullscreen);
     Log.d("activity", "onCreate" + getIntent());
   }
 

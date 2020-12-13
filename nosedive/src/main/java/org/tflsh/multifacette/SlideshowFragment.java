@@ -3,6 +3,7 @@ package org.tflsh.multifacette;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -11,6 +12,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -275,49 +277,95 @@ Log.d(CLASSNAME, "makeImageClickable(): image is now clickable");
   public final Runnable showNextRunnable = new Runnable() {
     @Override
     public void run() {
-      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
 
-      int lastIndex = nextImageToShowIndex;
-      nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
-      if (lastIndex == nextImageToShowIndex) {
-        nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
-        Log.e(CLASSNAME, "mShowNextRunnable: avoiding to show same image twice");
-      }
-      if (pwa < mSlideshowFilesName.size()) {
-        if ((pwa % 2) == 0) {
-
-        new BackgroundImageDecoder.ShowImageTask(ContextCompat.getMainExecutor(requireActivity()),
-            getContext(),
-            (ImageView) requireView().findViewById(R.id.imageView),
-            mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
-            interFrameDelay, screenHeight, screenWidth).start();
-
-          ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(
-              getResources().getColor(R.color.OurWhite, requireActivity().getTheme()));
-        } else {
-
-          new BackgroundImageDecoder.ShowImageTask(ContextCompat.getMainExecutor(requireActivity()),
-
-              getContext(),
-              (ImageView) requireView().findViewById(R.id.imageView),
-              mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
-              interFrameDelay, screenHeight, screenWidth).start();
-
-          ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(
-              getResources().getColor(R.color.OurPink, requireActivity().getTheme()));
-        }
-
-        pwa++;
-      } else {
-        Log.d(CLASSNAME, "mShowNextRunnable: no more images, restarting slideshow");
-        pwa = 0;
-        mSlideshowIsRunning = false;
-        mSlideshowHandler.post(mStartSlideshowRunnable);
-      }
+      next(mSlideshowFilesName.get(nextImageToShowIndex), interFrameDelay);
     }
 
     // Code here will run in UI thread
   };
+  /**
+   * Runnable mShowImageAfterTwoWordsRunnable
+   * replace the menu with a random image from the slideshow, wait for "delay", then restart
+   * slideshow
+   */
+  private final Runnable mShowImageAfterTwoWordsRunnable = new Runnable() {
+
+    @Override
+    public void run() {
+      Log.d(CLASSNAME, "mShowImageAfterTwoWordsRunnable");
+      requireView().findViewById(R.id.ui_press_meTextView).setVisibility(View.GONE);
+
+      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+      mSlideshowHandler.removeCallbacks(showNextRunnable);
+      next(mSlideshowFilesName.get(nextImageToShowIndex), 0);
+
+      mSlideshowHandler.postDelayed(mHideMenuRunnable, uiDelay);
+
+      mSlideshowHandler.postDelayed(mStartSlideshowRunnable, guessingDelay);
+    }
+  };
+
+  void next(String fileName, int delay) {
+
+    //video management
+
+    mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
+
+    int lastIndex = nextImageToShowIndex;
+    nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
+    if (lastIndex == nextImageToShowIndex) {
+      nextImageToShowIndex = new Random().nextInt(mSlideshowFilesName.size());
+      Log.e(CLASSNAME, "mShowNextRunnable: avoiding to show same image twice");
+    }
+    if (pwa < mSlideshowFilesName.size()) {
+
+      if (fileName.contains("MP4")) {
+        Intent mIntent = new Intent(getActivity(), VideoActivity.class);
+        mIntent.putExtra("filename", "/data/user/0/org.tflsh.multifacette/cache/" + fileName);
+        Log.d(CLASSNAME, "starting video activity()" + fileName);
+
+        startActivity(mIntent);
+        pwa++;
+
+        return;
+      }
+
+      //for images
+      if ((pwa % 2) == 0) {
+
+        new BackgroundImageDecoder.ShowImageTask(ContextCompat.getMainExecutor(requireActivity()),
+            getContext(),
+            (ImageView) requireView().findViewById(R.id.imageView),
+            (TextureView) requireView().findViewById(R.id.videoView),
+
+            mCacheDirPath + "/" + fileName,
+            interFrameDelay, screenHeight, screenWidth).start();
+
+        ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(
+            getResources().getColor(R.color.OurWhite, requireActivity().getTheme()));
+      } else {
+
+        new BackgroundImageDecoder.ShowImageTask(ContextCompat.getMainExecutor(requireActivity()),
+
+            getContext(),
+            (ImageView) requireView().findViewById(R.id.imageView),
+            (TextureView) requireView().findViewById(R.id.videoView),
+            mCacheDirPath + "/" + fileName,
+            interFrameDelay, screenHeight, screenWidth).start();
+
+        ((TextView) requireView().findViewById(R.id.ui_press_meTextView)).setTextColor(
+            getResources().getColor(R.color.OurPink, requireActivity().getTheme()));
+      }
+
+      pwa++;
+    } else {
+      Log.d(CLASSNAME, "mShowNextRunnable: no more images, restarting slideshow");
+      pwa = 0;
+      mSlideshowIsRunning = false;
+      mSlideshowHandler.post(mStartSlideshowRunnable);
+    }
+  }
+
   private int uiDelay;
   /**
    * Touch listener to use for in-layout UI controls to delay hiding the
@@ -349,31 +397,7 @@ Log.d(CLASSNAME, "makeImageClickable(): image is now clickable");
 
     makeButtons();
   }
-  /*
-   * Runnable mShowImageAfterTwoWordsRunnable
-   * replace the menu with a random image from the slideshow, wait for "delay", then restart
-   * slideshow
-   */
-  private final Runnable mShowImageAfterTwoWordsRunnable = new Runnable() {
 
-    @Override
-    public void run() {
-      Log.d(CLASSNAME, "mShowImageAfterTwoWordsRunnable");
-      requireView().findViewById(R.id.ui_press_meTextView).setVisibility(View.GONE);
-
-      mSlideshowHandler.removeCallbacks(mStartSlideshowRunnable);
-      mSlideshowHandler.removeCallbacks(showNextRunnable);
-      new BackgroundImageDecoder.ShowImageTask(ContextCompat.getMainExecutor(requireActivity()),
-          getContext(),
-          (ImageView) requireView().findViewById(R.id.imageView),
-          mCacheDirPath + "/" + mSlideshowFilesName.get(nextImageToShowIndex),
-          0, screenHeight, screenWidth).start();
-
-      mSlideshowHandler.postDelayed(mHideMenuRunnable, uiDelay);
-
-      mSlideshowHandler.postDelayed(mStartSlideshowRunnable, guessingDelay);
-    }
-  };
 
   @Nullable
   @Override

@@ -55,6 +55,8 @@
             android:adjustViewBounds="true"
             android:contentDescription="@string/portrait_de_julia"
             android:scaleType="fitStart"
+            android:layout_height="500dp"
+
             android:src="@drawable/default_background"
             />
         <TextureView
